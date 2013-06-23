@@ -589,7 +589,7 @@ class navigation_node implements renderable {
     public function find_expandable(array &$expandable) {
         foreach ($this->children as &$child) {
             if ($child->display && $child->has_children() && $child->children->count() == 0) {
-                $child->id = 'expandable_branch_'.(count($expandable)+1);
+                $child->id = 'expandable_branch_'.$child->key;//(count($expandable)+1);
                 $this->add_class('canexpand');
                 $expandable[] = array('id' => $child->id, 'key' => $child->key, 'type' => $child->type);
             }
