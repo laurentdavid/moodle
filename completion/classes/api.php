@@ -123,4 +123,25 @@ class api {
 
         return true;
     }
+
+    /**
+     * Hide completion for date event attached to this module
+     *
+     * This is used to hide the event, so it does not appear on the upcoming calendar
+     * for example.
+     *
+     * @param int $cmid The course module id
+     * @return void
+     */
+    public static function hide_completion_for_date_event($cmid) {
+        global $DB;
+        /* @var \cm_info $cm the intended course module */
+        [$course, $cm] = get_course_and_cm_from_cmid($cmid);
+        $DB->set_field('event', 'visible', false,
+            [
+                'modulename' => $cm->modname,
+                'instance' => $cm->instance,
+                'eventtype' => self::COMPLETION_EVENT_TYPE_DATE_COMPLETION_EXPECTED
+            ]);
+    }
 }

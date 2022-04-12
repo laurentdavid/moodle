@@ -130,6 +130,43 @@ class api_test extends \advanced_testcase {
         $this->assertEquals(0, $DB->count_records('event'));
     }
 
+    /**
+     * Checks that completed activities do not show.
+     * @return void
+     */
+    public function test_update_completion_date_event_completed() {
+        global $CFG, $DB;
+
+        $this->setAdminUser();
+
+        // Create a course.
+        $course = $this->getDataGenerator()->create_course(['enablecompletion' => 1]);
+        $user = $this->getDataGenerator()->create_and_enrol($course);
+        // Create an assign activity with a time set.
+        $time = time();
+        $assign = $this->getDataGenerator()->create_module(
+            'assign', ['course' => $course->id, 'completion' => COMPLETION_TRACKING_MANUAL]);
+
+        // Create the event but set it to tomorrow.
+        $CFG->enablecompletion = true;
+        \core_completion\api::update_completion_date_event($assign->cmid, 'assign', $assign,
+            $time + DAYSECS);
+
+        // Check that there is an event in the database related to this activity.
+        $this->assertEquals(1, $DB->count_records('event'));
+        $events = array_values($DB->get_records('event'));
+        $this->assertEquals('1', $events[0]->visible);
+        // Complete the activity.
+        $completion = new \completion_info($course);
+        $cmassign = get_coursemodule_from_id('assign', $assign->cmid);
+        // This should trigger another call to the update_completion_date_event.
+        $completion->update_state($cmassign, COMPLETION_COMPLETE, $user->id);
+        // Check that there is no more event.
+        $this->assertEquals(1, $DB->count_records('event'));
+        $events = array_values($DB->get_records('event'));
+        $this->assertEquals('0', $events[0]->visible);
+    }
+
     public function test_update_completion_date_event_completion_disabled() {
         global $CFG, $DB;
 

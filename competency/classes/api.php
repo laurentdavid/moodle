@@ -4646,6 +4646,7 @@ class api {
 
         if ($eventdata->completionstate == COMPLETION_COMPLETE
                 || $eventdata->completionstate == COMPLETION_COMPLETE_PASS) {
+            \core_completion\api::hide_completion_for_date_event($eventdata->coursemoduleid);
             $coursemodulecompetencies = course_module_competency::list_course_module_competencies($eventdata->coursemoduleid);
 
             $cm = get_coursemodule_from_id(null, $eventdata->coursemoduleid);
