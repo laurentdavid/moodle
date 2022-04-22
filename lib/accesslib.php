@@ -2259,6 +2259,7 @@ function update_capabilities($component = 'moodle') {
         }
     }
 
+
     // It is possible somebody directly modified the DB (according to accesslib_test anyway).
     // So ensure our updating is based on fresh data.
     cache::make('core', 'capabilities')->delete('core_capabilities');
@@ -2523,12 +2524,76 @@ function is_inside_frontpage(context $context) {
  */
 function get_capability_info($capabilityname) {
     $caps = get_all_capabilities();
-
+    // Check for deprecated capability.
+    if ($deprecatedinfo = get_deprecated_capability_info($capabilityname)) {
+        if (!empty($deprecatedinfo['replacement'])) {
+            // Let's try again with this capability if it exists.
+            if (isset($caps[$deprecatedinfo['replacement']])) {
+                $capabilityname = $deprecatedinfo['replacement'];
+            } else {
+                debugging("Capability '{$capabilityname}' was supposed to be replaced with ".
+                    "'{$deprecatedinfo['replacement']}', which does not exist !");
+            }
+        }
+        $fullmessage = $deprecatedinfo['fullmessage'];
+        debugging($fullmessage, DEBUG_DEVELOPER);
+    }
     if (!isset($caps[$capabilityname])) {
         return null;
     }
 
     return (object) $caps[$capabilityname];
+}
+
+/**
+ * Returns deprecation info for this particular capabilty (cached)
+ *
+ * Do not use this function except in the get_capability_info
+ *
+ * @param string $capabilityname
+ * @return stdClass|null with deprecation message and potential replacement if not null
+ */
+function get_deprecated_capability_info($capabilityname) {
+    // Here if we do like get_all_capabilities, we run into performance issues as the full array is unserialised each time.
+    // We could have used an adhoc task but this also had performance issue. Last solution was to create a cache using
+    // the official caches.php file. The performance issue shows in test_permission_evaluation.
+    $cache = cache::make('core', 'deprecatedcapabilities');
+    // Cache has not be initialised.
+    if (!$cache->get('deprecated_capabilities_initialised')) {
+        // Look for deprecated capabilities in each components.
+        $allcaps = get_all_capabilities();
+        $components = [];
+        $alldeprecatedcaps = [];
+        foreach ($allcaps as $cap) {
+            if (!in_array($cap['component'], $components)) {
+                $components[] = $cap['component'];
+                $defpath = core_component::get_component_directory($cap['component']).'/db/access.php';
+                if (file_exists($defpath)) {
+                    $deprecatedcapabilities = [];
+                    require($defpath);
+                    if (!empty($deprecatedcapabilities)) {
+                        foreach ($deprecatedcapabilities as $cname => $cdef) {
+                            $cache->set($cname, $cdef);
+                        }
+                    }
+                }
+            }
+        }
+        $cache->set('deprecated_capabilities_initialised', true);
+    }
+    if (!$cache->has($capabilityname)) {
+        return null;
+    }
+    $deprecatedinfo = $cache->get($capabilityname);
+    $deprecatedinfo['fullmessage'] = "The capability '{$capabilityname}' is deprecated.";
+    if (!empty($deprecatedinfo['message'])) {
+        $deprecatedinfo['fullmessage'] .= $deprecatedinfo['message'];
+    }
+    if (!empty($deprecatedinfo['replacement'])) {
+        $deprecatedinfo['fullmessage'] .=
+            "It will be replaced by '{$deprecatedinfo['replacement']}'.";
+    }
+    return $deprecatedinfo;
 }
 
 /**
