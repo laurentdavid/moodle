@@ -448,6 +448,16 @@ function has_capability($capability, context $context, $user = null, $doanything
         throw new coding_exception('Capability parameter "doanything" is wierd, only true or false is allowed. This has to be fixed in code.');
     }
 
+    // Check for deprecated capability.
+    if ($deprecatedinfo = get_deprecated_capability_info($capability)) {
+        if (!empty($deprecatedinfo['replacement'])) {
+            // Let's try again with this capability.
+            $capability = $deprecatedinfo['replacement'];
+        }
+        $fullmessage = $deprecatedinfo['fullmessage'];
+        debugging($fullmessage);
+    }
+
     // capability must exist
     if (!$capinfo = get_capability_info($capability)) {
         debugging('Capability "'.$capability.'" was not found! This has to be fixed in code.');
@@ -1386,7 +1396,11 @@ function assign_capability($capability, $permission, $roleid, $contextid, $overw
 
     // Capability must exist.
     if (!$capinfo = get_capability_info($capability)) {
-        throw new coding_exception("Capability '{$capability}' was not found! This has to be fixed in code.");
+        $fullmessage = "Capability '{$capability}' was not found! This has to be fixed in code.";
+        if ($deprecatedinfo = get_deprecated_capability_info($capability)) {
+            $fullmessage = $deprecatedinfo['fullmessage'];
+        }
+        throw new coding_exception($fullmessage);
     }
 
     if (empty($permission) || $permission == CAP_INHERIT) { // if permission is not set
@@ -1447,8 +1461,12 @@ function unassign_capability($capability, $roleid, $contextid = null) {
     global $DB, $USER;
 
     // Capability must exist.
-    if (!$capinfo = get_capability_info($capability)) {
-        throw new coding_exception("Capability '{$capability}' was not found! This has to be fixed in code.");
+    if (!get_capability_info($capability)) {
+        $fullmessage = "Capability '{$capability}' was not found! This has to be fixed in code.";
+        if ($deprecatedinfo = get_deprecated_capability_info($capability)) {
+            $fullmessage = $deprecatedinfo['fullmessage'];
+        }
+        throw new coding_exception($fullmessage);
     }
 
     if (!empty($contextid)) {
@@ -2041,6 +2059,8 @@ function can_access_course(stdClass $course, $user = null, $withcapability = '',
  * Loads the capability definitions for the component (from file). If no
  * capabilities are defined for the component, we simply return an empty array.
  *
+ * It also stores the deprecated capabilities in a cache for later use.
+ *
  * @access private
  * @param string $component full plugin name, examples: 'moodle', 'mod_forum'
  * @return array array of capabilities
@@ -2258,6 +2278,7 @@ function update_capabilities($component = 'moodle') {
             debugging("Coding problem: Invalid capability name '$capname', use 'clonepermissionsfrom' field for migration.");
         }
     }
+
 
     // It is possible somebody directly modified the DB (according to accesslib_test anyway).
     // So ensure our updating is based on fresh data.
@@ -2529,6 +2550,49 @@ function get_capability_info($capabilityname) {
     }
 
     return (object) $caps[$capabilityname];
+}
+
+/**
+ * Returns deprecation info for this particular capabilty (cached)
+ *
+ * @param string $capabilityname
+ * @return stdClass|null with deprecation message and potential replacement if not null
+ */
+function get_deprecated_capability_info($capabilityname) {
+    $cache = cache::make('core', 'capabilities');
+    $alldeprecatedcaps = $cache->get('core_deprecated_capabilities');
+    // Cache has not be initialised.
+    if ($alldeprecatedcaps === false) {
+        // Look for deprecated capabilities in each components.
+        $allcaps = get_all_capabilities();
+        $components = [];
+        $alldeprecatedcaps = [];
+        foreach ($allcaps as $cap) {
+            if (!in_array($cap['component'], $components)) {
+                $components[] = $cap['component'];
+                $defpath = core_component::get_component_directory($cap['component']).'/db/access.php';
+                if (file_exists($defpath)) {
+                    $deprecatedcapabilities = [];
+                    require($defpath);
+                    $alldeprecatedcaps = array_merge($alldeprecatedcaps, $deprecatedcapabilities);
+                }
+            }
+        }
+        $cache->set('core_deprecated_capabilities', $alldeprecatedcaps);
+    }
+    if (!isset($alldeprecatedcaps[$capabilityname])) {
+        return null;
+    }
+    $deprecatedinfo = $alldeprecatedcaps[$capabilityname];
+    $deprecatedinfo['fullmessage'] = "The capability '{$capabilityname}' is deprecated.";
+    if (!empty($deprecatedinfo['message'])) {
+        $deprecatedinfo['fullmessage'] .= $deprecatedinfo['message'];
+    }
+    if (!empty($deprecatedinfo['replacement'])) {
+        $deprecatedinfo['fullmessage'] .=
+            "It can be replaced by . {$deprecatedinfo['message']}.";
+    }
+    return $deprecatedinfo;
 }
 
 /**
