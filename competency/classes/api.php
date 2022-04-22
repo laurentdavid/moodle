@@ -5252,7 +5252,11 @@ class api {
         }
 
         if (!$capinfo = get_capability_info($capability)) {
-            throw new coding_exception('Capability does not exist: ' . $capability);
+            $fullmessage = 'Capability does not exist: ' . $capability;
+            if ($deprecatedinfo = get_deprecated_capability_info($capability)) {
+                $fullmessage = $deprecatedinfo['fullmessage'];
+            }
+            throw new coding_exception($fullmessage);
         }
 
         if (empty($userid)) {

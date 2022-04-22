@@ -574,7 +574,11 @@ class behat_core_generator extends behat_generator_base {
         }
 
         if (is_null(get_capability_info($data['capability']))) {
-            throw new Exception('The \'' . $data['capability'] . '\' capability does not exist');
+            $fullmessage = 'The \'' . $data['capability'] . '\' capability does not exist';
+            if ($deprecatedinfo = get_deprecated_capability_info($data['capability'])) {
+                $fullmessage = $deprecatedinfo['fullmessage'];
+            }
+            throw new Exception($fullmessage);
         }
 
         role_change_permission($data['roleid'], $context, $data['capability'], $permission);

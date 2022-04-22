@@ -1883,6 +1883,66 @@ class core_accesslib_testcase extends advanced_testcase {
     }
 
     /**
+     * Utility method to fake a plugin
+     *
+     * @param string $pluginname plugin name
+     * @return void
+     */
+    protected function setup_fake_plugin($pluginname) {
+        global $CFG;
+        // Here we have to hack the component loader so we can insert our fake plugin and test that
+        // the access.php works. This will need to be reviewed as it is currently a (small) hack.
+        // TODO: Add a way to dynamically change the fetch_component_source json list: a method that can only be used in PHP
+        // Unit / Behat test for example for specific tests.
+        $mockedcomponent = new ReflectionClass(core_component::class);
+        $mockedplugins = $mockedcomponent->getProperty('plugins');
+        $mockedplugins->setAccessible(true);
+        $plugins = $mockedplugins->getValue();
+        $plugins['fake'] = [$pluginname => "{$CFG->dirroot}/lib/tests/fixtures/fakeplugins/$pluginname"];
+        $mockedplugins->setValue($plugins);
+        update_capabilities('fake_access');
+        // End of the component loader mock.
+    }
+
+    /**
+     * Test get_deprecated_capability_info()
+     *
+     * @covers ::get_deprecated_capability_info
+     */
+    public function test_get_deprecated_capability_info() {
+        $this->resetAfterTest();
+        $course = $this->getDataGenerator()->create_course();
+        $coursecontext = context_course::instance($course->id);
+        $user = $this->getDataGenerator()->create_and_enrol($course);
+        $this->setup_fake_plugin('access');
+
+        // For now we have deprecated moodle/course:useremail.
+        $capinfo = get_deprecated_capability_info('fake/access:fakecapability');
+        $this->assertNotEmpty($capinfo);
+        $this->assertEquals("The capability 'fake/access:fakecapability' is"
+            . " deprecated.This capability should not be used anymore.", $capinfo['fullmessage']);
+    }
+
+    /**
+     * Test get_deprecated_capability_info() through has_capability
+     *
+     * @covers ::get_deprecated_capability_info
+     */
+    public function test_get_deprecated_capability_info_through_has_access() {
+        $this->resetAfterTest();
+        $course = $this->getDataGenerator()->create_course();
+        $coursecontext = context_course::instance($course->id);
+        $user = $this->getDataGenerator()->create_and_enrol($course);
+        $this->setup_fake_plugin('access');
+
+        // For now we have deprecated moodle/course:useremail.
+        $hascap = has_capability('fake/access:fakecapability', $coursecontext, $user);
+        $this->assertFalse($hascap);
+        $this->assertDebuggingCalled("The capability 'fake/access:fakecapability' is deprecated."
+            . "This capability should not be used anymore.");
+    }
+
+    /**
      * Test that assigning a fake cap does not return.
      */
     public function test_fake_capability() {
