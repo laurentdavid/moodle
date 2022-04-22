@@ -2035,7 +2035,11 @@ class restore_course_structure_step extends restore_structure_step {
                 $capability = 'mod/' . $modname . ':addinstance';
 
                 if (!get_capability_info($capability)) {
-                    $this->log("Capability '{$capability}' was not found!", backup::LOG_WARNING);
+                    $notfoundmessage = "Capability '{$capability}' was not found!";
+                    if ($deprecatedinfo = get_deprecated_capability_info($capability)) {
+                        $notfoundmessage = $deprecatedinfo['fullmessage'];
+                    }
+                    $this->log($notfoundmessage, backup::LOG_WARNING);
                     continue;
                 }
 
@@ -2171,7 +2175,11 @@ class restore_ras_and_caps_structure_step extends restore_structure_step {
         // If newroleid and context are valid assign it via API (it handles dupes and so on)
         if ($newroleid && $this->task->get_contextid()) {
             if (!$capability = get_capability_info($data->capability)) {
-                $this->log("Capability '{$data->capability}' was not found!", backup::LOG_WARNING);
+                $notfoundmessage = "Capability '{$data->capability}' was not found!";
+                if ($deprecatedinfo = get_deprecated_capability_info($data->capability)) {
+                    $notfoundmessage = $deprecatedinfo['fullmessage'];
+                }
+                $this->log($notfoundmessage, backup::LOG_WARNING);
             } else {
                 $context = context::instance_by_id($this->task->get_contextid());
                 $overrideableroles = get_overridable_roles($context, ROLENAME_SHORT);

@@ -658,8 +658,12 @@ class block_base {
             // Debug warning that the capability does not exist, but no more than once per page.
             static $warned = array();
             if (!isset($warned[$this->name()])) {
+                $deprecatedmessage = '';
+                if ($deprecatedinfo = get_deprecated_capability_info($capability)) {
+                    $deprecatedmessage = $deprecatedinfo['fullmessage'];
+                }
                 debugging('The block ' .$this->name() . ' does not define the standard capability ' .
-                        $capability , DEBUG_DEVELOPER);
+                        $capability . $deprecatedmessage, DEBUG_DEVELOPER);
                 $warned[$this->name()] = 1;
             }
             // If the capability does not exist, the block can always be added.

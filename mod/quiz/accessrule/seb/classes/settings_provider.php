@@ -821,7 +821,11 @@ class settings_provider {
         foreach ($capsttocheck as $capability) {
             // Capability must exist.
             if (!$capinfo = get_capability_info($capability)) {
-                throw new \coding_exception("Capability '{$capability}' was not found! This has to be fixed in code.");
+                $fullmessage = "Capability '{$capability}' was not found! This has to be fixed in code.";
+                if ($deprecatedinfo = get_deprecated_capability_info($capability)) {
+                    $fullmessage = $deprecatedinfo['fullmessage'];
+                }
+                throw new \coding_exception($fullmessage);
             }
         }
 
