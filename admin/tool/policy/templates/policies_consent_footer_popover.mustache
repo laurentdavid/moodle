@@ -1,0 +1,52 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+    @template tool_policy/policy_consent_footer_popover
+
+    Template for the policy consent message (see tool policy)
+
+    Context variables required for this template:
+    * viewallurl - url for the view all policies button
+
+
+    Example context (json):
+    {
+        "viewallurl": "https://example.com",
+    }
+}}
+<div class="tool_policy tool-policy-consent-footer-popover">
+    <div>
+        <a class="show-popup" role="button" id="show-popup-{{uniqid}}">
+            {{# str }} policiesconsent:button:showbanner, tool_policy {{/ str }}
+        </a>
+    </div>
+    <div>
+        <a class="user-policies-settings" role="button" href="{{viewallurl}}">
+            {{# str }} userpolicysettings, tool_policy {{/ str }}
+        </a>
+    </div>
+    {{#js}}
+        // The footer-popover script captures all event, even clicks.
+        // So we need to capture click events before the popover does it...
+        document.querySelector('body').addEventListener('click', e => {
+            if (e.target.id == "show-popup-{{uniqid}}") {
+                const event = new Event('trigger-policy-popup');
+                document.dispatchEvent(event);
+                e.preventDefault();
+            }
+        });
+    {{/js}}
+</div>

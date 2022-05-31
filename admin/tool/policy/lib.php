@@ -72,47 +72,44 @@ function tool_policy_myprofile_navigation(tree $tree, $user, $iscurrentuser, $co
 }
 
 /**
- * Load policy message for guests.
- *
- * @return string The HTML code to insert before the head.
- */
-function tool_policy_before_standard_html_head() {
-    global $CFG, $PAGE, $USER;
-
-    $message = null;
-    if (!empty($CFG->sitepolicyhandler)
-            && $CFG->sitepolicyhandler == 'tool_policy'
-            && empty($USER->policyagreed)
-            && (isguestuser() || !isloggedin())) {
-        $output = $PAGE->get_renderer('tool_policy');
-        try {
-            $page = new \tool_policy\output\guestconsent();
-            $message = $output->render($page);
-        } catch (dml_read_exception $e) {
-            // During upgrades, the new plugin code with new SQL could be in place but the DB not upgraded yet.
-            $message = null;
-        }
-    }
-
-    return $message;
-}
-
-/**
  * Callback to add footer elements.
+ *
+ * Now in 4.0 this is in the popup.
  *
  * @return string HTML footer content
  */
 function tool_policy_standard_footer_html() {
     global $CFG, $PAGE;
+    $output = '';
+    if (!empty($CFG->sitepolicyhandler)
+        && $CFG->sitepolicyhandler == 'tool_policy') {
+        $policies = api::get_current_versions_ids();
+        if (!empty($policies)) {
+            $renderer = $PAGE->get_renderer('tool_policy');
+            $output = $renderer->render_from_template('tool_policy/policies_consent_footer_popover', [
+                'viewallurl' => new moodle_url('/admin/tool/policy/viewall.php', ['returnurl' => $PAGE->url])
+            ]);
+        }
+    }
+    return $output;
+}
+
+/**
+ * Callback to add before footer elements.
+ *
+ * @return string HTML footer content
+ */
+function tool_policy_before_footer() {
+    global $CFG, $PAGE;
 
     $output = '';
     if (!empty($CFG->sitepolicyhandler)
-            && $CFG->sitepolicyhandler == 'tool_policy') {
+        && $CFG->sitepolicyhandler == 'tool_policy') {
         $policies = api::get_current_versions_ids();
         if (!empty($policies)) {
-            $url = new moodle_url('/admin/tool/policy/viewall.php', ['returnurl' => $PAGE->url]);
-            $output .= html_writer::link($url, get_string('userpolicysettings', 'tool_policy'));
-            $output = html_writer::div($output, 'policiesfooter');
+            $renderer = $PAGE->get_renderer('tool_policy');
+            $page = new \tool_policy\output\policies_consent();
+            $output = html_writer::div($renderer->render($page), '', ['id' => 'tool-policy-footer']);
         }
     }
 
@@ -151,7 +148,7 @@ function tool_policy_pre_signup_requests() {
  * @param array $options additional options affecting the file serving
  * @return bool false if the file not found, just send the file otherwise and do not return anything
  */
-function tool_policy_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options=array()) {
+function tool_policy_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = array()) {
     global $CFG, $PAGE;
 
     // Do not allow access to files if we are not set as the site policy handler.
@@ -186,7 +183,7 @@ function tool_policy_pluginfile($course, $cm, $context, $filearea, $args, $force
     if (!$args) {
         $filepath = '/';
     } else {
-        $filepath = '/'.implode('/', $args).'/';
+        $filepath = '/' . implode('/', $args) . '/';
     }
 
     $fs = get_file_storage();

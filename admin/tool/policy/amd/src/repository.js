@@ -1,4 +1,3 @@
-<?php
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -15,15 +14,27 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Plugin version and other meta-data are defined here.
+ * Policies consent
  *
- * @package     tool_policy
- * @copyright   2018 David Mudrák <david@moodle.com>
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Derived from https://github.com/klaxit/cookie-consent
+ * version 0.3.4
+ *
+ * @module    tool_policy/repository
+ * @copyright 2022 - Laurent David <laurent.david@moodle.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+import {call as fetchMany} from 'core/ajax';
 
-$plugin->version   = 2022041902;         // The current plugin version (Date: YYYYMMDDXX).
-$plugin->requires  = 2022041200;         // Requires this Moodle version.
-$plugin->component = 'tool_policy';      // Full name of the plugin (used for diagnostics).
+/**
+ * Fetch the list of recordings from the server.
+ *
+ * @param   {Array} policiesAcceptance The instance ID
+ * @returns {Promise}
+ */
+export const acceptPolicies = (policiesAcceptance) => {
+    const args = {
+        'policies': policiesAcceptance
+    };
+    return fetchMany([{methodname: 'tool_policy_accept_policies', args}])[0];
+};

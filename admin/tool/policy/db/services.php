@@ -45,4 +45,13 @@ $functions = [
         'ajax' => true,
         'type' => 'write',
     ],
+    'tool_policy_accept_policies' => [
+        'classname'     => 'tool_policy\external\accept_policies',
+        'methodname' => 'execute',
+        'description' => 'Accept policies from the popup',
+        'ajax' => true,
+        'type' => 'write',
+        'loginrequired' => false // Here make sure we behave differently if user logged in or not, as write services
+        // should need login.
+    ],
 ];
