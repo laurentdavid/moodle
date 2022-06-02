@@ -27,9 +27,8 @@ defined('MOODLE_INTERNAL') || die;
 
 $functions = [
     'tool_policy_get_policy_version' => [
-        'classname'     => 'tool_policy\external',
-        'methodname'    => 'get_policy_version',
-        'classpath'     => '',
+        'classname'     => 'tool_policy\external\get_policy_version',
+        'methodname' => 'execute',
         'description'   => 'Fetch the details of a policy version',
         'type'          => 'read',
         'capabilities'  => '',
@@ -38,9 +37,8 @@ $functions = [
     ],
 
     'tool_policy_submit_accept_on_behalf' => [
-        'classname'     => 'tool_policy\external',
-        'methodname' => 'submit_accept_on_behalf',
-        'classpath' => '',
+        'classname'     => 'tool_policy\external\submit_accept_on_behalf',
+        'methodname' => 'execute',
         'description' => 'Accept policies on behalf of other users',
         'ajax' => true,
         'type' => 'write',
@@ -51,6 +49,7 @@ $functions = [
         'description' => 'Accept policies from the popup',
         'ajax' => true,
         'type' => 'write',
+        'capabilities'  => '',
         'loginrequired' => false // Here make sure we behave differently if user logged in or not, as write services
         // should need login.
     ],

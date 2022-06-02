@@ -25,8 +25,6 @@
 
 namespace tool_policy\output;
 
-defined('MOODLE_INTERNAL') || die();
-
 use moodle_url;
 use renderable;
 use renderer_base;
@@ -46,9 +44,9 @@ class guestconsent implements renderable, templatable {
      * Export the page data for the mustache template.
      *
      * @param renderer_base $output renderer to be used to render the page elements.
-     * @return stdClass
+     * @return \stdClass
      */
-    public function export_for_template(renderer_base $output) {
+    public function export_for_template(renderer_base $output):\stdClass {
         global $PAGE;
 
         $data = (object) [];

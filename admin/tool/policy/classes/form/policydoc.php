@@ -25,13 +25,10 @@
 
 namespace tool_policy\form;
 
-use context_system;
 use html_writer;
 use moodleform;
 use tool_policy\api;
 use tool_policy\policy_version;
-
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Defines the form for editing a policy document version.
@@ -44,7 +41,7 @@ class policydoc extends moodleform {
     /**
      * Defines the form fields.
      */
-    public function definition() {
+    public function definition(): void {
 
         $mform = $this->_form;
         $formdata = $this->_customdata['formdata'];
@@ -56,18 +53,18 @@ class policydoc extends moodleform {
 
         $options = [];
         foreach ([policy_version::TYPE_SITE,
-                  policy_version::TYPE_PRIVACY,
-                  policy_version::TYPE_THIRD_PARTY,
-                  policy_version::TYPE_OTHER] as $type) {
-            $options[$type] = get_string('policydoctype'.$type, 'tool_policy');
+            policy_version::TYPE_PRIVACY,
+            policy_version::TYPE_THIRD_PARTY,
+            policy_version::TYPE_OTHER] as $type) {
+            $options[$type] = get_string('policydoctype' . $type, 'tool_policy');
         }
         $mform->addElement('select', 'type', get_string('policydoctype', 'tool_policy'), $options);
 
         $options = [];
         foreach ([policy_version::AUDIENCE_ALL,
-                  policy_version::AUDIENCE_LOGGEDIN,
-                  policy_version::AUDIENCE_GUESTS] as $audience) {
-            $options[$audience] = get_string('policydocaudience'.$audience, 'tool_policy');
+            policy_version::AUDIENCE_LOGGEDIN,
+            policy_version::AUDIENCE_GUESTS] as $audience) {
+            $options[$audience] = get_string('policydocaudience' . $audience, 'tool_policy');
         }
         $mform->addElement('select', 'audience', get_string('policydocaudience', 'tool_policy'), $options);
 
@@ -99,9 +96,9 @@ class policydoc extends moodleform {
             $mform->setType('minorchange', PARAM_INT);
 
             $statusgrp = [
-                $mform->createElement('radio', 'status', '', get_string('status'.policy_version::STATUS_ACTIVE, 'tool_policy'),
+                $mform->createElement('radio', 'status', '', get_string('status' . policy_version::STATUS_ACTIVE, 'tool_policy'),
                     policy_version::STATUS_ACTIVE),
-                $mform->createElement('radio', 'status', '', get_string('status'.policy_version::STATUS_DRAFT, 'tool_policy'),
+                $mform->createElement('radio', 'status', '', get_string('status' . policy_version::STATUS_DRAFT, 'tool_policy'),
                     policy_version::STATUS_DRAFT),
                 $mform->createElement('static', 'statusinfo', '', html_writer::div(get_string('statusinfo', 'tool_policy'),
                     'muted text-muted')),
@@ -142,7 +139,7 @@ class policydoc extends moodleform {
      * @return array of "element_name"=>"error_description" if there are errors,
      *         or an empty array if everything is OK (true allowed for backwards compatibility too).
      */
-    public function validation($data, $files) {
+    public function validation($data, $files): array {
         $errors = parent::validation($data, $files);
         if (!empty($data['minorchange']) && !empty($data['saveasdraft'])) {
             // If minorchange is checked and "save as draft" is pressed - return error.
@@ -155,9 +152,9 @@ class policydoc extends moodleform {
      * Return submitted data if properly submitted or returns NULL if validation fails or
      * if there is no submitted data.
      *
-     * @return object submitted data; NULL if not valid or not submitted or cancelled
+     * @return object|null submitted data; NULL if not valid or not submitted or cancelled
      */
-    public function get_data() {
+    public function get_data(): ?object {
         if ($data = parent::get_data()) {
             if (!empty($data->saveasdraft)) {
                 $data->status = policy_version::STATUS_DRAFT;

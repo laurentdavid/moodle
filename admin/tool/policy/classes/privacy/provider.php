@@ -28,12 +28,9 @@ use core_privacy\local\metadata\collection;
 use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\approved_userlist;
 use core_privacy\local\request\contextlist;
-use core_privacy\local\request\moodle_content_writer;
 use core_privacy\local\request\userlist;
 use core_privacy\local\request\transform;
 use core_privacy\local\request\writer;
-
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Implementation of the privacy subsystem plugin provider for the policy tool.
@@ -295,7 +292,7 @@ class provider implements
     /**
      * Export all policy agreements that the user authored.
      *
-     * @param stdClass $user The user who has created the policies to export.
+     * @param \stdClass $user The user who has created the policies to export.
      */
     protected static function export_authored_policies(\stdClass $user) {
         global $DB;

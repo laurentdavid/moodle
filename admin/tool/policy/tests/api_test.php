@@ -25,6 +25,7 @@ use tool_policy\test\helper;
  * @category  test
  * @copyright 2018 David Mudrak <david@moodle.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass  \tool_policy\api
  */
 class api_test extends \advanced_testcase {
 

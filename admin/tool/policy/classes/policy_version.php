@@ -24,8 +24,6 @@
 
 namespace tool_policy;
 
-defined('MOODLE_INTERNAL') || die();
-
 use core\persistent;
 
 /**
@@ -86,7 +84,7 @@ class policy_version extends persistent {
      *
      * @return array
      */
-    protected static function define_properties() {
+    protected static function define_properties(): array {
         return [
             'name' => [
                 'type' => PARAM_TEXT,

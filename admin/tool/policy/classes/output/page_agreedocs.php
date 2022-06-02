@@ -25,8 +25,6 @@
 
 namespace tool_policy\output;
 
-defined('MOODLE_INTERNAL') || die();
-
 use context_system;
 use core\output\notification;
 use core\session\manager;
@@ -35,7 +33,6 @@ use html_writer;
 use moodle_url;
 use renderable;
 use renderer_base;
-use single_button;
 use templatable;
 use tool_policy\api;
 use tool_policy\policy_version;
@@ -131,7 +128,7 @@ class page_agreedocs implements renderable, templatable {
      * The capabilities for accepting/revoking policies are checked into the api functions.
      *
      */
-    protected function accept_and_revoke_policies() {
+    protected function accept_and_revoke_policies(): void {
         global $USER;
 
         if ($this->isexistinguser) {
@@ -225,7 +222,7 @@ class page_agreedocs implements renderable, templatable {
      * @param int $userid User identifier who wants to access to the consent page.
      * @param moodle_url $returnurl URL to return after shown the policy docs.
      */
-    protected function redirect_to_policies($userid, $returnurl = null) {
+    protected function redirect_to_policies(int $userid, moodle_url $returnurl = null) {
 
         // Make a list of all policies that the user has not answered yet.
         $allpolicies = $this->policies;
@@ -294,9 +291,9 @@ class page_agreedocs implements renderable, templatable {
                     $returnurl = new moodle_url('/admin/tool/policy/index.php');
                 }
                 $urlparams = ['versionid' => $policyversionid,
-                              'returnurl' => $returnurl,
-                              'numpolicy' => count($currentpolicyversionids) - count($pendingpolicies),
-                              'totalpolicies' => count($currentpolicyversionids),
+                    'returnurl' => $returnurl,
+                    'numpolicy' => count($currentpolicyversionids) - count($pendingpolicies),
+                    'totalpolicies' => count($currentpolicyversionids),
                 ];
                 redirect(new moodle_url('/admin/tool/policy/view.php', $urlparams));
             }
@@ -342,7 +339,7 @@ class page_agreedocs implements renderable, templatable {
      *
      * @param int $userid
      */
-    protected function prepare_global_page_access($userid) {
+    protected function prepare_global_page_access(int $userid) {
         global $PAGE, $SITE, $USER;
 
         // Guest users or not logged users (but the users during the signup process) are not allowed to access to this page.
@@ -392,7 +389,7 @@ class page_agreedocs implements renderable, templatable {
      *
      * @param int $userid
      */
-    protected function prepare_user_acceptances($userid) {
+    protected function prepare_user_acceptances(int $userid) {
         global $USER;
 
         // Get all the policy version acceptances for this user.
@@ -402,8 +399,8 @@ class page_agreedocs implements renderable, templatable {
             $policy->url = new moodle_url('/admin/tool/policy/view.php',
                 array('policyid' => $policy->policyid, 'returnurl' => qualified_me()));
             $policyattributes = array('data-action' => 'view',
-                                      'data-versionid' => $policy->id,
-                                      'data-behalfid' => $this->behalfid);
+                'data-versionid' => $policy->id,
+                'data-behalfid' => $this->behalfid);
             $policymodal = html_writer::link($policy->url, $policy->name, $policyattributes);
 
             // Check if this policy version has been agreed or not.
@@ -450,7 +447,7 @@ class page_agreedocs implements renderable, templatable {
      * @param renderer_base $output renderer to be used to render the page elements.
      * @return \stdClass
      */
-    public function export_for_template(renderer_base $output) {
+    public function export_for_template(renderer_base $output): \stdClass {
         global $USER;
 
         $myparams = [];
@@ -482,14 +479,14 @@ class page_agreedocs implements renderable, templatable {
         }
 
         // Filter out policies already shown on their own page, keep just policies to be shown here on the consent page.
-        $data->policies = array_values(array_filter($this->policies, function ($policy) {
+        $data->policies = array_values(array_filter($this->policies, function($policy) {
             return $policy->agreementstyle == policy_version::AGREEMENTSTYLE_CONSENTPAGE;
         }));
 
         // If viewing docs in behalf of other user, get his/her full name and profile link.
         if (!empty($this->behalfuser)) {
             $userfullname = fullname($this->behalfuser, has_capability('moodle/site:viewfullnames', \context_system::instance()) ||
-                        has_capability('moodle/site:viewfullnames', \context_user::instance($this->behalfid)));
+                has_capability('moodle/site:viewfullnames', \context_user::instance($this->behalfid)));
             $data->behalfuser = html_writer::link(\context_user::instance($this->behalfid)->get_url(), $userfullname);
         }
 

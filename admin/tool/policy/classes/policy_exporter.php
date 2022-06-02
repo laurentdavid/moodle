@@ -24,8 +24,6 @@
 
 namespace tool_policy;
 
-defined('MOODLE_INTERNAL') || die();
-
 use core\external\exporter;
 use renderer_base;
 
@@ -42,7 +40,7 @@ class policy_exporter extends exporter {
      *
      * @return array
      */
-    protected static function define_properties() {
+    protected static function define_properties(): array {
         return [
             'id' => [
                 'type' => PARAM_INT,
@@ -63,7 +61,7 @@ class policy_exporter extends exporter {
      *
      * @return array
      */
-    protected static function define_related() {
+    protected static function define_related(): array {
         return [
             'versions' => 'tool_policy\policy_version_exporter[]',
         ];
@@ -74,7 +72,7 @@ class policy_exporter extends exporter {
      *
      * @return array
      */
-    protected static function define_other_properties() {
+    protected static function define_other_properties(): array {
         return [
             'currentversion' => [
                 'type' => policy_version_exporter::read_properties_definition(),
@@ -97,7 +95,7 @@ class policy_exporter extends exporter {
      * @param renderer_base $output The renderer.
      * @return array Keys are the property names, values are their values.
      */
-    protected function get_other_values(renderer_base $output) {
+    protected function get_other_values(renderer_base $output): array {
 
         $othervalues = [
             'currentversion' => null,

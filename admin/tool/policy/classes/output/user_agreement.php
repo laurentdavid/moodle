@@ -25,13 +25,8 @@
 
 namespace tool_policy\output;
 
-defined('MOODLE_INTERNAL') || die();
-
 use moodle_url;
-use renderable;
 use renderer_base;
-use single_button;
-use templatable;
 
 /**
  * List of users and their acceptances
@@ -78,7 +73,7 @@ class user_agreement implements \templatable, \renderable {
      * @param bool $canrevoke does the current user have permission to revoke the policy on behalf of user $userid
      */
     public function __construct($userid, array $accepted, array $declined, moodle_url $pageurl, $versions, $onbehalf = false,
-                                $canaccept = null, $canrevoke = null) {
+        $canaccept = null, $canrevoke = null) {
 
         // Make sure that all ids in $accepted and $declined are present in $versions.
         if (array_diff(array_merge($accepted, $declined), array_keys($versions))) {
@@ -108,9 +103,9 @@ class user_agreement implements \templatable, \renderable {
      * @param renderer_base $output
      * @return stdClass
      */
-    public function export_for_template(\renderer_base $output) {
+    public function export_for_template(\renderer_base $output): \stdClass {
 
-        $data = (object)[
+        $data = (object) [
             'statusicon' => '',
             'statustext' => '',
             'statuslink' => '',
@@ -122,7 +117,7 @@ class user_agreement implements \templatable, \renderable {
             $versionname = reset($this->versions);
             $versionid = key($this->versions);
 
-            $actionaccept = (object)[
+            $actionaccept = (object) [
                 'text' => get_string('useracceptanceactionaccept', 'tool_policy'),
                 'title' => get_string('useracceptanceactionacceptone', 'tool_policy', $versionname),
                 'data' => 'acceptmodal',
@@ -134,7 +129,7 @@ class user_agreement implements \templatable, \renderable {
                 ]))->out(false),
             ];
 
-            $actionrevoke = (object)[
+            $actionrevoke = (object) [
                 'text' => get_string('useracceptanceactionrevoke', 'tool_policy'),
                 'title' => get_string('useracceptanceactionrevokeone', 'tool_policy', $versionname),
                 'data' => 'acceptmodal',
@@ -146,7 +141,7 @@ class user_agreement implements \templatable, \renderable {
                 ]))->out(false),
             ];
 
-            $actiondecline = (object)[
+            $actiondecline = (object) [
                 'text' => get_string('useracceptanceactiondecline', 'tool_policy'),
                 'title' => get_string('useracceptanceactiondeclineone', 'tool_policy', $versionname),
                 'data' => 'acceptmodal',
@@ -197,7 +192,7 @@ class user_agreement implements \templatable, \renderable {
         } else if (count($this->versions) > 1) {
             // We represent the summary status for multiple policies.
 
-            $data->actions[] = (object)[
+            $data->actions[] = (object) [
                 'text' => get_string('useracceptanceactiondetails', 'tool_policy'),
                 'url' => (new \moodle_url('/admin/tool/policy/user.php', [
                     'userid' => $this->userid,
@@ -213,10 +208,10 @@ class user_agreement implements \templatable, \renderable {
             ]);
 
             foreach (array_diff(array_keys($this->versions), $this->accepted, $this->declined) as $ix => $versionid) {
-                $accepturl->param('versionids['.$ix.']', $versionid);
+                $accepturl->param('versionids[' . $ix . ']', $versionid);
             }
 
-            $actionaccept = (object)[
+            $actionaccept = (object) [
                 'text' => get_string('useracceptanceactionaccept', 'tool_policy'),
                 'title' => get_string('useracceptanceactionacceptpending', 'tool_policy'),
                 'data' => 'acceptmodal',
@@ -231,10 +226,10 @@ class user_agreement implements \templatable, \renderable {
             ]);
 
             foreach ($this->accepted as $ix => $versionid) {
-                $revokeurl->param('versionids['.$ix.']', $versionid);
+                $revokeurl->param('versionids[' . $ix . ']', $versionid);
             }
 
-            $actionrevoke = (object)[
+            $actionrevoke = (object) [
                 'text' => get_string('useracceptanceactionrevoke', 'tool_policy'),
                 'title' => get_string('useracceptanceactionrevokeall', 'tool_policy'),
                 'data' => 'acceptmodal',
@@ -249,10 +244,10 @@ class user_agreement implements \templatable, \renderable {
             ]);
 
             foreach (array_diff(array_keys($this->versions), $this->accepted, $this->declined) as $ix => $versionid) {
-                $declineurl->param('versionids['.$ix.']', $versionid);
+                $declineurl->param('versionids[' . $ix . ']', $versionid);
             }
 
-            $actiondecline = (object)[
+            $actiondecline = (object) [
                 'text' => get_string('useracceptanceactiondecline', 'tool_policy'),
                 'title' => get_string('useracceptanceactiondeclinepending', 'tool_policy'),
                 'data' => 'acceptmodal',
@@ -306,7 +301,7 @@ class user_agreement implements \templatable, \renderable {
      *
      * @return string
      */
-    public function export_for_download() {
+    public function export_for_download(): string {
 
         if (count($this->versions) == 1) {
             if ($this->accepted) {

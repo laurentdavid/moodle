@@ -23,9 +23,6 @@
  */
 
 namespace tool_policy\privacy\local\sitepolicy;
-
-defined('MOODLE_INTERNAL') || die();
-
 use tool_policy\api;
 use tool_policy\policy_version;
 
@@ -45,9 +42,9 @@ class handler extends \core_privacy\local\sitepolicy\handler {
      * allow user to view policies and accept them.
      *
      * @param bool $forguests
-     * @return moodle_url|null (returns null if site policy is not defined)
+     * @return \moodle_url|null (returns null if site policy is not defined)
      */
-    public static function get_redirect_url($forguests = false) {
+    public static function get_redirect_url($forguests = false): ?\moodle_url {
         // There is no redirect for guests, policies are shown in the popup, only return redirect url for the logged in users.
         if (!$forguests && api::get_current_versions_ids(policy_version::AUDIENCE_LOGGEDIN)) {
             return new \moodle_url('/admin/tool/policy/index.php');
@@ -64,7 +61,7 @@ class handler extends \core_privacy\local\sitepolicy\handler {
      * @param bool $forguests
      * @return moodle_url|null
      */
-    public static function get_embed_url($forguests = false) {
+    public static function get_embed_url($forguests = false): ?\moodle_url {
         if (api::get_current_versions_ids($forguests ? policy_version::AUDIENCE_GUESTS : policy_version::AUDIENCE_LOGGEDIN)) {
             return new \moodle_url('/admin/tool/policy/viewall.php');
         }
@@ -77,7 +74,7 @@ class handler extends \core_privacy\local\sitepolicy\handler {
      * @return bool - false if sitepolicy not defined, user is not logged in or user has already agreed to site policy;
      *     true - if we have successfully marked the user as agreed to the site policy
      */
-    public static function accept() {
+    public static function accept(): bool {
         global $USER, $DB;
 
         if (!isloggedin()) {

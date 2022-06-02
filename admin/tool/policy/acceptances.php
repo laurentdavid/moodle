@@ -23,6 +23,7 @@
  */
 
 require(__DIR__.'/../../../config.php');
+global $CFG;
 require_once($CFG->libdir.'/adminlib.php');
 
 use core\output\notification;

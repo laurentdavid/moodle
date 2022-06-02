@@ -25,12 +25,8 @@
 
 namespace tool_policy\output;
 
-defined('MOODLE_INTERNAL') || die();
-
-use core\output\mustache_template_finder;
 use plugin_renderer_base;
 use renderable;
-use Exception;
 
 /**
  * Renderer for the policies plugin.
@@ -46,11 +42,11 @@ class renderer extends plugin_renderer_base {
      * @param renderable $widget
      * @return string
      */
-    public function render(renderable $widget) {
+    public function render(renderable $widget): string {
 
         $namespacedclassname = get_class($widget);
         $plainclassname = preg_replace('/^.*\\\/', '', $namespacedclassname);
-        $rendermethod = 'render_'.$plainclassname;
+        $rendermethod = 'render_' . $plainclassname;
 
         if (method_exists($this, $rendermethod)) {
             // Explicit rendering method exists, fall back to the default behaviour.
@@ -62,7 +58,7 @@ class renderer extends plugin_renderer_base {
         if (isset($interfaces['templatable'])) {
             // Default implementation of template-based rendering.
             $data = $widget->export_for_template($this);
-            return parent::render_from_template('tool_policy/'.$plainclassname, $data);
+            return parent::render_from_template('tool_policy/' . $plainclassname, $data);
 
         } else {
             return parent::render($widget);

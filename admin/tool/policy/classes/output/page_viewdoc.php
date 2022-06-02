@@ -27,13 +27,10 @@ namespace tool_policy\output;
 
 use moodle_exception;
 
-defined('MOODLE_INTERNAL') || die();
-
 use context_system;
 use moodle_url;
 use renderable;
 use renderer_base;
-use single_button;
 use templatable;
 use tool_policy\api;
 use tool_policy\policy_version;
@@ -46,7 +43,7 @@ use tool_policy\policy_version;
  */
 class page_viewdoc implements renderable, templatable {
 
-    /** @var stdClass Exported {@link \tool_policy\policy_version_exporter} to display on this page. */
+    /** @var \stdClass Exported {@link \tool_policy\policy_version_exporter} to display on this page. */
     protected $policy;
 
     /** @var string Return URL. */
@@ -58,15 +55,16 @@ class page_viewdoc implements renderable, templatable {
     /**
      * Prepare the page for rendering.
      *
-     * @param int $policyid The policy id for this page.
-     * @param int $versionid The version id to show. Empty tries to load the current one.
-     * @param string $returnurl URL of a page to continue after reading the policy text.
-     * @param int $behalfid The userid to view this policy version as (such as child's id).
+     * @param int|null $policyid The policy id for this page.
+     * @param int|null $versionid The version id to show. Empty tries to load the current one.
+     * @param string|null $returnurl URL of a page to continue after reading the policy text.
+     * @param int|null $behalfid The userid to view this policy version as (such as child's id).
      * @param bool $manage View the policy as a part of the management UI.
      * @param int $numpolicy Position of the current policy with respect to the total of policy docs to display.
      * @param int $totalpolicies Total number of policy documents which the user has to agree to.
      */
-    public function __construct($policyid, $versionid, $returnurl, $behalfid, $manage, $numpolicy = 0, $totalpolicies = 0) {
+    public function __construct(?int $policyid, ?int $versionid, ?string $returnurl, ?int $behalfid, ?bool $manage = false,
+        ?int $numpolicy = 0, ?int $totalpolicies = 0) {
 
         $this->returnurl = $returnurl;
         $this->behalfid = $behalfid;
@@ -81,16 +79,16 @@ class page_viewdoc implements renderable, templatable {
     /**
      * Loads the policy version to display on the page.
      *
-     * @param int $policyid The policy id for this page.
-     * @param int $versionid The version id to show. Empty tries to load the current one.
+     * @param int|null $policyid The policy id for this page.
+     * @param int|null $versionid The version id to show. Empty tries to load the current one.
      */
-    protected function prepare_policy($policyid, $versionid) {
+    protected function prepare_policy(?int $policyid, ?int $versionid) {
 
         if ($versionid) {
             $this->policy = api::get_policy_version($versionid);
 
         } else {
-            $this->policy = array_reduce(api::list_current_versions(), function ($carry, $current) use ($policyid) {
+            $this->policy = array_reduce(api::list_current_versions(), function($carry, $current) use ($policyid) {
                 if ($current->policyid == $policyid) {
                     return $current;
                 }
@@ -120,7 +118,7 @@ class page_viewdoc implements renderable, templatable {
         ]);
 
         if ($this->manage) {
-            require_once($CFG->libdir.'/adminlib.php');
+            require_once($CFG->libdir . '/adminlib.php');
             admin_externalpage_setup('tool_policy_managedocs', '', null, $myurl);
             require_capability('tool/policy:managedocs', context_system::instance());
             $PAGE->navbar->add(format_string($this->policy->name),
@@ -148,16 +146,16 @@ class page_viewdoc implements renderable, templatable {
      * Export the page data for the mustache template.
      *
      * @param renderer_base $output renderer to be used to render the page elements.
-     * @return stdClass
+     * @return \stdClass
      */
-    public function export_for_template(renderer_base $output) {
+    public function export_for_template(renderer_base $output): \stdClass {
         global $USER;
 
         $data = (object) [
             'pluginbaseurl' => (new moodle_url('/admin/tool/policy'))->out(false),
             'returnurl' => $this->returnurl ? (new moodle_url($this->returnurl))->out(false) : null,
-            'numpolicy' => $this->numpolicy ? : null,
-            'totalpolicies' => $this->totalpolicies ? : null,
+            'numpolicy' => $this->numpolicy ?: null,
+            'totalpolicies' => $this->totalpolicies ?: null,
         ];
         if ($this->manage && $this->policy->status != policy_version::STATUS_ARCHIVED) {
             $paramsurl = ['policyid' => $this->policy->policyid, 'versionid' => $this->policy->id];
@@ -169,14 +167,14 @@ class page_viewdoc implements renderable, templatable {
                 unset($data->returnurl);
                 $data->accepturl = (new moodle_url('/admin/tool/policy/index.php', [
                     'listdoc[]' => $this->policy->id,
-                    'status'.$this->policy->id => 1,
+                    'status' . $this->policy->id => 1,
                     'submit' => 'accept',
                     'sesskey' => sesskey(),
                 ]))->out(false);
                 if ($this->policy->optional == policy_version::AGREEMENT_OPTIONAL) {
                     $data->declineurl = (new moodle_url('/admin/tool/policy/index.php', [
                         'listdoc[]' => $this->policy->id,
-                        'status'.$this->policy->id => 0,
+                        'status' . $this->policy->id => 0,
                         'submit' => 'decline',
                         'sesskey' => sesskey(),
                     ]))->out(false);

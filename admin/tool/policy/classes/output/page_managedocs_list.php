@@ -28,7 +28,6 @@ namespace tool_policy\output;
 use html_writer;
 use tool_policy\api;
 
-defined('MOODLE_INTERNAL') || die();
 
 use action_menu;
 use action_menu_link;
@@ -36,7 +35,6 @@ use moodle_url;
 use pix_icon;
 use renderable;
 use renderer_base;
-use single_button;
 use templatable;
 use tool_policy\policy_version;
 
@@ -71,9 +69,9 @@ class page_managedocs_list implements renderable, templatable {
      * Export the page data for the mustache template.
      *
      * @param renderer_base $output renderer to be used to render the page elements.
-     * @return stdClass
+     * @return \stdClass
      */
-    public function export_for_template(renderer_base $output) {
+    public function export_for_template(renderer_base $output):\stdClass {
 
         $data = (object) [];
         $data->pluginbaseurl = (new moodle_url('/admin/tool/policy'))->out(false);
@@ -146,7 +144,8 @@ class page_managedocs_list implements renderable, templatable {
      * @param bool $movedown can move down
      * @return \stdClass
      */
-    protected function export_version_for_template($output, $policy, $version, $isindented, $moveup, $movedown) {
+    protected function export_version_for_template(\renderer_base $output, \stdClass $policy, \stdClass $version, bool $isindented,
+        bool $moveup, bool $movedown):\stdClass {
 
         $status = $version->status;
         $version->statustext = get_string('status' . $status, 'tool_policy');

@@ -26,6 +26,7 @@ use tool_policy\api;
 use tool_policy\policy_version;
 
 require(__DIR__.'/../../../config.php');
+global $CFG, $PAGE;
 require_once($CFG->libdir.'/adminlib.php');
 
 $policyid = optional_param('policyid', null, PARAM_INT);

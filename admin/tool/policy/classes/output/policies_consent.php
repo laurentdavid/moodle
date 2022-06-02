@@ -40,7 +40,7 @@ class policies_consent implements renderable, templatable {
      * @param renderer_base $output renderer to be used to render the page elements.
      * @return stdClass
      */
-    public function export_for_template(renderer_base $output) {
+    public function export_for_template(renderer_base $output): \stdClass {
         global $PAGE;
 
         $data = (object) [];

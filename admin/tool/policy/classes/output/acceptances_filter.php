@@ -25,10 +25,7 @@
 
 namespace tool_policy\output;
 
-use tool_policy\api;
 use tool_policy\policy_version;
-
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Implements the widget allowing to filter the acceptance records.
@@ -74,11 +71,12 @@ class acceptances_filter implements \templatable, \renderable {
     /**
      * Constructor.
      *
-     * @param array $policyid Specified policy id
-     * @param array $versionid Specified version id
+     * @param int|null $policyid Specified policy id
+     * @param int|null $versionid Specified version id
      * @param array $filtersapplied The list of selected filter option values.
+     * @throws \dml_exception
      */
-    public function __construct($policyid, $versionid, $filtersapplied) {
+    public function __construct(?int $policyid, ?int $versionid, $filtersapplied) {
         $this->filtersapplied = [];
         $this->roles = get_assignable_roles(\context_system::instance());
         if ($policyid) {
@@ -91,15 +89,15 @@ class acceptances_filter implements \templatable, \renderable {
             if (preg_match('/^([1-9]\d*):(\d+)$/', $filter, $parts)) {
                 // This is a pre-set filter (policy, version, status, etc.).
                 $allowmultiple = false;
-                switch ((int)$parts[1]) {
+                switch ((int) $parts[1]) {
                     case self::FILTER_POLICYID:
                     case self::FILTER_VERSIONID:
                     case self::FILTER_CAPABILITY_ACCEPT:
                     case self::FILTER_STATUS:
-                        $value = (int)$parts[2];
+                        $value = (int) $parts[2];
                         break;
                     case self::FILTER_ROLE:
-                        $value = (int)$parts[2];
+                        $value = (int) $parts[2];
                         if (!array_key_exists($value, $this->roles)) {
                             continue 2;
                         }
@@ -110,7 +108,7 @@ class acceptances_filter implements \templatable, \renderable {
                         continue 2;
                 }
 
-                $this->add_filter((int)$parts[1], $value, $allowmultiple);
+                $this->add_filter((int) $parts[1], $value, $allowmultiple);
             } else if (trim($filter) !== '') {
                 // This is a search string.
                 $this->add_filter(self::FILTER_SEARCH_STRING, trim($filter), true);
@@ -125,7 +123,7 @@ class acceptances_filter implements \templatable, \renderable {
      * @param mixed $value
      * @param bool $allowmultiple
      */
-    protected function add_filter($key, $value, $allowmultiple = false) {
+    protected function add_filter($key, $value, ?bool $allowmultiple = false): void {
         if ($allowmultiple || empty($this->get_filter_values($key))) {
             $this->filtersapplied[] = [$key, $value];
         }
@@ -136,7 +134,7 @@ class acceptances_filter implements \templatable, \renderable {
      *
      * @return null|int null if there is no filter, otherwise the policy id
      */
-    public function get_policy_id_filter() {
+    public function get_policy_id_filter(): ?int {
         return $this->get_filter_value(self::FILTER_POLICYID);
     }
 
@@ -145,7 +143,7 @@ class acceptances_filter implements \templatable, \renderable {
      *
      * @return null|int null if there is no filter, otherwise the version id
      */
-    public function get_version_id_filter() {
+    public function get_version_id_filter(): ?int {
         return $this->get_filter_value(self::FILTER_VERSIONID);
     }
 
@@ -154,7 +152,7 @@ class acceptances_filter implements \templatable, \renderable {
      *
      * @return string[] array of string filters
      */
-    public function get_search_strings() {
+    public function get_search_strings(): array {
         return $this->get_filter_values(self::FILTER_SEARCH_STRING);
     }
 
@@ -172,7 +170,7 @@ class acceptances_filter implements \templatable, \renderable {
      *
      * @return array list of role ids
      */
-    public function get_role_filters() {
+    public function get_role_filters(): array {
         return $this->get_filter_values(self::FILTER_ROLE);
     }
 
@@ -191,7 +189,7 @@ class acceptances_filter implements \templatable, \renderable {
      * @param string $filtername
      * @return array
      */
-    protected function get_filter_values($filtername) {
+    protected function get_filter_values(string $filtername): array {
         $values = [];
         foreach ($this->filtersapplied as $filter) {
             if ($filter[0] == $filtername) {
@@ -208,7 +206,7 @@ class acceptances_filter implements \templatable, \renderable {
      * @param string $default
      * @return mixed
      */
-    protected function get_filter_value($filtername, $default = null) {
+    protected function get_filter_value(string $filtername, string $default = null) {
         if ($values = $this->get_filter_values($filtername)) {
             $value = reset($values);
             return $value;
@@ -221,7 +219,7 @@ class acceptances_filter implements \templatable, \renderable {
      *
      * @return array|null
      */
-    public function get_avaliable_policies() {
+    public function get_avaliable_policies(): ?array {
         if ($this->policies === null) {
             $this->policies = [];
             foreach (\tool_policy\api::list_policies() as $policy) {
@@ -250,7 +248,7 @@ class acceptances_filter implements \templatable, \renderable {
      *
      * @return array of versions to display indexed by versionid
      */
-    public function get_versions() {
+    public function get_versions(): array {
         if ($this->versions === null) {
             $policyid = $this->get_policy_id_filter();
             $versionid = $this->get_version_id_filter();
@@ -274,6 +272,7 @@ class acceptances_filter implements \templatable, \renderable {
 
     /**
      * Validates if policyid and versionid are valid (if specified)
+     * @throw \moodle_exception
      */
     public function validate_ids() {
         $policyid = $this->get_policy_id_filter();
@@ -314,7 +313,7 @@ class acceptances_filter implements \templatable, \renderable {
      *
      * @return \moodle_url
      */
-    public function get_url() {
+    public function get_url(): \moodle_url {
         $urlparams = [];
         if ($policyid = $this->get_policy_id_filter()) {
             $urlparams['policyid'] = $policyid;
@@ -326,9 +325,9 @@ class acceptances_filter implements \templatable, \renderable {
         foreach ($this->filtersapplied as $filter) {
             if ($filter[0] != self::FILTER_POLICYID && $filter[0] != self::FILTER_VERSIONID) {
                 if ($filter[0] == self::FILTER_SEARCH_STRING) {
-                    $urlparams['unified-filters['.($i++).']'] = $filter[1];
+                    $urlparams['unified-filters[' . ($i++) . ']'] = $filter[1];
                 } else {
-                    $urlparams['unified-filters['.($i++).']'] = join(':', $filter);
+                    $urlparams['unified-filters[' . ($i++) . ']'] = join(':', $filter);
                 }
             }
         }
@@ -341,11 +340,11 @@ class acceptances_filter implements \templatable, \renderable {
      * @param \stdClass $version
      * @return string
      */
-    protected function get_version_option_for_filter($version) {
+    protected function get_version_option_for_filter($version): string {
         if ($version->status == policy_version::STATUS_ACTIVE) {
-            $a = (object)[
+            $a = (object) [
                 'name' => format_string($version->revision),
-                'status' => get_string('status'.policy_version::STATUS_ACTIVE, 'tool_policy'),
+                'status' => get_string('status' . policy_version::STATUS_ACTIVE, 'tool_policy'),
             ];
             return get_string('filterrevisionstatus', 'tool_policy', $a);
         } else {
@@ -358,7 +357,7 @@ class acceptances_filter implements \templatable, \renderable {
      *
      * @return array [$availablefilters, $selectedoptions]
      */
-    protected function build_available_filters() {
+    protected function build_available_filters(): array {
         $selectedoptions = [];
         $availablefilters = [];
 
@@ -406,9 +405,9 @@ class acceptances_filter implements \templatable, \renderable {
 
         // Status.
         $statuses = [
-            self::FILTER_STATUS.':2' => get_string('filterstatusdeclined', 'tool_policy'),
-            self::FILTER_STATUS.':1' => get_string('filterstatusyes', 'tool_policy'),
-            self::FILTER_STATUS.':0' => get_string('filterstatuspending', 'tool_policy'),
+            self::FILTER_STATUS . ':2' => get_string('filterstatusdeclined', 'tool_policy'),
+            self::FILTER_STATUS . ':1' => get_string('filterstatusyes', 'tool_policy'),
+            self::FILTER_STATUS . ':0' => get_string('filterstatuspending', 'tool_policy'),
         ];
         if (($currentstatus = $this->get_status_filter()) !== null) {
             $selectedoptions[] = $key = self::FILTER_STATUS . ':' . $currentstatus;
@@ -438,7 +437,7 @@ class acceptances_filter implements \templatable, \renderable {
     /**
      * Function to export the renderer data in a format that is suitable for a mustache template.
      *
-     * @param renderer_base $output Used to do a final render of any components that need to be rendered for export.
+     * @param \renderer_base $output Used to do a final render of any components that need to be rendered for export.
      * @return \stdClass|array
      */
     public function export_for_template(\renderer_base $output) {
@@ -450,7 +449,7 @@ class acceptances_filter implements \templatable, \renderable {
         list($avilablefilters, $selectedoptions) = $this->build_available_filters();
         foreach ($avilablefilters as $value => $label) {
             $selected = in_array($value, $selectedoptions);
-            $filteroption = (object)[
+            $filteroption = (object) [
                 'value' => $value,
                 'label' => $label
             ];

@@ -15,15 +15,27 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Plugin version and other meta-data are defined here.
+ * Generator for behat
  *
- * @package     tool_policy
- * @copyright   2018 David Mudrák <david@moodle.com>
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   tool_policy
+ * @copyright 2022 - Laurent David <laurent.david@moodle.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+class behat_tool_policy_generator extends behat_generator_base {
+    /**
+     * Get all entities that can be created through this behat_generator
+     *
+     * @return array
+     */
+    protected function get_creatable_entities(): array {
+        return [
+            'tool_policies' => [
+                'singular' => 'tool_policy',
+                'datagenerator' => 'policy',
+                'required' => ['name'],
+                'switchids' => [],
+            ],
+        ];
+    }
 
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->version   = 2022041903;         // The current plugin version (Date: YYYYMMDDXX).
-$plugin->requires  = 2022041200;         // Requires this Moodle version.
-$plugin->component = 'tool_policy';      // Full name of the plugin (used for diagnostics).
+}

@@ -27,12 +27,9 @@ namespace tool_policy\output;
 
 use tool_policy\api;
 
-defined('MOODLE_INTERNAL') || die();
-
 use moodle_url;
 use renderable;
 use renderer_base;
-use single_button;
 use templatable;
 use tool_policy\policy_version;
 
@@ -44,10 +41,10 @@ use tool_policy\policy_version;
  */
 class acceptances implements renderable, templatable {
 
-    /** @var id */
+    /** @var int $userid */
     protected $userid;
 
-    /** @var moodle_url */
+    /** @var moodle_url $returnurl */
     protected $returnurl;
 
     /**
@@ -65,7 +62,7 @@ class acceptances implements renderable, templatable {
      * Export the page data for the mustache template.
      *
      * @param renderer_base $output renderer to be used to render the page elements.
-     * @return stdClass
+     * @return \stdClass
      */
     public function export_for_template(renderer_base $output) {
         $data = (object)[];
@@ -86,8 +83,6 @@ class acceptances implements renderable, templatable {
                 unset($version->content);
                 $version->iscurrent = ($version->status == policy_version::STATUS_ACTIVE);
                 $version->isoptional = ($version->optional == policy_version::AGREEMENT_OPTIONAL);
-                $version->name = $version->name;
-                $version->revision = $version->revision;
                 $returnurl = new moodle_url('/admin/tool/policy/user.php', ['userid' => $this->userid]);
                 $version->viewurl = (new moodle_url('/admin/tool/policy/view.php', [
                     'policyid' => $policy->id,

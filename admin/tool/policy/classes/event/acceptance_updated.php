@@ -24,10 +24,6 @@
 
 namespace tool_policy\event;
 
-use core\event\base;
-
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Event acceptance_updated
  *
@@ -40,7 +36,7 @@ class acceptance_updated extends acceptance_base {
     /**
      * Initialise the event.
      */
-    protected function init() {
+    protected function init(): void {
         parent::init();
         $this->data['crud'] = 'u';
     }
@@ -50,7 +46,7 @@ class acceptance_updated extends acceptance_base {
      *
      * @return string
      */
-    public static function get_name() {
+    public static function get_name(): string {
         return get_string('event_acceptance_updated', 'tool_policy');
     }
 
@@ -59,7 +55,7 @@ class acceptance_updated extends acceptance_base {
      *
      * @return string
      */
-    public function get_description() {
+    public function get_description(): string {
         if ($this->other['status'] == 1) {
             $action = 'added consent to';
         } else if ($this->other['status'] == -1) {
@@ -67,7 +63,7 @@ class acceptance_updated extends acceptance_base {
         } else {
             $action = 'updated consent to';
         }
-        return "The user with id '{$this->userid}' $action the policy with revision {$this->other['policyversionid']} ".
+        return "The user with id '{$this->userid}' $action the policy with revision {$this->other['policyversionid']} " .
             "for the user with id '{$this->relateduserid}'";
     }
 }

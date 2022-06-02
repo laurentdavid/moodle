@@ -33,7 +33,7 @@ use stdClass;
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
-require_once($CFG->dirroot.'/lib/tablelib.php');
+require_once($CFG->dirroot . '/lib/tablelib.php');
 
 /**
  * Class acceptances_table
@@ -68,7 +68,7 @@ class acceptances_table extends \table_sql {
      * @param acceptances_filter $acceptancesfilter
      * @param renderer $output
      */
-    public function __construct($uniqueid, acceptances_filter $acceptancesfilter, renderer $output) {
+    public function __construct(string $uniqueid, acceptances_filter $acceptancesfilter, renderer $output) {
         global $CFG;
         parent::__construct($uniqueid);
         $this->set_attribute('id', 'acceptancetable');
@@ -133,7 +133,7 @@ class acceptances_table extends \table_sql {
      *
      * @return array
      */
-    public function get_sort_columns() {
+    public function get_sort_columns(): array {
         $c = parent::get_sort_columns();
         $c['u.id'] = SORT_ASC;
         return $c;
@@ -147,7 +147,7 @@ class acceptances_table extends \table_sql {
      * @param bool $sortable
      * @param string $columnclass
      */
-    protected function add_column_header($key, $label, $sortable = true, $columnclass = '') {
+    protected function add_column_header(string $key, string $label, bool $sortable = true, string $columnclass = '') {
         if (empty($this->columns)) {
             $this->define_columns([$key]);
             $this->define_headers([$label]);
@@ -169,12 +169,12 @@ class acceptances_table extends \table_sql {
     /**
      * Helper configuration method.
      */
-    protected function configure_for_single_version() {
+    protected function configure_for_single_version(): void {
         $userfieldsapi = \core_user\fields::for_name();
         $userfieldsmod = $userfieldsapi->get_sql('m', false, 'mod', '', false)->selects;
         $v = key($this->versionids);
-        $this->sql->fields .= ", $userfieldsmod, a{$v}.status AS status{$v}, a{$v}.note, ".
-           "a{$v}.timemodified, a{$v}.usermodified AS usermodified{$v}";
+        $this->sql->fields .= ", $userfieldsmod, a{$v}.status AS status{$v}, a{$v}.note, " .
+            "a{$v}.timemodified, a{$v}.usermodified AS usermodified{$v}";
 
         $join = "JOIN {tool_policy_acceptances} a{$v} ON a{$v}.userid = u.id AND a{$v}.policyversionid=:versionid{$v}";
         $filterstatus = $this->acceptancesfilter->get_status_filter();
@@ -203,7 +203,7 @@ class acceptances_table extends \table_sql {
     /**
      * Helper configuration method.
      */
-    protected function configure_for_multiple_versions() {
+    protected function configure_for_multiple_versions(): void {
         $this->add_column_header('statusall', get_string('acceptancestatusoverall', 'tool_policy'));
         $filterstatus = $this->acceptancesfilter->get_status_filter();
         $statusall = [];
@@ -221,21 +221,21 @@ class acceptances_table extends \table_sql {
             $this->add_column_header('status' . $v, $versionname);
             $statusall[] = "COALESCE(a{$v}.status, 0)";
         }
-        $this->sql->fields .= ",".join('+', $statusall)." AS statusall";
+        $this->sql->fields .= "," . join('+', $statusall) . " AS statusall";
 
         if ($filterstatus === 0) {
             $statussql = [];
             foreach ($this->versionids as $v => $versionname) {
                 $statussql[] = "a{$v}.status IS NULL";
             }
-            $this->sql->where .= " AND (u.policyagreed = 0 OR ".join(" OR ", $statussql).")";
+            $this->sql->where .= " AND (u.policyagreed = 0 OR " . join(" OR ", $statussql) . ")";
         }
     }
 
     /**
      * Download the data.
      */
-    public function download() {
+    public function download(): void {
         \core\session\manager::write_close();
         $this->out(0, false);
         exit;
@@ -244,9 +244,9 @@ class acceptances_table extends \table_sql {
     /**
      * Get sql to add to where statement.
      *
-     * @return string
+     * @return array
      */
-    public function get_sql_where() {
+    public function get_sql_where(): array {
         list($where, $params) = parent::get_sql_where();
         $where = preg_replace('/firstname/', 'u.firstname', $where);
         $where = preg_replace('/lastname/', 'u.lastname', $where);
@@ -258,7 +258,7 @@ class acceptances_table extends \table_sql {
      *
      * @param array $userfields
      */
-    protected function build_sql_for_search_string($userfields) {
+    protected function build_sql_for_search_string(array $userfields): void {
         global $DB, $USER;
 
         $search = $this->acceptancesfilter->get_search_strings();
@@ -289,9 +289,9 @@ class acceptances_table extends \table_sql {
                 $userid1 = 'userid' . $index . '1';
                 // Prevent users who hide their email address from being found by others
                 // who aren't allowed to see hidden email addresses.
-                $email = "(". $email ." AND (" .
+                $email = "(" . $email . " AND (" .
                     "u.maildisplay <> :$maildisplay " .
-                    "OR u.id = :$userid1". // User can always find himself.
+                    "OR u.id = :$userid1" . // User can always find himself.
                     "))";
                 $params[$maildisplay] = core_user::MAILDISPLAY_HIDE;
                 $params[$userid1] = $USER->id;
@@ -304,7 +304,7 @@ class acceptances_table extends \table_sql {
                 $userid2 = 'userid' . $index . '2';
                 // Users who aren't allowed to see idnumbers should at most find themselves
                 // when searching for an idnumber.
-                $idnumber = "(". $idnumber . " AND u.id = :$userid2)";
+                $idnumber = "(" . $idnumber . " AND u.id = :$userid2)";
                 $params[$userid2] = $USER->id;
             }
             $conditions[] = $idnumber;
@@ -325,7 +325,7 @@ class acceptances_table extends \table_sql {
             $lastnamephonetic = $DB->sql_like('u.lastnamephonetic', ':' . $searchkey7, false, false);
             $conditions[] = $lastnamephonetic;
 
-            $wheres[] = "(". implode(" OR ", $conditions) .") ";
+            $wheres[] = "(" . implode(" OR ", $conditions) . ") ";
             $params[$searchkey1] = "%$keyword%";
             $params[$searchkey2] = "%$keyword%";
             $params[$searchkey3] = "%$keyword%";
@@ -335,7 +335,7 @@ class acceptances_table extends \table_sql {
             $params[$searchkey7] = "%$keyword%";
         }
 
-        $this->sql->where .= ' AND '.join(' AND ', $wheres);
+        $this->sql->where .= ' AND ' . join(' AND ', $wheres);
         $this->sql->params += $params;
     }
 
@@ -389,7 +389,7 @@ class acceptances_table extends \table_sql {
      * @param bool $positive true: return users who HAVE roles; false: return users who DO NOT HAVE roles
      * @return string
      */
-    protected function sql_has_role($roles, $positive = true) {
+    protected function sql_has_role(array $roles, bool $positive = true): string {
         global $CFG;
         if (empty($roles)) {
             return $positive ? '1=0' : '1=1';
@@ -409,7 +409,7 @@ class acceptances_table extends \table_sql {
     /**
      * If there is a filter by user roles add it to the SQL query.
      */
-    protected function build_sql_for_roles_filter() {
+    protected function build_sql_for_roles_filter(): void {
         foreach ($this->acceptancesfilter->get_role_filters() as $roleid) {
             $this->sql->where .= ' AND ' . $this->sql_has_role([$roleid => $roleid]);
         }
@@ -420,7 +420,7 @@ class acceptances_table extends \table_sql {
      * for example. Called only when there is data to display and not
      * downloading.
      */
-    public function wrap_html_start() {
+    public function wrap_html_start(): void {
         echo \html_writer::start_tag('form',
             ['action' => new \moodle_url('/admin/tool/policy/accept.php')]);
         echo \html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
@@ -437,7 +437,7 @@ class acceptances_table extends \table_sql {
      * for example. Called only when there is data to display and not
      * downloading.
      */
-    public function wrap_html_finish() {
+    public function wrap_html_finish(): void {
         global $PAGE;
         if ($this->canagreeany) {
             echo \html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'action', 'value' => 'accept']);
@@ -451,7 +451,7 @@ class acceptances_table extends \table_sql {
     /**
      * Render the table.
      */
-    public function display() {
+    public function display(): void {
         $this->out(100, true);
     }
 
@@ -465,7 +465,7 @@ class acceptances_table extends \table_sql {
      * @param array|object $row row of data from db used to make one row of the table.
      * @return array one row for the table, added using add_data_keyed method.
      */
-    public function format_row($row) {
+    public function format_row($row): array {
         \context_helper::preload_from_record($row);
         $row->canaccept = false;
         $row->user = \user_picture::unalias($row, [], $this->useridfield);
@@ -475,10 +475,10 @@ class acceptances_table extends \table_sql {
                 has_capability('tool/policy:acceptbehalf', \context_user::instance($row->id))) {
                 $row->canaccept = true;
                 $row->select = \html_writer::empty_tag('input',
-                    ['type' => 'checkbox', 'name' => 'userids[]', 'value' => $row->id, 'class' => 'usercheckbox',
-                    'id' => 'selectuser' . $row->id]) .
-                \html_writer::tag('label', get_string('selectuser', 'tool_policy', $this->username($row->user, false)),
-                    ['for' => 'selectuser' . $row->id, 'class' => 'accesshide']);
+                        ['type' => 'checkbox', 'name' => 'userids[]', 'value' => $row->id, 'class' => 'usercheckbox',
+                            'id' => 'selectuser' . $row->id]) .
+                    \html_writer::tag('label', get_string('selectuser', 'tool_policy', $this->username($row->user, false)),
+                        ['for' => 'selectuser' . $row->id, 'class' => 'accesshide']);
                 $this->canagreeany = true;
             }
         }
@@ -504,7 +504,7 @@ class acceptances_table extends \table_sql {
      * @param bool $profilelink show link to profile (when we are downloading never show links)
      * @return string
      */
-    protected function username($user, $profilelink = true) {
+    protected function username(stdClass $user, bool $profilelink = true): string {
         $canviewfullnames = has_capability('moodle/site:viewfullnames', \context_system::instance()) ||
             has_capability('moodle/site:viewfullnames', \context_user::instance($user->id));
         $name = fullname($user, $canviewfullnames);
@@ -518,7 +518,7 @@ class acceptances_table extends \table_sql {
     /**
      * Helper.
      */
-    protected function get_return_url() {
+    protected function get_return_url(): \moodle_url {
         $pageurl = $this->baseurl;
         if ($this->currpage) {
             $pageurl = new \moodle_url($pageurl, [$this->request[TABLE_VAR_PAGE] => $this->currpage]);
@@ -533,7 +533,7 @@ class acceptances_table extends \table_sql {
      * @param stdClass $row
      * @return string
      */
-    protected function status($versionid, $row) {
+    protected function status(int $versionid, stdClass $row): string {
         $onbehalf = false;
         $versions = $versionid ? [$versionid => $this->versionids[$versionid]] : $this->versionids; // List of versions.
         $accepted = []; // List of versionids that user has accepted.
@@ -569,7 +569,7 @@ class acceptances_table extends \table_sql {
      * @param stdClass $row
      * @return string
      */
-    public function col_timemodified($row) {
+    public function col_timemodified(stdClass $row): ?string {
         if ($row->timemodified) {
             if ($this->is_downloading()) {
                 // Use timestamp format readable for both machines and humans.
@@ -589,7 +589,7 @@ class acceptances_table extends \table_sql {
      * @param stdClass $row
      * @return string
      */
-    public function col_note($row) {
+    public function col_note(stdClass $row): string {
         if ($this->is_downloading()) {
             return $row->note;
         } else {
@@ -603,7 +603,7 @@ class acceptances_table extends \table_sql {
      * @param stdClass $row
      * @return string
      */
-    public function col_statusall($row) {
+    public function col_statusall(stdClass $row): string {
         return $this->status(0, $row);
     }
 
@@ -613,7 +613,7 @@ class acceptances_table extends \table_sql {
      * @param \stdClass $data
      * @return string
      */
-    public function col_country($data) {
+    public function col_country(stdClass $data): string {
         if ($data->country && $this->countries === null) {
             $this->countries = get_string_manager()->get_list_of_countries();
         }
@@ -638,7 +638,7 @@ class acceptances_table extends \table_sql {
         }
         if (preg_match('/^usermodified([\d]+)$/', $column, $matches)) {
             if ($row->$column && $row->$column != $row->id) {
-                $user = (object)['id' => $row->$column];
+                $user = (object) ['id' => $row->$column];
                 username_load_fields_from_object($user, $row, 'mod');
                 return $this->username($user, true);
             }

@@ -116,6 +116,7 @@ Feature: User must accept policy managed by this plugin when logging in and sign
     And "Accepted" "text" should exist in the "This site policy" "table_row"
     And I log out
 
+  @javascript @runonly
   Scenario: Accept policy on sign up, multiple policies
     Given the following config values are set as admin:
       | registerauth    | email |
@@ -126,6 +127,7 @@ Feature: User must accept policy managed by this plugin when logging in and sign
       | This site policy    | 0    |          | full text2 | short text2 | active   | all      |
       | This privacy policy | 1    |          | full text3 | short text3 | active   | loggedin |
       | This guests policy  | 0    |          | full text4 | short text4 | active   | guest    |
+    And I change window size to "large"
     And I am on site homepage
     And I follow "Log in"
     When I click on "Create new account" "link"

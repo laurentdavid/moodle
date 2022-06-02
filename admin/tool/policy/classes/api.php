@@ -33,9 +33,6 @@ use core\session\manager;
 use stdClass;
 use tool_policy\event\acceptance_created;
 use tool_policy\event\acceptance_updated;
-use user_picture;
-
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Provides the API of the policies plugin.
@@ -48,10 +45,10 @@ class api {
     /**
      * Return current (active) policies versions.
      *
-     * @param array $audience If defined, filter against the given audience (AUDIENCE_ALL always included)
+     * @param array|int|null $audience If defined, filter against the given audience (AUDIENCE_ALL always included)
      * @return array of stdClass - exported {@link tool_policy\policy_version_exporter} instances
      */
-    public static function list_current_versions($audience = null) {
+    public static function list_current_versions($audience = null): array {
 
         $current = [];
 
@@ -71,10 +68,10 @@ class api {
     /**
      * Checks if there are any current policies defined and returns their ids only
      *
-     * @param array $audience If defined, filter against the given audience (AUDIENCE_ALL always included)
+     * @param array|int|null $audience If defined, filter against the given audience (AUDIENCE_ALL always included)
      * @return array of version ids indexed by policies ids
      */
-    public static function get_current_versions_ids($audience = null) {
+    public static function get_current_versions_ids($audience = null): array {
         global $DB;
         $sql = "SELECT v.policyid, v.id
              FROM {tool_policy} d
@@ -95,7 +92,7 @@ class api {
      * @param int $countacceptances return number of user acceptances for each version
      * @return array of stdClass - exported {@link tool_policy\policy_exporter} instances
      */
-    public static function list_policies($ids = null, $countacceptances = false) {
+    public static function list_policies($ids = null, $countacceptances = false): array {
         global $DB, $PAGE;
 
         $versionfields = policy_version::get_sql_fields('v', 'v_');
@@ -193,7 +190,7 @@ class api {
      *
      * @return int|null
      */
-    public static function count_total_users() {
+    public static function count_total_users(): int {
         global $DB, $CFG;
         static $cached = null;
         if ($cached === null) {
@@ -209,7 +206,7 @@ class api {
      * @param array $policies cached result of self::list_policies() in case this function needs to be called in a loop
      * @return stdClass - exported {@link tool_policy\policy_exporter} instance
      */
-    public static function get_policy_version($versionid, $policies = null) {
+    public static function get_policy_version(int $versionid, array $policies = null): stdClass {
         if ($policies === null) {
             $policies = self::list_policies();
         }
@@ -242,7 +239,7 @@ class api {
      *
      * @param array $versions List of objects with id, timecreated and revision properties
      */
-    public static function fix_revision_values(array $versions) {
+    public static function fix_revision_values(array $versions): void {
 
         $byrev = [];
 
@@ -259,7 +256,7 @@ class api {
                 foreach ($versionids as $versionid => $unused) {
                     foreach ($versions as $version) {
                         if ($version->id == $versionid) {
-                            $version->revision = $version->revision.' - v'.$cnt;
+                            $version->revision = $version->revision . ' - v' . $cnt;
                             $cnt--;
                             break;
                         }
@@ -339,7 +336,7 @@ class api {
      * @param array $extrafields Extra fields to be included in result
      * @return array of objects
      */
-    public static function get_user_minors($userid, array $extrafields = null) {
+    public static function get_user_minors(int $userid, array $extrafields = null): array {
         global $DB;
 
         $ctxfields = context_helper::get_preload_record_columns_sql('c');
@@ -348,7 +345,7 @@ class api {
 
         $sql = "SELECT $ctxfields $userfields
                   FROM {role_assignments} ra
-                  JOIN {context} c ON c.contextlevel = ".CONTEXT_USER." AND ra.contextid = c.id
+                  JOIN {context} c ON c.contextlevel = " . CONTEXT_USER . " AND ra.contextid = c.id
                   JOIN {user} u ON c.instanceid = u.id
                  WHERE ra.userid = ?
               ORDER BY u.lastname ASC, u.firstname ASC";
@@ -404,7 +401,7 @@ class api {
      * @param stdClass $form data submitted from the {@link \tool_policy\form\policydoc} form.
      * @return \tool_policy\policy_version persistent
      */
-    public static function form_policydoc_add(stdClass $form) {
+    public static function form_policydoc_add(stdClass $form): policy_version {
         global $DB;
 
         $form = clone($form);
@@ -424,7 +421,7 @@ class api {
      * @param stdClass $form data submitted from the {@link \tool_policy\form\policydoc} form.
      * @return \tool_policy\policy_version persistent
      */
-    public static function form_policydoc_update_new(stdClass $form) {
+    public static function form_policydoc_update_new(stdClass $form): policy_version {
         global $DB;
 
         if (empty($form->policyid)) {
@@ -441,14 +438,13 @@ class api {
         return static::form_policydoc_update_overwrite($form);
     }
 
-
     /**
      * Save the data from the policydoc form, overwriting the existing policy document version.
      *
      * @param stdClass $form data submitted from the {@link \tool_policy\form\policydoc} form.
-     * @return \tool_policy\policy_version persistent
+     * @return policy_version persistent
      */
-    public static function form_policydoc_update_overwrite(stdClass $form) {
+    public static function form_policydoc_update_overwrite(stdClass $form): policy_version {
 
         $form = clone($form);
         unset($form->timecreated);
@@ -481,11 +477,11 @@ class api {
      *
      * @param int $versionid
      */
-    public static function make_current($versionid) {
+    public static function make_current(int $versionid): void {
         global $DB, $USER;
 
         $policyversion = new policy_version($versionid);
-        if (! $policyversion->get('id') || $policyversion->get('archived')) {
+        if (!$policyversion->get('id') || $policyversion->get('archived')) {
             throw new coding_exception('Version not found or is archived');
         }
 
@@ -515,7 +511,7 @@ class api {
      *
      * @param int $policyid
      */
-    public static function inactivate($policyid) {
+    public static function inactivate(int $policyid): void {
         global $DB;
 
         if ($currentversionid = $DB->get_field('tool_policy', 'currentversionid', ['id' => $policyid])) {
@@ -532,7 +528,7 @@ class api {
      * @param int $versionid
      * @return \tool_policy\policy_version persistent
      */
-    public static function revert_to_draft($versionid) {
+    public static function revert_to_draft($versionid): policy_version {
         $policyversion = new policy_version($versionid);
         if (!$policyversion->get('id') || !$policyversion->get('archived')) {
             throw new coding_exception('Version not found or is not archived');
@@ -549,10 +545,10 @@ class api {
      *
      * @param stdClass $version object describing version, contains fields policyid, id, status, archived, audience, ...
      */
-    public static function can_delete_version($version) {
+    public static function can_delete_version(stdClass $version): bool {
         // TODO MDL-61900 allow to delete not only draft versions.
         return has_capability('tool/policy:managedocs', context_system::instance()) &&
-                $version->status == policy_version::STATUS_DRAFT;
+            $version->status == policy_version::STATUS_DRAFT;
     }
 
     /**
@@ -560,7 +556,7 @@ class api {
      *
      * @param int $versionid
      */
-    public static function delete($versionid) {
+    public static function delete(int $versionid): void {
         global $DB;
 
         $version = static::get_policy_version($versionid);
@@ -582,9 +578,9 @@ class api {
      *
      * @return array
      */
-    public static function policy_summary_field_options() {
+    public static function policy_summary_field_options(): array {
         global $CFG;
-        require_once($CFG->libdir.'/formslib.php');
+        require_once($CFG->libdir . '/formslib.php');
 
         return [
             'subdirs' => false,
@@ -598,9 +594,9 @@ class api {
      *
      * @return array
      */
-    public static function policy_content_field_options() {
+    public static function policy_content_field_options(): array {
         global $CFG;
-        require_once($CFG->libdir.'/formslib.php');
+        require_once($CFG->libdir . '/formslib.php');
 
         return [
             'subdirs' => false,
@@ -612,7 +608,7 @@ class api {
     /**
      * Re-sets the sortorder field of the policy documents to even values.
      */
-    protected static function distribute_policy_document_sortorder() {
+    protected static function distribute_policy_document_sortorder(): void {
         global $DB;
 
         $sql = "SELECT p.id, p.sortorder, MAX(v.timecreated) AS timerecentcreated
@@ -640,7 +636,7 @@ class api {
      * @param int $policyid
      * @param int $step
      */
-    protected static function move_policy_document($policyid, $step) {
+    protected static function move_policy_document(int $policyid, int $step): void {
         global $DB;
 
         $sortorder = $DB->get_field('tool_policy', 'sortorder', ['id' => $policyid], MUST_EXIST);
@@ -651,18 +647,18 @@ class api {
     /**
      * Move the given policy document up in the list.
      *
-     * @param id $policyid
+     * @param int $policyid
      */
-    public static function move_up($policyid) {
+    public static function move_up(int $policyid): void {
         static::move_policy_document($policyid, -3);
     }
 
     /**
      * Move the given policy document down in the list.
      *
-     * @param id $policyid
+     * @param int $policyid
      */
-    public static function move_down($policyid) {
+    public static function move_down(int $policyid): void {
         static::move_policy_document($policyid, 3);
     }
 
@@ -670,10 +666,10 @@ class api {
      * Returns list of acceptances for this user.
      *
      * @param int $userid id of a user.
-     * @param int|array $versions list of policy versions.
+     * @param int|array|null $versions list of policy versions.
      * @return array list of acceptances indexed by versionid.
      */
-    public static function get_user_acceptances($userid, $versions = null) {
+    public static function get_user_acceptances(int $userid, $versions = null): array {
         global $DB;
 
         list($vsql, $vparams) = ['', []];
@@ -711,7 +707,7 @@ class api {
      * @param array|null $acceptances List of policy version acceptances indexed by versionid.
      * @return stdClass|null Acceptance object if the user has ever accepted this version or null if not.
      */
-    public static function get_user_version_acceptance($userid, $versionid, $acceptances = null) {
+    public static function get_user_version_acceptance(int $userid, int $versionid, ?array $acceptances = null): ?stdClass {
         if (empty($acceptances)) {
             $acceptances = static::get_user_acceptances($userid, $versionid);
         }
@@ -731,7 +727,7 @@ class api {
      * @param array|null $acceptances Pre-loaded list of policy version acceptances indexed by versionid.
      * @return bool|null True/false if this user accepted/declined the policy; null otherwise.
      */
-    public static function is_user_version_accepted($userid, $versionid, $acceptances = null) {
+    public static function is_user_version_accepted(int $userid, int $versionid, array $acceptances = null): ?bool {
 
         $acceptance = static::get_user_version_acceptance($userid, $versionid, $acceptances);
 
@@ -749,7 +745,7 @@ class api {
      * @param int $userid
      * @return array array with the same structure that list_policies() returns with additional attribute acceptance for versions
      */
-    public static function get_policies_with_acceptances($userid) {
+    public static function get_policies_with_acceptances(int $userid): array {
         // Get the list of policies and versions that current user is able to see
         // and the respective acceptance records for the selected user.
         $policies = static::list_policies();
@@ -767,13 +763,13 @@ class api {
             }
             foreach ($policy->archivedversions as $version) {
                 if ($version->audience != policy_version::AUDIENCE_GUESTS
-                        && static::can_user_view_policy_version($version, $userid)) {
+                    && static::can_user_view_policy_version($version, $userid)) {
                     $version->acceptance = isset($acceptances[$version->id]) ? $acceptances[$version->id] : null;
                     $versions[] = $version;
                 }
             }
             if ($versions) {
-                $ret[] = (object)['id' => $policy->id, 'versions' => $versions];
+                $ret[] = (object) ['id' => $policy->id, 'versions' => $versions];
             }
         }
 
@@ -788,18 +784,12 @@ class api {
      *
      * @param array $versionids int[] List of policy version ids to check
      * @param int $userid Accepting policies on this user's behalf (defaults to accepting on self)
-     * @param bool $throwexception Throw exception instead of returning false
-     * @return bool
      */
-    public static function can_accept_policies(array $versionids, $userid = null, $throwexception = false) {
+    public static function validate_can_accept_policies(array $versionids, ?int $userid = null): void {
         global $USER;
 
         if (!isloggedin() || isguestuser()) {
-            if ($throwexception) {
-                throw new \moodle_exception('noguest');
-            } else {
-                return false;
-            }
+            throw new \moodle_exception('noguest');
         }
 
         if (!$userid) {
@@ -807,23 +797,32 @@ class api {
         }
 
         if ($userid == $USER->id && !manager::is_loggedinas()) {
-            if ($throwexception) {
-                require_capability('tool/policy:accept', context_system::instance());
-                return;
-            } else {
-                return has_capability('tool/policy:accept', context_system::instance());
-            }
-        }
-
-        // Check capability to accept on behalf as the real user.
-        $realuser = manager::get_realuser();
-        $usercontext = \context_user::instance($userid);
-        if ($throwexception) {
-            require_capability('tool/policy:acceptbehalf', $usercontext, $realuser);
-            return;
+            require_capability('tool/policy:accept', context_system::instance());
         } else {
-            return has_capability('tool/policy:acceptbehalf', $usercontext, $realuser);
+            // Check capability to accept on behalf as the real user.
+            $realuser = manager::get_realuser();
+            $usercontext = \context_user::instance($userid);
+            require_capability('tool/policy:acceptbehalf', $usercontext, $realuser);
         }
+    }
+
+    /**
+     * Check if given policies can be accepted by the current user (eventually on behalf of the other user)
+     *
+     * Currently, the version ids are not relevant and the check is based on permissions only. In the future, additional
+     * conditions can be added (such as policies applying to certain users only).
+     *
+     * @param array $versionids int[] List of policy version ids to check
+     * @param int|null $userid Accepting policies on this user's behalf (defaults to accepting on self)
+     * @return bool
+     */
+    public static function can_accept_policies(array $versionids, ?int $userid = null): bool {
+        try {
+            static::validate_can_accept_policies($versionids, $userid);
+        } catch (\moodle_exception $e) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -832,24 +831,37 @@ class api {
      * Only optional policies can be declined. Otherwise, the permissions are same as for accepting policies.
      *
      * @param array $versionids int[] List of policy version ids to check
-     * @param int $userid Declining policies on this user's behalf (defaults to declining by self)
-     * @param bool $throwexception Throw exception instead of returning false
-     * @return bool
+     * @param int|null $userid Declining policies on this user's behalf (defaults to declining by self)
+     * @throws \moodle_exception
      */
-    public static function can_decline_policies(array $versionids, $userid = null, $throwexception = false) {
+    public static function validate_can_decline_policies(array $versionids, ?int $userid = null): void {
 
         foreach ($versionids as $versionid) {
             if (static::get_agreement_optional($versionid) == policy_version::AGREEMENT_COMPULSORY) {
                 // Compulsory policies can't be declined (that is what makes them compulsory).
-                if ($throwexception) {
-                    throw new \moodle_exception('errorpolicyversioncompulsory', 'tool_policy');
-                } else {
-                    return false;
-                }
+                throw new \moodle_exception('errorpolicyversioncompulsory', 'tool_policy');
             }
         }
 
-        return static::can_accept_policies($versionids, $userid, $throwexception);
+        static::validate_can_accept_policies($versionids, $userid);
+    }
+
+    /**
+     * Check if given policies can be declined by the current user (eventually on behalf of the other user)
+     *
+     * Only optional policies can be declined. Otherwise, the permissions are same as for accepting policies.
+     *
+     * @param array $versionids int[] List of policy version ids to check
+     * @param int|null $userid Declining policies on this user's behalf (defaults to declining by self)
+     * @return bool
+     */
+    public static function can_decline_policies(array $versionids, ?int $userid = null): bool {
+        try {
+            static::validate_can_decline_policies($versionids, $userid);
+        } catch (\moodle_exception $e) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -861,20 +873,17 @@ class api {
      * as losing right to access the site).
      *
      * @param array $versionids int[] List of policy version ids to check
-     * @param int $userid Revoking policies on this user's behalf (defaults to revoking by self)
-     * @param bool $throwexception Throw exception instead of returning false
-     * @return bool
+     * @param int|null $userid Revoking policies on this user's behalf (defaults to revoking by self)
+     * @throws \moodle_exception
+     * @throws \required_capability_exception
+     * @throws coding_exception
      */
-    public static function can_revoke_policies(array $versionids, $userid = null, $throwexception = false) {
+    public static function validate_can_revoke_policies(array $versionids, ?int $userid = null): void {
         global $USER;
 
         // Guests' acceptance is not stored so there is nothing to revoke.
         if (!isloggedin() || isguestuser()) {
-            if ($throwexception) {
-                throw new \moodle_exception('noguest');
-            } else {
-                return false;
-            }
+            throw new \moodle_exception('noguest');
         }
 
         // Sort policies into two sets according the optional flag.
@@ -894,9 +903,7 @@ class api {
 
         // Check if the user can revoke the optional policies from the list.
         if ($optional) {
-            if (!static::can_decline_policies($optional, $userid, $throwexception)) {
-                return false;
-            }
+            static::validate_can_decline_policies($optional, $userid);
         }
 
         // Check if the user can revoke the compulsory policies from the list.
@@ -907,14 +914,28 @@ class api {
 
             $realuser = manager::get_realuser();
             $usercontext = \context_user::instance($userid);
-            if ($throwexception) {
-                require_capability('tool/policy:acceptbehalf', $usercontext, $realuser);
-                return;
-            } else {
-                return has_capability('tool/policy:acceptbehalf', $usercontext, $realuser);
-            }
+            require_capability('tool/policy:acceptbehalf', $usercontext, $realuser);
         }
+    }
 
+    /**
+     * Check if acceptances to given policies can be revoked by the current user (eventually on behalf of the other user)
+     *
+     * Revoking optional policies is controlled by the same rules as declining them. Compulsory policies can be revoked
+     * only by users with the permission to accept policies on other's behalf. The reasoning behind this is to make sure
+     * the user communicates with the site's privacy officer and is well aware of all consequences of the decision (such
+     * as losing right to access the site).
+     *
+     * @param array $versionids int[] List of policy version ids to check
+     * @param int|null $userid Revoking policies on this user's behalf (defaults to revoking by self)
+     * @return bool
+     */
+    public static function can_revoke_policies(array $versionids, ?int $userid = null): bool {
+        try {
+            static::validate_can_revoke_policies($versionids, $userid);
+        } catch (\moodle_exception $e) {
+            return false;
+        }
         return true;
     }
 
@@ -926,7 +947,8 @@ class api {
      * @param string|null $note Note to be recorded.
      * @param string|null $lang Language in which the policy was shown, defaults to the current one.
      */
-    public static function accept_policies($policyversionid, $userid = null, $note = null, $lang = null) {
+    public static function accept_policies($policyversionid, ?int $userid = null, ?string $note = null,
+        ?string $lang = null): void {
         static::set_acceptances_status($policyversionid, $userid, $note, $lang, 1);
     }
 
@@ -938,7 +960,8 @@ class api {
      * @param string|null $note Note to be recorded.
      * @param string|null $lang Language in which the policy was shown, defaults to the current one.
      */
-    public static function decline_policies($policyversionid, $userid = null, $note = null, $lang = null) {
+    public static function decline_policies($policyversionid, ?int $userid = null, ?string $note = null,
+        ?string $lang = null): void {
         static::set_acceptances_status($policyversionid, $userid, $note, $lang, 0);
     }
 
@@ -949,9 +972,10 @@ class api {
      * @param int|null $userid Id of the user accepting the policy version, defaults to the current one.
      * @param string|null $note Note to be recorded.
      * @param string|null $lang Language in which the policy was shown, defaults to the current one.
-     * @param int $status The acceptance status, defaults to 1 = accepted
+     * @param int|null $status The acceptance status, defaults to 1 = accepted
      */
-    protected static function set_acceptances_status($policyversionid, $userid = null, $note = null, $lang = null, $status = 1) {
+    protected static function set_acceptances_status($policyversionid, ?int $userid = null, ?string $note = null,
+        ?string $lang = null, ?int $status = 1): void {
         global $DB, $USER;
 
         // Validate arguments and capabilities.
@@ -963,7 +987,7 @@ class api {
         if (!$userid) {
             $userid = $USER->id;
         }
-        self::can_accept_policies([$policyversionid], $userid, true);
+        self::validate_can_accept_policies([$policyversionid], $userid);
 
         // Retrieve the list of policy versions that need agreement (do not update existing agreements).
         list($sql, $params) = $DB->get_in_or_equal($policyversionid, SQL_PARAMS_NAMED);
@@ -973,9 +997,9 @@ class api {
                  WHERE v.id $sql AND (a.id IS NULL OR a.status <> :status)";
 
         $needacceptance = $DB->get_records_sql($sql, $params + [
-            'userid' => $userid,
-            'status' => $status,
-        ]);
+                'userid' => $userid,
+                'status' => $status,
+            ]);
 
         $realuser = manager::get_realuser();
         $updatedata = ['status' => $status, 'lang' => $lang ?: current_language(),
@@ -984,14 +1008,14 @@ class api {
             unset($currentacceptance->versionid);
             if ($currentacceptance->id) {
                 $updatedata['id'] = $currentacceptance->id;
-                $DB->update_record('tool_policy_acceptances', $updatedata);
-                acceptance_updated::create_from_record((object)($updatedata + (array)$currentacceptance))->trigger();
+                $DB->update_record('tool_policy_acceptances', (object) $updatedata);
+                acceptance_updated::create_from_record((object) ($updatedata + (array) $currentacceptance))->trigger();
             } else {
                 $updatedata['timecreated'] = $updatedata['timemodified'];
                 $updatedata['policyversionid'] = $versionid;
                 $updatedata['userid'] = $userid;
                 $updatedata['id'] = $DB->insert_record('tool_policy_acceptances', $updatedata);
-                acceptance_created::create_from_record((object)($updatedata + (array)$currentacceptance))->trigger();
+                acceptance_created::create_from_record((object) ($updatedata + (array) $currentacceptance))->trigger();
             }
         }
 
@@ -1003,9 +1027,9 @@ class api {
      *
      * @param int|stdClass|null $user user to check (null for current user)
      */
-    public static function update_policyagreed($user = null) {
+    public static function update_policyagreed($user = null): void {
         global $DB, $USER, $CFG;
-        require_once($CFG->dirroot.'/user/lib.php');
+        require_once($CFG->dirroot . '/user/lib.php');
 
         if (!$user || (is_numeric($user) && $user == $USER->id)) {
             $user = $USER;
@@ -1044,10 +1068,10 @@ class api {
      * May be used to revert accidentally granted acceptance for another user
      *
      * @param int $policyversionid
-     * @param int $userid
-     * @param null $note
+     * @param int|null $userid
+     * @param string|null $note
      */
-    public static function revoke_acceptance($policyversionid, $userid, $note = null) {
+    public static function revoke_acceptance(int $policyversionid, ?int $userid, ?string $note = null): void {
         global $DB, $USER;
         if (!$userid) {
             $userid = $USER->id;
@@ -1055,12 +1079,12 @@ class api {
         self::can_accept_policies([$policyversionid], $userid, true);
 
         if ($currentacceptance = $DB->get_record('tool_policy_acceptances',
-                ['policyversionid' => $policyversionid, 'userid' => $userid])) {
+            ['policyversionid' => $policyversionid, 'userid' => $userid])) {
             $realuser = manager::get_realuser();
             $updatedata = ['id' => $currentacceptance->id, 'status' => 0, 'timemodified' => time(),
                 'usermodified' => $realuser->id, 'note' => $note];
-            $DB->update_record('tool_policy_acceptances', $updatedata);
-            acceptance_updated::create_from_record((object)($updatedata + (array)$currentacceptance))->trigger();
+            $DB->update_record('tool_policy_acceptances', (object) $updatedata);
+            acceptance_updated::create_from_record((object) ($updatedata + (array) $currentacceptance))->trigger();
         }
 
         static::update_policyagreed($userid);
@@ -1071,7 +1095,7 @@ class api {
      *
      * @param \core\event\user_created $event
      */
-    public static function create_acceptances_user_created(\core\event\user_created $event) {
+    public static function create_acceptances_user_created(\core\event\user_created $event): void {
         global $USER, $CFG, $DB;
 
         // Do nothing if not set as the site policies handler.
@@ -1126,7 +1150,7 @@ class api {
      * @param int $versionid
      * @return int policy_version::AGREEMENT_COMPULSORY | policy_version::AGREEMENT_OPTIONAL
      */
-    public static function get_agreement_optional($versionid) {
+    public static function get_agreement_optional(int $versionid): int {
         global $DB;
 
         $optcache = \cache::make('tool_policy', 'policy_optional');

@@ -15,10 +15,6 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace tool_policy;
-
-use tool_policy\api;
-use tool_policy\policy_version;
-
 /**
  * Helper
  *

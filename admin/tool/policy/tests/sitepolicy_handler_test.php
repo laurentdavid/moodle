@@ -26,11 +26,13 @@ use tool_policy\test\helper;
  * @category    test
  * @copyright 2018 David Mudrak <david@moodle.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \tool_policy\privacy\local\sitepolicy\handler
  */
 class sitepolicy_handler_test extends \advanced_testcase {
 
     /**
      * Test behaviour of the {@link \tool_policy\privacy\local\sitepolicy\handler::get_redirect_url()} method.
+     * @covers \tool_policy\privacy\local\sitepolicy\handler::get_redirect_url
      */
     public function test_get_redirect_url() {
         $this->resetAfterTest();
@@ -55,6 +57,7 @@ class sitepolicy_handler_test extends \advanced_testcase {
 
     /**
      * Test behaviour of the {@link \tool_policy\privacy\local\sitepolicy\handler::get_embed_url()} method.
+     * @covers \tool_policy\privacy\local\sitepolicy\handler::get_embed_url
      */
     public function test_get_embed_url() {
         $this->resetAfterTest();
@@ -81,6 +84,7 @@ class sitepolicy_handler_test extends \advanced_testcase {
 
     /**
      * Test behaviour of the {@link \tool_policy\privacy\local\sitepolicy\handler::accept()} method.
+     * @covers \tool_policy\privacy\local\sitepolicy\handler::accept
      */
     public function test_accept() {
         global $DB, $USER;
@@ -119,6 +123,7 @@ class sitepolicy_handler_test extends \advanced_testcase {
 
     /**
      * Test presence of the {@link \tool_policy\privacy\local\sitepolicy\handler::signup_form()} method.
+     * @covers \tool_policy\privacy\local\sitepolicy\handler::signup_form
      */
     public function test_signup_form() {
         $this->assertTrue(method_exists('\tool_policy\privacy\local\sitepolicy\handler', 'signup_form'));

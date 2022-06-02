@@ -26,8 +26,6 @@ namespace tool_policy\event;
 
 use core\event\base;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Base class for acceptance_created and acceptance_updated events.
  *
@@ -40,7 +38,7 @@ abstract class acceptance_base extends base {
     /**
      * Initialise the event.
      */
-    protected function init() {
+    protected function init(): void {
         $this->data['objecttable'] = 'tool_policy_acceptances';
         $this->data['edulevel'] = self::LEVEL_OTHER;
     }
@@ -48,10 +46,10 @@ abstract class acceptance_base extends base {
     /**
      * Create event from record.
      *
-     * @param stdClass $record
-     * @return acceptance_created
+     * @param \stdClass $record
+     * @return base
      */
-    public static function create_from_record($record) {
+    public static function create_from_record(\stdClass $record): base {
         $event = static::create([
             'objectid' => $record->id,
             'relateduserid' => $record->userid,
@@ -71,7 +69,7 @@ abstract class acceptance_base extends base {
      *
      * @return \moodle_url
      */
-    public function get_url() {
+    public function get_url(): \moodle_url {
         return new \moodle_url('/admin/tool/policy/acceptance.php', array('userid' => $this->relateduserid,
             'versionid' => $this->other['policyversionid']));
     }
@@ -81,8 +79,8 @@ abstract class acceptance_base extends base {
      *
      * @return array
      */
-    public static function get_objectid_mapping() {
-        return array('db' => 'tool_policy', 'restore' => \core\event\base::NOT_MAPPED);
+    public static function get_objectid_mapping(): array {
+        return array('db' => 'tool_policy', 'restore' => base::NOT_MAPPED);
     }
 
     /**
@@ -90,7 +88,7 @@ abstract class acceptance_base extends base {
      *
      * @throws \coding_exception
      */
-    protected function validate_data() {
+    protected function validate_data(): void {
         parent::validate_data();
 
         if (empty($this->other['policyversionid'])) {
@@ -111,7 +109,7 @@ abstract class acceptance_base extends base {
      *
      * @return bool
      */
-    public static function get_other_mapping() {
+    public static function get_other_mapping(): bool {
         return false;
     }
 }

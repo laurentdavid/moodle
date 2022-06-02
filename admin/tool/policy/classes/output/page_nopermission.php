@@ -26,9 +26,6 @@
 namespace tool_policy\output;
 
 use core\session\manager;
-use moodle_exception;
-
-defined('MOODLE_INTERNAL') || die();
 
 use context_system;
 use core_user;
@@ -125,7 +122,7 @@ class page_nopermission implements renderable, templatable {
      * @param renderer_base $output renderer to be used to render the page elements.
      * @return \stdClass
      */
-    public function export_for_template(renderer_base $output) {
+    public function export_for_template(renderer_base $output): \stdClass {
         global $CFG;
 
         $data = (object) [
@@ -162,8 +159,8 @@ class page_nopermission implements renderable, templatable {
             $policyurl = new moodle_url('/admin/tool/policy/view.php',
                 array('policyid' => $policyversion->policyid, 'returnurl' => qualified_me()));
             $policyattributes = array('data-action' => 'view',
-                                      'data-versionid' => $policyversion->id,
-                                      'data-behalfid' => $this->behalfid);
+                'data-versionid' => $policyversion->id,
+                'data-behalfid' => $this->behalfid);
             $policieslinks[] = html_writer::link($policyurl, $policyversion->name, $policyattributes);
         }
         $data->policies = $policieslinks;

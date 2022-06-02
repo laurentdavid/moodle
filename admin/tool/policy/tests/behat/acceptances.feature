@@ -10,9 +10,11 @@ Feature: Viewing acceptances reports and accepting on behalf of other users
     # This is required for now to prevent the overflow region affecting the action menus.
     And I change window size to "large"
     And the following policies exist:
-      | Name                | Revision | Content    | Summary     | Status   |
-      | This site policy    |          | full text2 | short text2 | active   |
-      | This privacy policy |          | full text3 | short text3 | draft    |
+      | Name                | Revision | Content    | Summary     | Status   | Optional | Audience | Agreementstyle |
+      | This site policy    |          | full text2 | short text2 | active   | 0        | all      | 0              |
+      | This draft privacy policy |          | full text3 | short text3 | draft    | 1        | all      | 0              |
+      | This cookies policy |          | full text3 | short text3 | active | 1        | all      | 1              |
+      | This privacy policy |          | full text4 | short text3 | active | 0        | loggedin | 0              |
     And the following "users" exist:
       | username | firstname | lastname | email           |
       | user1    | User      | One      | one@example.com |

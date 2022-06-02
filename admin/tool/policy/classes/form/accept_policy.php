@@ -28,8 +28,8 @@ use tool_policy\api;
 use tool_policy\policy_version;
 
 defined('MOODLE_INTERNAL') || die();
-
-require_once($CFG->dirroot.'/lib/formslib.php');
+global $CFG;
+require_once($CFG->dirroot . '/lib/formslib.php');
 
 /**
  * Represents the form for accepting or revoking a policy.
@@ -43,7 +43,7 @@ class accept_policy extends \moodleform {
     /**
      * Defines the form fields.
      */
-    public function definition() {
+    public function definition(): void {
         global $PAGE, $USER;
         $mform = $this->_form;
 
@@ -60,22 +60,22 @@ class accept_policy extends \moodleform {
         $versionnames = $this->validate_and_get_versions($versionids);
 
         foreach ($usernames as $userid => $name) {
-            $mform->addElement('hidden', 'userids['.$userid.']', $userid);
-            $mform->setType('userids['.$userid.']', PARAM_INT);
+            $mform->addElement('hidden', 'userids[' . $userid . ']', $userid);
+            $mform->setType('userids[' . $userid . ']', PARAM_INT);
         }
 
         foreach ($versionnames as $versionid => $name) {
-            $mform->addElement('hidden', 'versionids['.$versionid.']', $versionid);
-            $mform->setType('versionids['.$versionid.']', PARAM_INT);
+            $mform->addElement('hidden', 'versionids[' . $versionid . ']', $versionid);
+            $mform->setType('versionids[' . $versionid . ']', PARAM_INT);
         }
 
         $mform->addElement('hidden', 'returnurl');
         $mform->setType('returnurl', PARAM_LOCALURL);
         $useracceptancelabel = (count($usernames) > 1) ? get_string('acceptanceusers', 'tool_policy') :
-                get_string('user');
+            get_string('user');
         $mform->addElement('static', 'user', $useracceptancelabel, join(', ', $usernames));
         $policyacceptancelabel = (count($versionnames) > 1) ? get_string('acceptancepolicies', 'tool_policy') :
-                get_string('policydochdrpolicy', 'tool_policy');
+            get_string('policydochdrpolicy', 'tool_policy');
         $mform->addElement('static', 'policy', $policyacceptancelabel, join(', ', $versionnames));
 
         if ($action === 'revoke') {
@@ -122,7 +122,7 @@ class accept_policy extends \moodleform {
      * @param string $action accept|decline|revoke
      * @return array (userid=>username)
      */
-    protected function validate_and_get_users($versionids, $userids, $action) {
+    protected function validate_and_get_users(array $versionids, array $userids, string $action): array {
         global $DB;
 
         $usernames = [];
@@ -130,7 +130,7 @@ class accept_policy extends \moodleform {
         $params['usercontextlevel'] = CONTEXT_USER;
         $userfieldsapi = \core_user\fields::for_name();
         $users = $DB->get_records_sql("SELECT u.id" . $userfieldsapi->get_sql('u')->selects . ", " .
-                \context_helper::get_preload_record_columns_sql('ctx') .
+            \context_helper::get_preload_record_columns_sql('ctx') .
             " FROM {user} u JOIN {context} ctx ON ctx.contextlevel=:usercontextlevel AND ctx.instanceid = u.id
             WHERE u.id " . $sql, $params);
 
@@ -144,11 +144,11 @@ class accept_policy extends \moodleform {
             }
             \context_helper::preload_from_record($user);
             if ($action === 'revoke') {
-                api::can_revoke_policies($versionids, $userid, true);
+                api::validate_can_revoke_policies($versionids, $userid);
             } else if ($action === 'accept') {
-                api::can_accept_policies($versionids, $userid, true);
+                api::validate_can_accept_policies($versionids, $userid);
             } else if ($action === 'decline') {
-                api::can_decline_policies($versionids, $userid, true);
+                api::validate_can_decline_policies($versionids, $userid);
             }
             $usernames[$userid] = fullname($user);
         }
@@ -161,7 +161,7 @@ class accept_policy extends \moodleform {
      * @param array $versionids
      * @return array (versionid=>name)
      */
-    protected function validate_and_get_versions($versionids) {
+    protected function validate_and_get_versions(array $versionids): array {
         $versionnames = [];
         $policies = api::list_policies();
         foreach ($versionids as $versionid) {
@@ -183,7 +183,7 @@ class accept_policy extends \moodleform {
     /**
      * Process form submission
      */
-    public function process() {
+    public function process(): void {
         if ($data = $this->get_data()) {
             foreach ($data->userids as $userid) {
                 if ($data->action === 'revoke') {

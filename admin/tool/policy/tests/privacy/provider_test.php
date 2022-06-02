@@ -24,29 +24,26 @@
  */
 namespace tool_policy\privacy;
 
-use core_privacy\local\metadata\collection;
-use tool_policy\privacy\provider;
 use tool_policy\api;
 use tool_policy\policy_version;
 use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\writer;
-
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Privacy provider tests class.
  *
  * @copyright  2018 Sara Arjona <sara@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \tool_policy\privacy\provider
  */
 class provider_test extends \core_privacy\tests\provider_testcase {
-    /** @var stdClass The user object. */
+    /** @var \stdClass The user object. */
     protected $user;
 
-    /** @var stdClass The manager user object. */
+    /** @var \stdClass The manager user object. */
     protected $manager;
 
-    /** @var context_system The system context instance. */
+    /** @var \context_system The system context instance. */
     protected $syscontext;
 
     /**
@@ -70,6 +67,7 @@ class provider_test extends \core_privacy\tests\provider_testcase {
 
     /**
      * Test getting the context for the user ID related to this plugin.
+     * @covers \tool_policy\privacy\provider::get_contexts_for_userid
      */
     public function test_get_contexts_for_userid() {
         global $CFG;
@@ -105,6 +103,7 @@ class provider_test extends \core_privacy\tests\provider_testcase {
 
     /**
      * Test getting the user IDs within the context related to this plugin.
+     * @covers \tool_policy\privacy\provider::get_users_in_context
      */
     public function test_get_users_in_context() {
         global $CFG;
@@ -185,6 +184,11 @@ class provider_test extends \core_privacy\tests\provider_testcase {
         $this->assertCount(0, $userlist);
     }
 
+    /**
+     * Test export agreements
+     *
+     * @covers \tool_policy\privacy\provider::export_user_data
+     */
     public function test_export_agreements() {
         global $CFG;
 
@@ -246,6 +250,11 @@ class provider_test extends \core_privacy\tests\provider_testcase {
         $this->assertEquals(strip_tags($policy2->get('content')), strip_tags($datauser->content));
     }
 
+    /**
+     * Test agreements for other
+     *
+     * @covers \tool_policy\privacy\provider::export_user_data
+     */
     public function test_export_agreements_for_other() {
         global $CFG;
 
@@ -305,6 +314,11 @@ class provider_test extends \core_privacy\tests\provider_testcase {
         $this->assertEquals(strip_tags($policy2->get('content')), strip_tags($datauser->content));
     }
 
+    /**
+     * Test export created policies
+     *
+     * @covers \tool_policy\privacy\provider::export_user_data
+     */
     public function test_export_created_policies() {
         global $CFG;
 
@@ -375,7 +389,7 @@ class provider_test extends \core_privacy\tests\provider_testcase {
      * @param array $params
      * @return policy_version
      */
-    protected function add_policy($params = []) {
+    protected function add_policy(array $params = []): policy_version {
         static $counter = 0;
         $counter++;
 

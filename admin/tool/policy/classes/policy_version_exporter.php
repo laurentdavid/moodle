@@ -24,8 +24,6 @@
 
 namespace tool_policy;
 
-defined('MOODLE_INTERNAL') || die();
-
 use core\external\exporter;
 use renderer_base;
 use tool_policy\api;
@@ -49,14 +47,14 @@ class policy_version_exporter extends exporter {
     protected static function define_properties() {
 
         return policy_version::properties_definition() + [
-            'acceptancescount' => [
-                'type' => PARAM_INT,
-                'default' => 0,
-            ],
-            'status' => [
-                'type' => PARAM_INT,
-            ],
-        ];
+                'acceptancescount' => [
+                    'type' => PARAM_INT,
+                    'default' => 0,
+                ],
+                'status' => [
+                    'type' => PARAM_INT,
+                ],
+            ];
     }
 
     /**
@@ -105,8 +103,8 @@ class policy_version_exporter extends exporter {
     protected function get_other_values(renderer_base $output) {
 
         $othervalues = [
-            'typetext' => get_string('policydoctype'.$this->data->type, 'tool_policy'),
-            'audiencetext' => get_string('policydocaudience'.$this->data->audience, 'tool_policy'),
+            'typetext' => get_string('policydoctype' . $this->data->type, 'tool_policy'),
+            'audiencetext' => get_string('policydocaudience' . $this->data->audience, 'tool_policy'),
         ];
 
         if (!isset($this->data->acceptancescount) || $this->data->status == policy_version::STATUS_DRAFT) {
@@ -140,7 +138,7 @@ class policy_version_exporter extends exporter {
      *
      * @return array
      */
-    protected function get_format_parameters_for_summary() {
+    protected function get_format_parameters_for_summary(): array {
         return [
             'component' => 'tool_policy',
             'filearea' => 'policydocumentsummary',
@@ -153,7 +151,7 @@ class policy_version_exporter extends exporter {
      *
      * @return array
      */
-    protected function get_format_parameters_for_content() {
+    protected function get_format_parameters_for_content(): array {
         return [
             'component' => 'tool_policy',
             'filearea' => 'policydocumentcontent',

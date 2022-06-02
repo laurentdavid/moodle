@@ -28,8 +28,6 @@ namespace tool_policy\test;
 use tool_policy\api;
 use tool_policy\policy_version;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Provides some helper methods for unit-tests.
  *
@@ -44,7 +42,7 @@ class helper {
      * @param array $params
      * @return policy_version
      */
-    public static function add_policy($params = []) {
+    public static function add_policy($params = []): policy_version {
         static $counter = 0;
         $counter++;
 
@@ -68,7 +66,7 @@ class helper {
      * @param int $numversions The number of policy versions to create.
      * @return array Array with all the policy versions created.
      */
-    public static function create_versions($numversions = 2) {
+    public static function create_versions(int $numversions = 2): array {
         // Prepare a policy document with some versions.
         $policy = self::add_policy([
             'name' => 'Test policy',
