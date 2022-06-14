@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Provides the {@link tool_policy\policy_version_exporter} class.
+ * Provides the {@see tool_policy\policy_version_exporter} class.
  *
  * @package   tool_policy
  * @copyright 2018 David Mudrak <david@moodle.com>

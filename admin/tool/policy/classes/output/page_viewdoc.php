@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Provides {@link tool_policy\output\renderer} class.
+ * Provides {@see tool_policy\output\renderer} class.
  *
  * @package     tool_policy
  * @category    output
@@ -43,7 +43,7 @@ use tool_policy\policy_version;
  */
 class page_viewdoc implements renderable, templatable {
 
-    /** @var \stdClass Exported {@link \tool_policy\policy_version_exporter} to display on this page. */
+    /** @var \stdClass Exported {@see \tool_policy\policy_version_exporter} to display on this page. */
     protected $policy;
 
     /** @var string Return URL. */

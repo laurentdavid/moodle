@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Provides {@link tool_policy\output\renderer} class.
+ * Provides {@see tool_policy\output\renderer} class.
  *
  * @package     tool_policy
  * @category    output
@@ -50,6 +50,7 @@ class page_viewalldoc implements renderable, templatable {
     /**
      * Prepare the page for rendering.
      *
+     * @param string $returnurl
      */
     public function __construct($returnurl) {
         $this->returnurl = $returnurl;

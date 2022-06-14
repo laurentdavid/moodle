@@ -109,7 +109,15 @@ class helper_test extends \advanced_testcase {
         $acceptedpoliciesid = array_map(function($p) {
             return $p['policyversionid'];
         }, $policyacceptance);
-        $this->assertEquals($acceptedpoliciesid, $presignupcache->get(helper::CACHE_KEY_POLICIES_ID_AGREED));
+        $policies = api::list_current_versions();
+        $policieswithacceptance = helper::retrieve_policies_with_acceptance($policies);
+        $accepted = [];
+        foreach ($policieswithacceptance as $p) {
+            if ($p->policyagreed) {
+                $accepted[] = $p->id;
+            }
+        }
+        $this->assertEquals($acceptedpoliciesid, $accepted);
     }
 
     /**

@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Provides {@link tool_policy\form\policydoc} class.
+ * Provides {@see tool_policy\form\policydoc} class.
  *
  * @package     tool_policy
  * @category    output

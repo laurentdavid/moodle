@@ -116,7 +116,7 @@ Feature: User must accept policy managed by this plugin when logging in and sign
     And "Accepted" "text" should exist in the "This site policy" "table_row"
     And I log out
 
-  @javascript @runonly
+  @javascript
   Scenario: Accept policy on sign up, multiple policies
     Given the following config values are set as admin:
       | registerauth    | email |
@@ -667,6 +667,7 @@ Feature: User must accept policy managed by this plugin when logging in and sign
     And "Accepted" "text" should exist in the "This site policy" "table_row"
     And I log out
 
+  @javascript @runonly
   Scenario: Accepting policies on sign up, multiple policies with different style of giving ageement.
     Given the following config values are set as admin:
       | registerauth      | email       |

@@ -35,7 +35,7 @@ define('NO_SITEPOLICY_CHECK', true);
 
 // See the {@see page_agreedocs} for the access control checks.
 require(__DIR__.'/../../../config.php'); // phpcs:ignore
-global $PAGE;
+global $PAGE, $USER;
 
 $submit = optional_param('submit', null, PARAM_NOTAGS);
 $cancel = optional_param('cancel', null, PARAM_NOTAGS);

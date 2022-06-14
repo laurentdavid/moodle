@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Provides the {@link tool_policy\policy_version} persistent.
+ * Provides the {@see tool_policy\policy_version} persistent.
  *
  * @package    tool_policy
  * @copyright  2018 Sara Arjona (sara@moodle.com)

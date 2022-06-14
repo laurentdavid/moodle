@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Provides {@link tool_policy\event\acceptance_base} class.
+ * Provides {@see tool_policy\event\acceptance_base} class.
  *
  * @package     tool_policy
  * @copyright   2018 Marina Glancy

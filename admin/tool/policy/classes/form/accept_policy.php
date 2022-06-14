@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Provides {@link tool_policy\form\accept_policy} class.
+ * Provides {@see tool_policy\form\accept_policy} class.
  *
  * @package     tool_policy
  * @copyright   2018 Marina Glancy

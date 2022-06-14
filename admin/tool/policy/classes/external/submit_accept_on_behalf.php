@@ -26,6 +26,7 @@ use tool_policy\form\accept_policy;
  *
  * The submit_accept_on_behalf API for the Policy tool.
  *
+ * @package   tool_policy
  * @copyright   2018 Sara Arjona (sara@moodle.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

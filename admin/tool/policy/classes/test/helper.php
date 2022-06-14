@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Provides the {@link \tool_policy\test\helper} class.
+ * Provides the {@see \tool_policy\test\helper} class.
  *
  * @package     tool_policy
  * @category    test

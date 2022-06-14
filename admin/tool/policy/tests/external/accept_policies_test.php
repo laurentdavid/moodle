@@ -47,7 +47,7 @@ class accept_policies_test extends \externallib_advanced_testcase {
     /**
      * Helper
      *
-     * @param ... $params
+     * @param mixed ...$params
      * @return mixed
      */
     protected function accept_policies(...$params) {

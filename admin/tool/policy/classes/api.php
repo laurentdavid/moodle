@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Provides {@link tool_policy\output\renderer} class.
+ * Provides {@see tool_policy\output\renderer} class.
  *
  * @package     tool_policy
  * @category    output
@@ -46,7 +46,7 @@ class api {
      * Return current (active) policies versions.
      *
      * @param array|int|null $audience If defined, filter against the given audience (AUDIENCE_ALL always included)
-     * @return array of stdClass - exported {@link tool_policy\policy_version_exporter} instances
+     * @return array of stdClass - exported {@see tool_policy\policy_version_exporter} instances
      */
     public static function list_current_versions($audience = null): array {
 
@@ -90,7 +90,7 @@ class api {
      *
      * @param array|int|null $ids Load only the given policies, defaults to all.
      * @param int $countacceptances return number of user acceptances for each version
-     * @return array of stdClass - exported {@link tool_policy\policy_exporter} instances
+     * @return array of stdClass - exported {@see tool_policy\policy_exporter} instances
      */
     public static function list_policies($ids = null, $countacceptances = false): array {
         global $DB, $PAGE;
@@ -204,7 +204,7 @@ class api {
      *
      * @param int $versionid ID of the policy document version.
      * @param array $policies cached result of self::list_policies() in case this function needs to be called in a loop
-     * @return stdClass - exported {@link tool_policy\policy_exporter} instance
+     * @return stdClass - exported {@see tool_policy\policy_exporter} instance
      */
     public static function get_policy_version(int $versionid, array $policies = null): stdClass {
         if ($policies === null) {
@@ -269,7 +269,7 @@ class api {
     /**
      * Can the user view the given policy version document?
      *
-     * @param stdClass $policy - exported {@link tool_policy\policy_exporter} instance
+     * @param stdClass $policy - exported {@see tool_policy\policy_exporter} instance
      * @param int $behalfid The id of user on whose behalf the user is viewing the policy
      * @param int $userid The user whom access is evaluated, defaults to the current one
      * @return bool
@@ -368,7 +368,7 @@ class api {
     }
 
     /**
-     * Prepare data for the {@link \tool_policy\form\policydoc} form.
+     * Prepare data for the {@see \tool_policy\form\policydoc} form.
      *
      * @param \tool_policy\policy_version $version persistent representing the version.
      * @return stdClass form data
@@ -398,7 +398,7 @@ class api {
     /**
      * Save the data from the policydoc form as a new policy document.
      *
-     * @param stdClass $form data submitted from the {@link \tool_policy\form\policydoc} form.
+     * @param stdClass $form data submitted from the {@see \tool_policy\form\policydoc} form.
      * @return \tool_policy\policy_version persistent
      */
     public static function form_policydoc_add(stdClass $form): policy_version {
@@ -418,7 +418,7 @@ class api {
     /**
      * Save the data from the policydoc form as a new policy document version.
      *
-     * @param stdClass $form data submitted from the {@link \tool_policy\form\policydoc} form.
+     * @param stdClass $form data submitted from the {@see \tool_policy\form\policydoc} form.
      * @return \tool_policy\policy_version persistent
      */
     public static function form_policydoc_update_new(stdClass $form): policy_version {
@@ -441,7 +441,7 @@ class api {
     /**
      * Save the data from the policydoc form, overwriting the existing policy document version.
      *
-     * @param stdClass $form data submitted from the {@link \tool_policy\form\policydoc} form.
+     * @param stdClass $form data submitted from the {@see \tool_policy\form\policydoc} form.
      * @return policy_version persistent
      */
     public static function form_policydoc_update_overwrite(stdClass $form): policy_version {
@@ -1145,7 +1145,7 @@ class api {
      * Returns the value of the optional flag for the given policy version.
      *
      * Optimised for being called multiple times by making use of a request cache. The cache is normally populated as a
-     * side effect of calling {@link self::list_policies()} and in most cases should be warm enough for hits.
+     * side effect of calling {@see self::list_policies()} and in most cases should be warm enough for hits.
      *
      * @param int $versionid
      * @return int policy_version::AGREEMENT_COMPULSORY | policy_version::AGREEMENT_OPTIONAL
@@ -1165,4 +1165,5 @@ class api {
 
         return $hit;
     }
+
 }

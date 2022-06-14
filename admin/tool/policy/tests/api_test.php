@@ -19,7 +19,7 @@ namespace tool_policy;
 use tool_policy\test\helper;
 
 /**
- * Unit tests for the {@link \tool_policy\api} class.
+ * Unit tests for the {@see \tool_policy\api} class.
  *
  * @package   tool_policy
  * @category  test
@@ -31,6 +31,7 @@ class api_test extends \advanced_testcase {
 
     /**
      * Test the common operations with a policy document and its versions.
+     * @covers \tool_policy\api
      */
     public function test_policy_document_life_cycle() {
         $this->resetAfterTest();
@@ -134,6 +135,7 @@ class api_test extends \advanced_testcase {
 
     /**
      * Test changing the sort order of the policy documents.
+     * @covers \tool_policy\api
      */
     public function test_policy_sortorder() {
         global $DB;
@@ -193,6 +195,7 @@ class api_test extends \advanced_testcase {
 
     /**
      * Test that list of policies can be filtered by audience
+     * @covers \tool_policy\api
      */
     public function test_list_policies_audience() {
         $this->resetAfterTest();
@@ -234,7 +237,9 @@ class api_test extends \advanced_testcase {
     }
 
     /**
-     * Test behaviour of the {@link api::can_user_view_policy_version()} method.
+     * Test behaviour of the {@see api::can_user_view_policy_version()} method.
+     *
+     * @covers \tool_policy\api::can_user_view_policy_version
      */
     public function test_can_user_view_policy_version() {
         global $CFG;
@@ -312,7 +317,9 @@ class api_test extends \advanced_testcase {
     }
 
     /**
-     * Test behaviour of the {@link api::can_accept_policies()} method.
+     * Test behaviour of the {@see api::can_accept_policies()} method.
+     *
+     * @covers \tool_policy\api::can_accept_policies
      */
     public function test_can_accept_policies() {
         global $CFG;
@@ -388,7 +395,9 @@ class api_test extends \advanced_testcase {
     }
 
     /**
-     * Test behaviour of the {@link api::can_decline_policies()} method.
+     * Test behaviour of the {@see api::can_decline_policies()} method.
+     *
+     * @covers \tool_policy\api::can_decline_policies
      */
     public function test_can_decline_policies() {
         global $CFG;
@@ -470,7 +479,9 @@ class api_test extends \advanced_testcase {
     }
 
     /**
-     * Test behaviour of the {@link api::can_revoke_policies()} method.
+     * Test behaviour of the {@see api::can_revoke_policies()} method.
+     *
+     * @covers \tool_policy\api::can_revoke_policies
      */
     public function test_can_revoke_policies() {
         global $CFG;
@@ -552,7 +563,9 @@ class api_test extends \advanced_testcase {
     }
 
     /**
-     * Test {@link api::fix_revision_values()} behaviour.
+     * Test {@see api::fix_revision_values()} behaviour.
+     *
+     * @covers \tool_policy\api::fix_revision_values
      */
     public function test_fix_revision_values() {
         $this->resetAfterTest();
@@ -578,6 +591,9 @@ class api_test extends \advanced_testcase {
 
     /**
      * Test that accepting policy updates 'policyagreed'
+     *
+     * @covers \tool_policy\api
+     *
      */
     public function test_accept_policies() {
         global $DB;
@@ -628,6 +644,8 @@ class api_test extends \advanced_testcase {
 
     /**
      * Test that activating a new policy resets everybody's policyagreed flag in the database.
+     *
+     * @covers \tool_policy\api
      */
     public function test_reset_policyagreed() {
         global $DB;
@@ -671,7 +689,9 @@ class api_test extends \advanced_testcase {
     }
 
     /**
-     * Test behaviour of the {@link api::get_user_minors()} method.
+     * Test behaviour of the {@see api::get_user_minors()} method.
+     *
+     * @covers \tool_policy\api::get_user_minors
      */
     public function test_get_user_minors() {
         $this->resetAfterTest();
@@ -720,7 +740,9 @@ class api_test extends \advanced_testcase {
     }
 
     /**
-     * Test behaviour of the {@link api::create_acceptances_user_created()} method.
+     * Test behaviour of the {@see api::create_acceptances_user_created()} method.
+     *
+     * @covers \tool_policy\api::create_acceptances_user_created
      */
     public function test_create_acceptances_user_created() {
         global $CFG, $DB;
@@ -750,6 +772,8 @@ class api_test extends \advanced_testcase {
 
     /**
      * Test that user can login if sitepolicyhandler is set but there are no policies.
+     *
+     * @covers \tool_policy\api
      */
     public function test_login_with_handler_without_policies() {
         global $CFG;
@@ -764,7 +788,9 @@ class api_test extends \advanced_testcase {
     }
 
     /**
-     * Test the three-state logic of the value returned by {@link api::is_user_version_accepted()}.
+     * Test the three-state logic of the value returned by {@see api::is_user_version_accepted()}.
+     *
+     * @covers \tool_policy\api::is_user_version_accepted
      */
     public function test_is_user_version_accepted() {
 
@@ -787,7 +813,9 @@ class api_test extends \advanced_testcase {
     }
 
     /**
-     * Test the functionality of {@link api::get_agreement_optional()}.
+     * Test the functionality of {@see api::get_agreement_optional()}.
+     *
+     * @covers \tool_policy\api::get_agreement_optional
      */
     public function test_get_agreement_optional() {
         global $DB;

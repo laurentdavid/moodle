@@ -56,7 +56,7 @@ class handler extends \core_privacy\local\sitepolicy\handler {
      * Returns URL of the site policy that needs to be displayed to the user (inside iframe or to use in WS such as mobile app)
      *
      * This page should not have any header/footer, it does not also have any buttons/checkboxes. The caller needs to implement
-     * the "Accept" button and call {@link self::accept()} on completion.
+     * the "Accept" button and call {@see self::accept()} on completion.
      *
      * @param bool $forguests
      * @return moodle_url|null

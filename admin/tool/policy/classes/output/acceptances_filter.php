@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Provides {@link tool_policy\output\acceptances_filter} class.
+ * Provides {@see tool_policy\output\acceptances_filter} class.
  *
  * @package     tool_policy
  * @category    output
@@ -47,7 +47,7 @@ class acceptances_filter implements \templatable, \renderable {
     /** @var array list of available roles for the filter */
     protected $roles;
 
-    /** @var array cached list of all available policies, to retrieve use {@link self::get_avaliable_policies()} */
+    /** @var array cached list of all available policies, to retrieve use {@see self::get_avaliable_policies()} */
     protected $policies;
 
     /** @var int */
@@ -272,7 +272,7 @@ class acceptances_filter implements \templatable, \renderable {
 
     /**
      * Validates if policyid and versionid are valid (if specified)
-     * @throw \moodle_exception
+     * @throws \moodle_exception
      */
     public function validate_ids() {
         $policyid = $this->get_policy_id_filter();
@@ -294,7 +294,7 @@ class acceptances_filter implements \templatable, \renderable {
      *
      * If neither policyid nor versionid is specified this method returns null.
      *
-     * When versionid is specified this method will always return an object (this is validated in {@link self::validate_ids()}
+     * When versionid is specified this method will always return an object (this is validated in {@see self::validate_ids()}
      * When only policyid is specified this method either returns the current version of the policy or null if there is
      * no current version (for example, it is an old policy).
      *

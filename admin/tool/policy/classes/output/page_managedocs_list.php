@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Provides {@link tool_policy\output\page_managedocs_list} class.
+ * Provides {@see tool_policy\output\page_managedocs_list} class.
  *
  * @package     tool_policy
  * @category    output

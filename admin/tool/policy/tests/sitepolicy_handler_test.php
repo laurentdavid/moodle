@@ -20,7 +20,7 @@ use tool_policy\privacy\local\sitepolicy\handler;
 use tool_policy\test\helper;
 
 /**
- * Unit tests for the {@link \tool_policy\privacy\local\sitepolicy\handler} class.
+ * Unit tests for the {@see \tool_policy\privacy\local\sitepolicy\handler} class.
  *
  * @package     tool_policy
  * @category    test
@@ -31,7 +31,7 @@ use tool_policy\test\helper;
 class sitepolicy_handler_test extends \advanced_testcase {
 
     /**
-     * Test behaviour of the {@link \tool_policy\privacy\local\sitepolicy\handler::get_redirect_url()} method.
+     * Test behaviour of the {@see \tool_policy\privacy\local\sitepolicy\handler::get_redirect_url()} method.
      * @covers \tool_policy\privacy\local\sitepolicy\handler::get_redirect_url
      */
     public function test_get_redirect_url() {
@@ -56,7 +56,7 @@ class sitepolicy_handler_test extends \advanced_testcase {
     }
 
     /**
-     * Test behaviour of the {@link \tool_policy\privacy\local\sitepolicy\handler::get_embed_url()} method.
+     * Test behaviour of the {@see \tool_policy\privacy\local\sitepolicy\handler::get_embed_url()} method.
      * @covers \tool_policy\privacy\local\sitepolicy\handler::get_embed_url
      */
     public function test_get_embed_url() {
@@ -83,7 +83,7 @@ class sitepolicy_handler_test extends \advanced_testcase {
     }
 
     /**
-     * Test behaviour of the {@link \tool_policy\privacy\local\sitepolicy\handler::accept()} method.
+     * Test behaviour of the {@see \tool_policy\privacy\local\sitepolicy\handler::accept()} method.
      * @covers \tool_policy\privacy\local\sitepolicy\handler::accept
      */
     public function test_accept() {
@@ -122,7 +122,7 @@ class sitepolicy_handler_test extends \advanced_testcase {
     }
 
     /**
-     * Test presence of the {@link \tool_policy\privacy\local\sitepolicy\handler::signup_form()} method.
+     * Test presence of the {@see \tool_policy\privacy\local\sitepolicy\handler::signup_form()} method.
      * @covers \tool_policy\privacy\local\sitepolicy\handler::signup_form
      */
     public function test_signup_form() {

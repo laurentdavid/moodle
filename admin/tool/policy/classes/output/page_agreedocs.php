@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Provides {@link tool_policy\output\renderer} class.
+ * Provides {@see tool_policy\output\renderer} class.
  *
  * @package     tool_policy
  * @category    output
@@ -35,6 +35,7 @@ use renderable;
 use renderer_base;
 use templatable;
 use tool_policy\api;
+use tool_policy\helper;
 use tool_policy\policy_version;
 
 /**
@@ -100,17 +101,7 @@ class page_agreedocs implements renderable, templatable {
             $this->behalfid = $this->behalfuser->id;
         }
 
-        $this->policies = api::list_current_versions(policy_version::AUDIENCE_LOGGEDIN);
-
-        if (!$this->isexistinguser) {
-            // During the signup, show compulsory policies only.
-            foreach ($this->policies as $ix => $policyversion) {
-                if ($policyversion->optional == policy_version::AGREEMENT_OPTIONAL) {
-                    unset($this->policies[$ix]);
-                }
-            }
-            $this->policies = array_values($this->policies);
-        }
+        $this->policies = api::list_current_versions();
 
         if (empty($this->behalfid)) {
             $userid = $USER->id;
@@ -178,28 +169,36 @@ class page_agreedocs implements renderable, templatable {
                 $this->messages[] = $message;
             }
         } else {
-            // New user.
+            // New user or non logged in user.
+            $acceptancepolicies = [];
+            helper::get_agreed_policies_for_anonymous();
             if (!empty($this->action) && confirm_sesskey()) {
                 $currentpolicyversionids = [];
                 $presignupcache = \cache::make('core', 'presignup');
-                $acceptances = $presignupcache->get('tool_policy_policyversionidsagreed');
-                if (!$acceptances) {
-                    $acceptances = [];
-                }
-                foreach ($this->policies as $policy) {
-                    $currentpolicyversionids[] = $policy->id;
-                    if (in_array($policy->id, $this->listdocs)) {
-                        if (in_array($policy->id, $this->agreedocs)) {
-                            $acceptances[] = $policy->id;
-                        } else {
-                            $acceptances = array_values(array_diff($acceptances, [$policy->id]));
+                $newsignupuser = $presignupcache->get('tool_policy_issignup');
+                if ($newsignupuser) {
+                    $acceptancepolicies = $presignupcache->get('tool_policy_policyversionidsagreed');
+                    if (!$acceptancepolicies) {
+                        $acceptancepolicies = [];
+                    }
+                    foreach ($this->policies as $policy) {
+                        $currentpolicyversionids[] = $policy->id;
+                        if (in_array($policy->id, $this->listdocs)) {
+                            if (in_array($policy->id, $this->agreedocs)) {
+                                $acceptancepolicies[] = $policy->id;
+                            } else {
+                                $acceptancepolicies = array_values(array_diff($acceptancepolicies, [$policy->id]));
+                            }
                         }
                     }
+                } else {
+                    foreach ($this->policies as $policy) {
+                        $acceptancepolicies[] = [
+                            'policyversionid' => $policy->id,
+                            'accepted' =>  in_array($policy->id, $this->agreedocs)];
+                    }
                 }
-                // If the user has accepted all the policies, add it to the session to let continue with the signup process.
-                $this->signupuserpolicyagreed = empty(array_diff($currentpolicyversionids, $acceptances));
-                $presignupcache->set('tool_policy_userpolicyagreed', $this->signupuserpolicyagreed);
-                $presignupcache->set('tool_policy_policyversionidsagreed', $acceptances);
+                helper::set_policies_acceptances($acceptancepolicies);
             } else if (empty($this->policies)) {
                 // There are no policies to agree to. Update the policyagreed value to avoid show empty consent page.
                 \cache::make('core', 'presignup')->set('tool_policy_userpolicyagreed', 1);
@@ -479,9 +478,15 @@ class page_agreedocs implements renderable, templatable {
         }
 
         // Filter out policies already shown on their own page, keep just policies to be shown here on the consent page.
-        $data->policies = array_values(array_filter($this->policies, function($policy) {
-            return $policy->agreementstyle == policy_version::AGREEMENTSTYLE_CONSENTPAGE;
-        }));
+        // Filter out policies that are optional if user does not exist.
+        $data->policies = [];
+        foreach ($this->policies as $policy) {
+            if ($policy->agreementstyle == policy_version::AGREEMENTSTYLE_CONSENTPAGE) {
+                if ($this->isexistinguser || $policy->optional != policy_version::AGREEMENT_OPTIONAL) {
+                    $data->policies[] = $policy;
+                }
+            }
+        }
 
         // If viewing docs in behalf of other user, get his/her full name and profile link.
         if (!empty($this->behalfuser)) {

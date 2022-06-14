@@ -60,16 +60,7 @@ class helper {
             }
             api::update_policyagreed();
         } else {
-            global $_SESSION, $DB;
-            $_SESSION[self::CACHE_KEY_POLICIES_ID_AGREED] = $policies;
-            // Get  just the one we agreed to.
-            $policies = array_filter($policies, function($p) {
-                return $p['accepted'];
-            });
-            $policiesversionid = array_map(function($policyv) {
-                return $policyv['policyversionid'];
-            }, $policies);
-
+            global $DB;
             // Retrieve all mandatory policies for guest.
             $params['mandatory'] = policy_version::AGREEMENT_COMPULSORY;
             $params['audienceguest'] = policy_version::AUDIENCE_GUESTS;
@@ -81,10 +72,7 @@ class helper {
             WHERE v.optional = :mandatory AND ( v.audience = :audienceguest OR v.audience = :audienceall )
             ORDER BY v.id",
                 $params);
-
-            $presignupcache = \cache::make('core', 'presignup');
-            $presignupcache->set(self::CACHE_KEY_POLICIES_ACCEPTED, empty(array_diff($mandatorypolicies, $policiesversionid)));
-            $presignupcache->set(self::CACHE_KEY_POLICIES_ID_AGREED, $policiesversionid);
+            self::update_agreed_policies_info_for_anonymous($policies, $mandatorypolicies);
         }
     }
 
@@ -94,41 +82,31 @@ class helper {
      * Note this will store information in the current session if user not yet logged in.
      *
      * @param array $policiescurrentversions
+     * @param bool $forcemandatory
      * @return array
+     * @throws \coding_exception
      */
-    public static function retrieve_policies_with_acceptance(array $policiescurrentversions): array {
-        global $USER;
+    public static function retrieve_policies_with_acceptance(array $policiescurrentversions, bool $forcemandatory = false): array {
+        global $USER, $_SESSION;
         if (empty($policiescurrentversions)) {
             return [];
         }
         if (static::is_loggedin_no_guest()) {
-            $acceptances = api::get_user_acceptances($USER->id);
-            foreach ($policiescurrentversions as $policyversion) {
-                $policyversion->policyagreed = false;
-                if (!empty($acceptances[$policyversion->id])) {
-                    $policyversion->policyagreed = $acceptances[$policyversion->id]->status == "1";
-                }
-                $policyversion->mandatory = !($policyversion->optional == "1");
-                if ($policyversion->mandatory) {
-                    $policyversion->policyagreed = true;
-                }
-            }
+            $acceptances = array_map(function($a) {
+                    return $a->status;
+            }, api::get_user_acceptances($USER->id));
         } else {
-            $presignupcache = \cache::make('core', 'presignup');
-            $agreedpoliciesid = $presignupcache->get(self::CACHE_KEY_POLICIES_ID_AGREED);
-            foreach ($policiescurrentversions as $policyversion) {
-                $policyversion->policyagreed = false;
-                if ($agreedpoliciesid) {
-                    foreach ($agreedpoliciesid as $agreedpolicyid) {
-                        if ($agreedpolicyid == $policyversion->id) {
-                            $policyversion->policyagreed = true;
-                        }
-                    }
-                }
-                $policyversion->mandatory = !($policyversion->optional == "1");
-                if ($policyversion->mandatory) {
-                    $policyversion->policyagreed = true;
-                }
+            $agreedpolicies = self::get_agreed_policies_for_anonymous();
+            $acceptances = $agreedpolicies ? array_fill_keys(self::get_agreed_policies_for_anonymous(), true) : [];
+        }
+        foreach ($policiescurrentversions as $policyversion) {
+            $policyversion->policyagreed = false;
+            if (!empty($acceptances[$policyversion->id])) {
+                $policyversion->policyagreed = $acceptances[$policyversion->id];
+            }
+            $policyversion->mandatory = !($policyversion->optional == "1");
+            if ($forcemandatory && $policyversion->mandatory) {
+                $policyversion->policyagreed = true;
             }
         }
         return $policiescurrentversions;
@@ -140,12 +118,65 @@ class helper {
      * @return bool
      */
     public static function has_policy_been_agreed(): bool {
-        global $USER;
+        global $USER, $_SESSION;
         if (static::is_loggedin_no_guest()) {
             return $USER->policyagreed;
         } else {
             $presignupcache = \cache::make('core', 'presignup');
-            return $presignupcache->get(self::CACHE_KEY_POLICIES_ACCEPTED);
+            $newsignupuser = $presignupcache->get('tool_policy_issignup');
+            if ($newsignupuser) {
+                return $presignupcache->get(self::CACHE_KEY_POLICIES_ACCEPTED);
+            } else {
+                return $_SESSION[self::CACHE_KEY_POLICIES_ACCEPTED] ?? false;
+            }
         }
+    }
+
+    /**
+     * Set policy info for users which are not logged in
+     *
+     * @param array $policies associative array with two items : policyversionid and accepted
+     * @param array $mandatorypolicies
+     * @return void
+     */
+    public static function update_agreed_policies_info_for_anonymous(array $policies, array $mandatorypolicies): void {
+        global $_SESSION;
+        $presignupcache = \cache::make('core', 'presignup');
+        $newsignupuser = $presignupcache->get('tool_policy_issignup');
+        // Get  just the one we agreed to.
+        $acceptedpolicies = array_filter($policies, function($p) {
+            return $p['accepted'];
+        });
+        $policiesversionid = array_map(function($policyv) {
+            return $policyv['policyversionid'];
+        }, $acceptedpolicies);
+
+        $policiesaccepted = empty(array_diff($mandatorypolicies, $policiesversionid));
+        if ($newsignupuser) {
+            // If the user has accepted all the policies, add it to the session to let continue with the signup process.
+            $presignupcache->set(self::CACHE_KEY_POLICIES_ACCEPTED, $policiesaccepted);
+            $presignupcache->set(self::CACHE_KEY_POLICIES_ID_AGREED, $policiesversionid);
+        } else {
+            $_SESSION[self::CACHE_KEY_POLICIES_ACCEPTED] = $policiesaccepted;
+            $_SESSION[self::CACHE_KEY_POLICIES_ID_AGREED] = $policiesversionid;
+        }
+    }
+
+    /**
+     * Get agreed policies for anonymous user.
+     *
+     * @return array | bool
+     * @throws \coding_exception
+     */
+    public static function get_agreed_policies_for_anonymous() {
+        global $_SESSION;
+        $presignupcache = \cache::make('core', 'presignup');
+        $newsignupuser = $presignupcache->get('tool_policy_issignup');
+        if ($newsignupuser) {
+            $agreedpoliciesid = $presignupcache->get(self::CACHE_KEY_POLICIES_ID_AGREED);
+        } else {
+            $agreedpoliciesid = $_SESSION[self::CACHE_KEY_POLICIES_ID_AGREED] ?? false;
+        }
+        return $agreedpoliciesid;
     }
 }

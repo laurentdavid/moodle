@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Provides {@link tool_policy\event\acceptance_created} class.
+ * Provides {@see tool_policy\event\acceptance_created} class.
  *
  * @package     tool_policy
  * @copyright   2018 Marina Glancy

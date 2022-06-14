@@ -62,7 +62,7 @@ class policies_consent implements renderable, templatable {
         }
         $policies = api::list_current_versions($policytype);
         $data->haspolicies = !empty($policies);
-        $policies = helper::retrieve_policies_with_acceptance($policies);
+        $policies = helper::retrieve_policies_with_acceptance($policies, true);
         $data->policyagreed = helper::has_policy_been_agreed();
         $data->mandatorypolicies = [];
         $data->optionalpolicies = [];
