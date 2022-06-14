@@ -4,7 +4,7 @@ Feature: Test creating different types of feedback questions for non-anonymous f
   As a teacher
   I need to be able to add different question types
 
-  @javascript
+  @javascript @runonly
   Scenario: Create different types of questions in non-anonymous feedback with javascript enabled
     Given the following "users" exist:
       | username | firstname | lastname |

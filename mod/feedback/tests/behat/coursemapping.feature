@@ -109,7 +109,6 @@ Feature: Mapping courses in a feedback
     And I log in as "manager"
     And I am on site homepage
     And I follow "Course feedback"
-
     And I navigate to "Analysis" in current page administration
     And I should see "All courses" in the "#feedback_course_filter [data-fieldtype=autocomplete] .form-autocomplete-selection [role=option]" "css_element"
     And I show chart data for the "multichoicerated" feedback
