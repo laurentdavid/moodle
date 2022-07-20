@@ -2502,19 +2502,23 @@ class quiz_attempt {
     }
 
     /**
-     * Check a page access to see if is an out of sequence access.
+     * Check a page read access to see if is an out of sequence access.
      *
-     * @param  int $page page number.
-     * @return boolean false is is an out of sequence access, true otherwise.
+     * If allownext is set then we also check whether access to the page
+     * after the current one should be permitted.
+     *
+     * @param int $page page number.
+     * @param bool $allownext check if we can also access the next page in sequence
+     * @return boolean false is an out of sequence access, true otherwise.
      * @since Moodle 3.1
      */
-    public function check_page_access($page) {
-        if ($this->get_currentpage() != $page) {
-            if ($this->get_navigation_method() == QUIZ_NAVMETHOD_SEQ && $this->get_currentpage() > $page) {
-                return false;
-            }
+    public function check_page_access(int $page, ?bool $allownext = false): bool {
+        if ($this->get_navigation_method() != QUIZ_NAVMETHOD_SEQ) {
+            return true;
         }
-        return true;
+        return $this->is_preview_user()
+            || ($this->get_currentpage() == $page)
+            || ($allownext && (($this->get_currentpage() + 1) == $page));
     }
 
     /**
@@ -2526,8 +2530,7 @@ class quiz_attempt {
      */
     public function set_currentpage($page) {
         global $DB;
-
-        if ($this->check_page_access($page)) {
+        if ($this->check_page_access($page, true)) {
             $DB->set_field('quiz_attempts', 'currentpage', $page, array('id' => $this->get_attemptid()));
             return true;
         }
