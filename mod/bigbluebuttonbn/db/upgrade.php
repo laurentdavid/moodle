@@ -312,7 +312,6 @@ function xmldb_bigbluebuttonbn_upgrade($oldversion = 0) {
     }
 
     if ($oldversion < 2021072905) {
-        // Add table bigbluebuttonbn_recordings (CONTRIB-7994).
         // Define table bigbluebuttonbn_recordings to be created.
         $table = new xmldb_table('bigbluebuttonbn_recordings');
 
@@ -324,8 +323,8 @@ function xmldb_bigbluebuttonbn_upgrade($oldversion = 0) {
         $table->add_field('recordingid', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, null);
         $table->add_field('headless', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0');
         $table->add_field('imported', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0');
-        $table->add_field('state', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0');
-        $table->add_field('recording', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('status', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('importeddata', XMLDB_TYPE_TEXT, null, null, null, null, null);
         $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
         $table->add_field('usermodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
         $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
@@ -343,47 +342,9 @@ function xmldb_bigbluebuttonbn_upgrade($oldversion = 0) {
         if (!$dbman->table_exists($table)) {
             $dbman->create_table($table);
         }
+
         // Bigbluebuttonbn savepoint reached.
         upgrade_mod_savepoint(true, 2021072905, 'bigbluebuttonbn');
-    }
-    if ($oldversion < 2021072906) {
-
-        // Rename field recording on table bigbluebuttonbn_recordings to remotedata, add new remotedatatstamp and status.
-        $table = new xmldb_table('bigbluebuttonbn_recordings');
-
-        $field = new xmldb_field('recording', XMLDB_TYPE_TEXT, null, null, null, null, null, 'state');
-        // Launch rename field recording to remotedata.
-        $dbman->rename_field($table, $field, 'remotedata');
-
-        $field = new xmldb_field('remotedatatstamp', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'remotedata');
-        // Conditionally launch add field remotedatatstamp.
-        if (!$dbman->field_exists($table, $field)) {
-            $dbman->add_field($table, $field);
-        }
-
-        // State is already used on remote bigbluebutton entity and has not the same semantic.
-        $field = new xmldb_field('state', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'imported');
-        // Launch rename field state to status.
-        $dbman->rename_field($table, $field, 'status');
-
-        // Bigbluebuttonbn savepoint reached.
-        upgrade_mod_savepoint(true, 2021072906, 'bigbluebuttonbn');
-    }
-
-    if ($oldversion < 2021072907) {
-        // Define field id to be dropped from bigbluebuttonbn_recordings.
-        $table = new xmldb_table('bigbluebuttonbn_recordings');
-        $remotedatatstamp = new xmldb_field('remotedatatstamp');
-        $remotedata = new xmldb_field('remotedata', XMLDB_TYPE_TEXT, null, null, null, null, null, 'status');
-        // Conditionally launch drop field remotedatatstamp.
-        if ($dbman->field_exists($table, $remotedatatstamp)) {
-            $dbman->drop_field($table, $remotedatatstamp);
-        }
-        // Launch rename field importeddata.
-        $dbman->rename_field($table, $remotedata, 'importeddata');
-
-        // Bigbluebuttonbn savepoint reached.
-        upgrade_mod_savepoint(true, 2021072907, 'bigbluebuttonbn');
     }
 
     if ($oldversion < 2021083100) {
