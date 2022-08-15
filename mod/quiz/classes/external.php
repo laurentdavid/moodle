@@ -875,9 +875,8 @@ class mod_quiz_external extends external_api {
                 throw new moodle_quiz_exception($attemptobj->get_quizobj(), 'Invalid page number');
             }
 
-            // Prevent out of sequence access: either current page or next page.
-            $page = intval($params['page']);
-            if (!$attemptobj->check_page_access($page, true)) {
+            // Prevent out of sequence access.
+            if (!$attemptobj->check_page_access($params['page'])) {
                 throw new moodle_quiz_exception($attemptobj->get_quizobj(), 'Out of sequence access');
             }
 

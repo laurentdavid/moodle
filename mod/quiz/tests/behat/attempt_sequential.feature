@@ -35,19 +35,17 @@ Feature: Attempt a quiz in a sequential mode
 
   @javascript
   Scenario Outline: As a student I should not be able to navigate out of sequence if sequential navigation is on.
-    When I am on the "Quiz 1" "mod_quiz > View" page logged in as "<username>"
-    And I press "<startbuttonlabel>"
+    When I am on the "Quiz 1" "mod_quiz > View" page logged in as "student"
+    And I press "Attempt quiz"
     Then I should see "First question"
     When I am on the "Quiz 1 > <username> > Attempt 1 > <pagenumber>" "mod_quiz > Attempt view" page
     And I should see "<canseequestion>"
     Then I should not see "<cannotseequestion>"
     Examples:
-      | username | startbuttonlabel | pagenumber | canseequestion  | cannotseequestion |
-      | student  | Attempt quiz     | 1          | First question  | Second question   |
-      | student  | Attempt quiz     | 2          | Second question | First question    |
-      | student  | Attempt quiz     | 4          | First question  | Fourth question   |
-      | teacher  | Preview quiz     | 4          | Fourth question | First question    |
-
+      | pagenumber | canseequestion  | cannotseequestion |
+      | 1          | First question  | Second question   |
+      | 2          | Second question | First question    |
+      | 4          | First question  | Fourth question   |
 
   @javascript
   Scenario: As a student I should not be able to navigate out of sequence by opening new windows on the same quiz.
@@ -79,3 +77,18 @@ Feature: Attempt a quiz in a sequential mode
     Then I wait "2" seconds
     And I am on the "Quiz 1 > student > Attempt 1 > 1" "mod_quiz > Attempt view" page
     And I should see "Second question"
+
+  @javascript
+  Scenario: As a student I can review question I have finished in any order
+    Given user "student" has attempted "Quiz 1" with responses:
+      | slot | response |
+      |   1  | True     |
+      |   2  | False    |
+      |   3  | False    |
+      |   4  | False    |
+    When I am on the "Quiz 1" "mod_quiz > View" page logged in as "student"
+    And I follow "Review"
+    Given I am on the "Quiz 1 > student > Attempt 1 > 3" "mod_quiz > Attempt view" page
+    Then I should see "Third question"
+    Given I am on the "Quiz 1 > student > Attempt 1 > 2" "mod_quiz > Attempt view" page
+    Then I should see "Second question"

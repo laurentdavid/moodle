@@ -2508,17 +2508,18 @@ class quiz_attempt {
      * after the current one should be permitted.
      *
      * @param int $page page number.
-     * @param bool $allownext check if we can also access the next page in sequence
      * @return boolean false is an out of sequence access, true otherwise.
      * @since Moodle 3.1
      */
-    public function check_page_access(int $page, ?bool $allownext = false): bool {
+    public function check_page_access(int $page): bool {
         if ($this->get_navigation_method() != QUIZ_NAVMETHOD_SEQ) {
             return true;
         }
-        return $this->is_preview_user()
-            || ($this->get_currentpage() == $page)
-            || ($allownext && (($this->get_currentpage() + 1) == $page));
+        // Sequential access: allow access to the summary, current page or next page.
+        // Or if the user review his/her attempt, see MDLQA-1523.
+        return $page == -1
+            || $page == $this->get_currentpage()
+            || $page == $this->get_currentpage() + 1;
     }
 
     /**
@@ -2530,7 +2531,8 @@ class quiz_attempt {
      */
     public function set_currentpage($page) {
         global $DB;
-        if ($this->check_page_access($page, true)) {
+
+        if ($this->check_page_access($page)) {
             $DB->set_field('quiz_attempts', 'currentpage', $page, array('id' => $this->get_attemptid()));
             return true;
         }
