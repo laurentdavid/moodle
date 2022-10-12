@@ -53,8 +53,8 @@ class zero_state_action_bar implements templatable, renderable {
 
         $data = [];
         if (has_capability('mod/data:managetemplates', $PAGE->context)) {
-            $instance = $this->manager->get_instance();
-            $params = ['d' => $instance->id, 'backto' => $PAGE->url->out(false)];
+            $cm = $this->manager->get_coursemodule();
+            $params = ['id' => $cm->id, 'backto' => $PAGE->url->out(false)];
 
             $usepresetlink = new moodle_url('/mod/data/preset.php', $params);
             $usepresetbutton = new \single_button($usepresetlink,
@@ -71,7 +71,7 @@ class zero_state_action_bar implements templatable, renderable {
             $importpresetbutton = new \single_button($importpresetlink,
                 get_string('importpreset', 'mod_data'), 'get', false, [
                     'data-action' => 'importpresets',
-                    'data-dataid' => $instance->id
+                    'data-dataid' => $cm->id,
                 ]);
             $data['importpresetbutton'] = $importpresetbutton->export_for_template($output);
         }
