@@ -27,9 +27,7 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @package mod_data
  */
-
 use mod_data\local\importer\preset_importer;
-use mod_data\local\importer\preset_upload_importer;
 use mod_data\manager;
 use mod_data\preset;
 use mod_data\output\action_bar;
@@ -57,7 +55,7 @@ if ($id) {
 }
 
 $action = optional_param('action', 'view', PARAM_ALPHA); // The page action.
-$allowedactions = ['view', 'importzip', 'finishimport',
+$allowedactions = ['view', 'import', 'finishimport',
     'export', 'preview'];
 if (!in_array($action, $allowedactions)) {
     throw new moodle_exception('invalidaccess');
@@ -78,9 +76,9 @@ $PAGE->activityheader->disable();
 $PAGE->requires->js_call_amd('mod_data/deletepreset', 'init');
 
 // fill in missing properties needed for updating of instance
-$data->course     = $cm->course;
+$data->course = $cm->course;
 $data->cmidnumber = $cm->idnumber;
-$data->instance   = $cm->instance;
+$data->instance = $cm->instance;
 
 $renderer = $manager->get_renderer();
 $presets = $manager->get_available_presets();
@@ -112,10 +110,10 @@ if ($action === 'export') {
     exit(0);
 }
 
-
-if ($action == 'importzip') {
+if ($action == 'import') {
     $filepath = optional_param('filepath', '', PARAM_PATH);
-    $importer = new preset_upload_importer($manager, $CFG->tempdir . $filepath);
+    $manager = manager::create_from_coursemodule($cm);
+    $importer = preset_importer::create_from_parameters($manager);
     if ($importer->needs_mapping()) {
         echo $OUTPUT->header();
         echo $OUTPUT->heading(get_string('importpreset', 'data'), 2, 'mb-4');
@@ -123,9 +121,20 @@ if ($action == 'importzip') {
         echo $OUTPUT->footer();
         exit(0);
     }
-    $importer->import(false);
-    core\notification::success(get_string('importsuccess', 'mod_data'));
-    redirect(new moodle_url('/mod/data/field.php', ['id' => $cm->id]));
+    $overwritesettings = optional_param('overwritesettings', false, PARAM_BOOL);
+    if ($importer->import($overwritesettings)) {
+        $strimportsuccess = get_string('importsuccess', 'data');
+        $stats = $this->get_import_stats();
+        if ($stats->created) {
+            $strimportsuccess .= ' ' . get_string('importsuccess:fieldscreatedstats', 'data', $stats);
+        }
+        \core\notification::success($strimportsuccess);
+        $backurl = new moodle_url('/mod/data/view.php', ['id' => $cm->id]);
+    } else {
+        \core\notification::error(get_string('presetapplied', 'mod_data'));
+        $backurl = new moodle_url('/mod/data/preset.php', ['id' => $cm->id]);
+    }
+    redirect($backurl);
     exit(0);
 }
 
@@ -151,26 +160,23 @@ if ($action === 'preview') {
     exit(0);
 }
 
-echo $OUTPUT->header();
-
 if ($action === 'finishimport') {
     if (!confirm_sesskey()) {
         throw new moodle_exception('invalidsesskey');
     }
-    $overwritesettings = optional_param('overwritesettings', false, PARAM_BOOL);
     $importer = preset_importer::create_from_parameters($manager);
+    $overwritesettings = optional_param('overwritesettings', false, PARAM_BOOL);
     $importer->finish_import_process($overwritesettings, $data);
-
-    echo $OUTPUT->continue_button(new moodle_url('/mod/data/preset.php', ['d' => $data->id]));
-    echo html_writer::end_div();
-    echo $OUTPUT->footer();
+    redirect(new moodle_url('/mod/data/view.php', ['id' => $cm->id]));
     exit(0);
 }
+
+echo $OUTPUT->header();
 
 $actionbar = new \mod_data\output\action_bar($data->id, $url);
 echo $actionbar->get_presets_action_bar();
 echo $OUTPUT->heading(get_string('presets', 'data'), 2, 'mb-4');
-$presets = new \mod_data\output\presets($manager, $presets, new \moodle_url('/mod/data/field.php'), true);
+$presets = new \mod_data\output\presets($manager, $presets, true);
 echo $renderer->render_presets($presets);
 
 echo $OUTPUT->footer();

@@ -44,15 +44,11 @@ class mod_data_renderer extends plugin_renderer_base {
         $html = html_writer::start_tag('div', ['class' => 'presetmapping']);
         $html .= html_writer::start_tag('form', ['method' => 'post', 'action' => '']);
         $html .= html_writer::start_tag('div');
-        $html .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'action', 'value' => 'finishimport']);
-        $html .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
         $html .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'd', 'value' => $datamodule->id]);
 
-        $inputselector = $importer->get_preset_selector();
-        $html .= html_writer::empty_tag(
-                'input',
-                ['type' => 'hidden', 'name' => $inputselector['name'], 'value' => $inputselector['value']]
-        );
+        foreach ($importer->get_importer_mapping_parameters() as $key => $value) {
+            $html .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => $key, 'value' => $value]);
+        }
 
         if (!empty($newfields)) {
             $html .= $this->output->heading_with_help($strfieldmappings, 'fieldmappings', 'data', '', '', 3);
@@ -94,12 +90,12 @@ class mod_data_renderer extends plugin_renderer_base {
             $html .= $this->output->notification(get_string('nodefinedfields', 'data'));
         }
 
-        $html .= html_writer::start_tag('div', array('class'=>'overwritesettings'));
-        $html .= html_writer::tag('label', get_string('overwritesettings', 'data'), array('for' => 'overwritesettings'));
-        $attrs = array('type' => 'checkbox', 'name' => 'overwritesettings', 'id' => 'overwritesettings', 'class' => 'ml-1');
+        $html .= html_writer::start_tag('div', ['class' => 'overwritesettings']);
+        $attrs = ['type' => 'checkbox', 'name' => 'overwritesettings', 'id' => 'overwritesettings', 'class' => 'mr-1'];
         $html .= html_writer::empty_tag('input', $attrs);
+        $html .= html_writer::tag('label', get_string('overwritesettings', 'data'), ['for' => 'overwritesettings']);
         $html .= html_writer::end_tag('div');
-        $html .= html_writer::empty_tag('input', array('type' => 'submit', 'class' => 'btn btn-primary', 'value' => $strcontinue));
+        $html .= html_writer::empty_tag('input', ['type' => 'submit', 'class' => 'btn btn-primary', 'value' => $strcontinue]);
 
         $html .= html_writer::end_tag('div');
         $html .= html_writer::end_tag('form');

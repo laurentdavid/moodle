@@ -35,5 +35,6 @@ Feature: Zero state page (no fields created)
     When I click on "Import a preset" "button"
     And I upload "mod/data/tests/fixtures/image_gallery_preset.zip" file to "Preset file" filemanager
     Then I click on "Import preset and apply" "button" in the ".modal-dialog" "css_element"
-    And I should see "Manage fields"
-    Then I should see "The preset has been successfully applied."
+    # I am on the index page.
+    Then I should see "No entries yet"
+    And I should see "Preset applied."

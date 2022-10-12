@@ -24,6 +24,7 @@
 import ModalForm from 'core_form/modalform';
 import Notification from 'core/notification';
 import {get_string as getString} from 'core/str';
+import {showApplyPresetsDialog} from "./applypresets";
 
 const selectors = {
     importPresetButton: '[data-action="importpresets"]',
@@ -49,7 +50,11 @@ export const init = () => {
 
         modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, event => {
             if (event.detail.result) {
-                window.location.assign(event.detail.url);
+                if (!event.detail.needsMapping) {
+                    window.location.assign(event.detail.url);
+                } else {
+                    showApplyPresetsDialog(event.detail);
+                }
             } else {
                 Notification.addNotification({
                     type: 'error',

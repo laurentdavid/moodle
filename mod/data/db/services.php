@@ -122,4 +122,12 @@ $functions = array(
         'ajax'          => true,
         'capabilities'  => 'mod/data:manageuserpresets',
     ),
+    'mod_data_apply_preset_parameters' => array(
+            'classname' => 'mod_data\external\apply_presets_parameters',
+            'methodname' => 'execute',
+            'description' => 'Get preset parameters in order to apply them.',
+            'type' => 'read',
+            'ajax' => true,
+            'capabilities' => 'mod/data:manageuserpresets',
+    ),
 );

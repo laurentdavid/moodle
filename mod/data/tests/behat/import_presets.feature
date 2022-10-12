@@ -2,7 +2,7 @@
 Feature: Users can import presets
   In order to use presets
   As a user
-  I need to import and apply presets from zip files
+  I need to import and apply preset from zip files
 
   Background:
     Given the following "users" exist:
@@ -15,8 +15,8 @@ Feature: Users can import presets
       | user | course | role |
       | teacher1 | C1 | editingteacher |
     And the following "activities" exist:
-      | activity | name                | intro | course | idnumber |
-      | data     | Mountain landscapes | n     | C1     | data1    |
+      | activity | name                | intro        | course | idnumber |
+      | data     | Mountain landscapes | introduction | C1     | data1    |
     And the following "mod_data > presets" exist:
       | database | name            | description                   |
       | data1    | Saved preset 1  | The preset1 has description   |
@@ -29,7 +29,10 @@ Feature: Users can import presets
     And I upload "mod/data/tests/fixtures/image_gallery_preset.zip" file to "Preset file" filemanager
     When I click on "Import preset and apply" "button"
     Then I should not see "Field mappings"
-    And I should see "Image" in the "image" "table_row"
+    # I am on the index page.
+    Then I should see "No entries yet"
+    And I should see "Preset applied."
+    And I should see "Fields created: 3"
 
   Scenario: Teacher can import from preset page on a database with fields
     Given the following "mod_data > fields" exist:
@@ -40,9 +43,43 @@ Feature: Users can import presets
     And I click on "Import" "link"
     And I upload "mod/data/tests/fixtures/image_gallery_preset.zip" file to "Preset file" filemanager
     When I click on "Import preset and apply" "button"
-    Then I should see "Field mappings"
-    And I should see "image"
-    And I should see "Create a new field" in the "image" "table_row"
+    And I click on "Apply preset" "button"
+    Then I should see "No entries yet"
+    And I should see "Preset applied."
+    And I should see "Fields created: 3"
+
+  Scenario: Teacher can import and map fields from preset page on a database with fields
+    Given the following "mod_data > fields" exist:
+      | database | type | name              | description              |
+      | data1    | text | Test field name   | Test field description   |
+    And I am on the "Mountain landscapes" "data activity" page logged in as teacher1
+    And I follow "Presets"
+    And I click on "Import" "link"
+    And I upload "mod/data/tests/fixtures/image_gallery_preset.zip" file to "Preset file" filemanager
+    When I click on "Import preset and apply" "button"
+    And I click on "Map fields" "button"
+    Then I click on "Continue" "button"
+    # I am on the index page.
+    Then I should see "No entries yet"
+    And I should see "Preset applied."
+    And I should see "Fields created: 3"
+
+  Scenario: If teacher import the same preset twice then the preset is applied again.
+    And I am on the "Mountain landscapes" "data activity" page logged in as teacher1
+    And I follow "Presets"
+    And I click on "Import" "link"
+    And I upload "mod/data/tests/fixtures/image_gallery_preset.zip" file to "Preset file" filemanager
+    When I click on "Import preset and apply" "button"
+    # I am on the index page.
+    Then I should see "No entries yet"
+    And I should see "Preset applied."
+    And I follow "Presets"
+    And I click on "Import" "link"
+    And I upload "mod/data/tests/fixtures/image_gallery_preset.zip" file to "Preset file" filemanager
+    When I click on "Import preset and apply" "button"
+    # I stay on the preset page
+    And I should see "Preset applied."
+    And I should not see "Fields created"
 
   Scenario: Teacher can import from preset page on a database with entries
     And the following "mod_data > fields" exist:
@@ -63,9 +100,11 @@ Feature: Users can import presets
     And I click on "Import" "link"
     And I upload "mod/data/tests/fixtures/image_gallery_preset.zip" file to "Preset file" filemanager
     When I click on "Import preset and apply" "button"
-    Then I should see "Field mappings"
-    And I should see "image"
-    And I should see "Create a new field" in the "image" "table_row"
+    And I click on "Apply preset" "button"
+    Then I should not see "Field mappings"
+    Then I should not see "No entries yet"
+    And I should see "Preset applied."
+    And I should see "Fields created: 3"
 
   Scenario: Teacher can import from field page on an empty database
     Given I am on the "Mountain landscapes" "data activity" page logged in as teacher1
@@ -73,8 +112,8 @@ Feature: Users can import presets
     And I click on "Import" "button"
     And I upload "mod/data/tests/fixtures/image_gallery_preset.zip" file to "Preset file" filemanager
     When I click on "Import preset and apply" "button"
-    Then I should not see "Field mappings"
-    And I should see "Image" in the "image" "table_row"
+    And I should see "Preset applied."
+    And I should see "Fields created: 3"
 
   Scenario: Teacher can import from field page on a database with fields
     Given the following "mod_data > fields" exist:
@@ -85,6 +124,7 @@ Feature: Users can import presets
     And I click on "Import" "button"
     And I upload "mod/data/tests/fixtures/image_gallery_preset.zip" file to "Preset file" filemanager
     When I click on "Import preset and apply" "button"
+    And I click on "Map fields" "button"
     Then I should see "Field mappings"
     And I should see "image"
     And I should see "Create a new field" in the "image" "table_row"
@@ -108,6 +148,7 @@ Feature: Users can import presets
     And I click on "Import" "button"
     And I upload "mod/data/tests/fixtures/image_gallery_preset.zip" file to "Preset file" filemanager
     When I click on "Import preset and apply" "button"
+    And I click on "Map fields" "button"
     Then I should see "Field mappings"
     And I should see "image"
     And I should see "Create a new field" in the "image" "table_row"
@@ -118,4 +159,6 @@ Feature: Users can import presets
     And I upload "mod/data/tests/fixtures/image_gallery_preset.zip" file to "Preset file" filemanager
     When I click on "Import preset and apply" "button"
     Then I should not see "Field mappings"
-    And I should see "Image" in the "image" "table_row"
+    Then I should see "Add entry"
+    And I should see "Preset applied."
+    And I should see "Fields created: 3"

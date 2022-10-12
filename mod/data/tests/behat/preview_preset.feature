@@ -139,8 +139,8 @@ Feature: Users can preview presets
     Given I follow "Presets"
     And I click on "Image gallery" "link"
     When I click on "Use preset" "button"
-    Then I should see "image"
-    And I should see "title"
+    Then I should see "Add entry"
+    And I should see "Preset applied."
 
   @javascript @_file_upload
   Scenario: Apply user preset from preview in database
@@ -156,4 +156,5 @@ Feature: Users can preview presets
     When I follow "Presets"
     And I click on "Saved preset by teacher1" "link"
     And I click on "Use preset" "button"
+    Then I follow "Fields"
     Then I should see "My URL field"

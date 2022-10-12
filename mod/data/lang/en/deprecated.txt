@@ -1,5 +1,10 @@
 unsupportedexport,mod_data
 buttons,mod_data
+chooseorupload,mod_data
+fromfile,mod_data
+fromfile_help,mod_data
 nosingletemplate,mod_data
 nolisttemplate,mod_data
 blank,mod_data
+addentries,mod_data
+todatabase,mod_data

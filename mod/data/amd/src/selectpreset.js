@@ -13,6 +13,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+import {showApplyPresetsDialog} from "./applypresets";
+import {call as fetchMany} from 'core/ajax';
+import Notification from "core/notification";
 /**
  * Javascript module to control the form responsible for selecting a preset.
  *
@@ -36,6 +39,8 @@ export const init = () => {
     // Initialize the "Use preset" button properly.
     disableUsePresetButton();
 
+    // Make sure that click events are redirected to the popup dialog
+    initUsePresetPopupDialog();
     radioButton.forEach((elem) => {
         elem.addEventListener('change', function(event) {
             event.preventDefault();
@@ -69,3 +74,38 @@ const disableUsePresetButton = () => {
         selectPresetButton.classList.add('btn-secondary');
     }
 };
+
+
+export const initUsePresetPopupDialog = () => {
+    const selectPresetButton = document.querySelector(selectors.selectPresetButton);
+    selectPresetButton.addEventListener('click', event => {
+        let args = {
+            'cmid': selectPresetButton.dataset.cmid
+        };
+        let presetLabel = '';
+        if (selectPresetButton.dataset.presetName) {
+            args.presetname = selectPresetButton.dataset.presetName;
+            presetLabel = selectPresetButton.dataset.presetLabel;
+        } else {
+            const selectedRadioButton = document.querySelector(selectors.selectedPresetRadioButton);
+            args.presetname = selectedRadioButton.value;
+            if (selectedRadioButton.labels.length > 0) {
+                presetLabel = selectedRadioButton.labels[0].textContent;
+            }
+        }
+        event.preventDefault();
+        fetchMany([{methodname: 'mod_data_apply_preset_parameters', args}])[0].then(
+            (result) => {
+                let details = JSON.parse(result.details);
+                if (!details.needsMapping) {
+                    window.location.assign(details.url);
+                } else {
+                    details.presetLabel = presetLabel;
+                    showApplyPresetsDialog(details);
+                }
+                return true;
+            }
+        ).catch(Notification.exception);
+    });
+};
+

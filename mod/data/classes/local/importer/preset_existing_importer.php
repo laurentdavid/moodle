@@ -69,11 +69,17 @@ class preset_existing_importer extends preset_importer {
     }
 
     /**
-     * Returns the information we need to build the importer selector.
+     * Get parameters for mapping form
      *
-     * @return array Value and name for the preset importer selector
+     * @param string|null $action the action for the form
+     * @return array
      */
-    public function get_preset_selector(): array {
-        return ['name' => 'fullname', 'value' => $this->get_userid().'/'.$this->get_directory()];
+    public function get_importer_mapping_parameters(?string $action = 'finishimport'): array {
+        $basearray = [
+                'action' => $action,
+                'sesskey' => sesskey(),
+                'fullname' => $this->get_userid() . '/' . $this->get_directory()
+        ];
+        return $basearray;
     }
 }

@@ -36,6 +36,41 @@ abstract class preset_importer {
     protected $directory;
 
     /**
+     * @var array associative array ('fieldstocreate', 'fieldstodelete', 'fieldstokeep', 'fieldstoupdate') listing fields and
+     * related import/mapping actions
+     */
+    private $fieldactions = null;
+
+    /**
+     * Fields to create
+     */
+    const FIELDS_TO_CREATE_KEY = 'fieldstocreate';
+    /**
+     * Fields to delete
+     */
+    const FIELDS_TO_DELETE_KEY = 'fieldstodelete';
+    /**
+     * Fields to keep
+     */
+    const FIELDS_TO_KEEP_KEY = 'fieldstokeep';
+    /**
+     * Fields to update
+     */
+    const FIELDS_TO_UPDATE_KEY = 'fieldstoupdate';
+
+    /**
+     * Preset settings
+     * @var object $settings
+     */
+    private $settings = null;
+
+    /**
+     * Statistics after running the import process
+     * @var $stats object
+     */
+    private $stats = null;
+
+    /**
      * Constructor
      *
      * @param manager $manager
@@ -44,6 +79,98 @@ abstract class preset_importer {
     public function __construct(manager $manager, string $directory) {
         $this->manager = $manager;
         $this->directory = $directory;
+        $this->stats = (object) [
+            'created' => 0,
+            'updated' => 0,
+            'deleted' => 0
+        ];
+    }
+
+    /**
+     * Look at existing settings and return actions that can be used in the mapping dialog.
+     *
+     * @return array sorted in the 4 categories fields to create, fields to delete, fields to update and fields that will stay
+     * the same.
+     */
+    public function get_import_action_from_settings(): array {
+        if (is_null($this->fieldactions)) {
+            $this->fieldactions = self::do_get_import_action_from_settings($this->get_preset_settings());
+        }
+        return $this->fieldactions;
+    }
+
+    /**
+     * Routine used by get_import_action_from_settings and used as a helper
+     *
+     * @param object $settings current preset settings
+     * @return array sorted in the 4 categories fields to create, fields to delete, fields that will stay as
+     * it is and fields to update: 'fieldstocreate', 'fieldstodelete', 'fieldstokeep', 'fieldstoupdate'
+     */
+    protected static function do_get_import_action_from_settings(object $settings): array {
+        $fieldnamemapper = function($field) {
+            return $field->name;
+        };
+
+        $newfieldsnames = array_combine(array_map($fieldnamemapper, $settings->importfields), $settings->importfields);
+        $currentfieldsnames = array_combine(array_map($fieldnamemapper, $settings->currentfields), $settings->currentfields);
+
+        $fieldstocreate = [];
+        $fieldstoupdate = [];
+        $fieldstodelete = $currentfieldsnames;
+        $fieldstokeep = [];
+
+        foreach ($newfieldsnames as $fieldname => $field) {
+            // Field does not exist or is not of the same type.
+            if (empty($currentfieldsnames[$fieldname]) || $currentfieldsnames[$fieldname]->type != $field->type) {
+                $fieldstocreate[$fieldname] = $field;
+            } else {
+                // Field exist and is not the same type.
+                $currentfielddata = (array) $currentfieldsnames[$fieldname];
+                unset($currentfielddata['id']);
+                $newfieldvalues = array_diff((array) $field, $currentfielddata);
+                // Cancel null or empty values.
+                $newfieldvalues = array_filter($newfieldvalues, function($val) {
+                    return !is_null($val);
+                });
+                if (!empty($newfieldvalues)) {
+                    // Add changed values to the field. Used later when displaying.
+                    $currentfields = $currentfieldsnames[$fieldname];
+                    $currentfields->changedattributes = $newfieldvalues;
+                    $fieldstoupdate[$fieldname] = $currentfields;
+                } else {
+                    $fieldstokeep[$fieldname] = $currentfieldsnames[$fieldname];
+                }
+
+                unset($fieldstodelete[$fieldname]);
+            }
+        }
+        return compact(self::FIELDS_TO_CREATE_KEY, self::FIELDS_TO_DELETE_KEY, self::FIELDS_TO_KEEP_KEY,
+            self::FIELDS_TO_UPDATE_KEY);
+    }
+
+
+
+    /**
+     * Get default field mapping
+     *
+     *
+     * @return array
+     */
+    public function get_default_mapping(): array {
+        $defaultmapping = [];
+        $settings = $this->get_preset_settings();
+        foreach ($settings->importfields as $nid => $newfield) {
+            if (!empty($this->fieldactions[self::FIELDS_TO_UPDATE_KEY][$newfield->name])) {
+                $defaultmapping["field_$nid"] = $this->fieldactions[self::FIELDS_TO_UPDATE_KEY][$newfield->name]->id;
+            }
+            if (!empty($this->fieldactions[self::FIELDS_TO_KEEP_KEY][$newfield->name])) {
+                $defaultmapping["field_$nid"] = $this->fieldactions[self::FIELDS_TO_KEEP_KEY][$newfield->name]->id;
+            }
+            if (!empty($this->fieldactions[self::FIELDS_TO_CREATE_KEY][$newfield->name])) {
+                $defaultmapping["field_$nid"] = -1;
+            }
+        }
+        return $defaultmapping;
     }
 
     /**
@@ -110,6 +237,11 @@ abstract class preset_importer {
      */
     public function get_preset_settings(): stdClass {
         global $CFG;
+        // This method is not idempotent, so if we call it twice the directory property can be changed and
+        // subsequent call will fail.
+        if (!empty($this->settings)) {
+            return $this->settings;
+        }
         require_once($CFG->libdir.'/xmlize.php');
 
         $fs = null;
@@ -164,7 +296,7 @@ abstract class preset_importer {
         $parsedxml = xmlize($presetxml, 0);
 
         // First, do settings. Put in user friendly array.
-        $settingsarray = $parsedxml['preset']['#']['settings'][0]['#'];
+        $settingsarray = $parsedxml['preset']['#']['settings'][0]['#'] ?? [];
         $result->settings = new StdClass();
         foreach ($settingsarray as $setting => $value) {
             if (!is_array($value) || !in_array($setting, $allowedsettings)) {
@@ -175,7 +307,7 @@ abstract class preset_importer {
         }
 
         // Now work out fields to user friendly array.
-        $fieldsarray = $parsedxml['preset']['#']['field'];
+        $fieldsarray = $parsedxml['preset']['#']['field'] ?? [];
         foreach ($fieldsarray as $field) {
             if (!is_array($field)) {
                 continue;
@@ -202,6 +334,7 @@ abstract class preset_importer {
         }
 
         $result->settings->instance = $module->id;
+        $this->settings = $result;
         return $result;
     }
 
@@ -250,6 +383,7 @@ abstract class preset_importer {
                     unset($fieldobject->field->similarfield);
                     $fieldobject->update_field();
                     unset($fieldobject);
+                    $this->stats->updated ++;
                 } else {
                     /* Make a new field */
                     include_once("field/$newfield->type/field.class.php");
@@ -261,6 +395,7 @@ abstract class preset_importer {
                     $fieldclass = new $classname($newfield, $module);
                     $fieldclass->insert_field();
                     unset($fieldclass);
+                    $this->stats->created ++;
                 }
             }
         }
@@ -269,13 +404,11 @@ abstract class preset_importer {
         if (!empty($preservedfields)) {
             foreach ($currentfields as $cid => $currentfield) {
                 if (!array_key_exists($cid, $preservedfields)) {
-                    // Data not used anymore so wipe!
-                    print "Deleting field $currentfield->name<br />";
-
                     $id = $currentfield->id;
                     // Why delete existing data records and related comments/ratings??
                     $DB->delete_records('data_content', ['fieldid' => $id]);
                     $DB->delete_records('data_fields', ['id' => $id]);
+                    $this->stats->deleted ++;
                 }
             }
         }
@@ -315,7 +448,6 @@ abstract class preset_importer {
         }
 
         data_update_instance($module);
-
         return $this->cleanup();
     }
 
@@ -334,16 +466,16 @@ abstract class preset_importer {
      * @return bool True if the current database needs to map the fields imported.
      */
     public function needs_mapping(): bool {
-        return $this->manager->has_fields();
-    }
+        // Return false for empty database activity with no fields.
+        if (!$this->manager->has_fields()) {
+            return false;
+        }
+        [
+                'fieldstodelete' => $fieldstodelete,
+                'fieldstoupdate' => $fieldstoupdate,
+        ] = $this->get_import_action_from_settings();
 
-    /**
-     * Returns the information we need to build the importer selector.
-     *
-     * @return array Value and name for the preset importer selector
-     */
-    public function get_preset_selector(): array {
-        return ['name' => 'directory', 'value' => $this->get_directory()];
+        return !(empty($fieldstoupdate) && empty($fieldstodelete));
     }
 
     /**
@@ -359,13 +491,24 @@ abstract class preset_importer {
         global $DB;
         $this->import($overwritesettings);
         $strimportsuccess = get_string('importsuccess', 'data');
-        $straddentries = get_string('addentries', 'data');
-        $strtodatabase = get_string('todatabase', 'data');
+        $stats = $this->get_import_stats();
+        if ($stats->created) {
+            $strimportsuccess .= ' ' . get_string('importsuccess:fieldscreatedstats', 'data', $stats);
+        }
         if (!$DB->get_records('data_records', ['dataid' => $instance->id])) {
-            \core\notification::success("$strimportsuccess <a href='edit.php?d=$instance->id'>$straddentries</a> $strtodatabase");
+            \core\notification::success($strimportsuccess);
         } else {
             \core\notification::success($strimportsuccess);
         }
+    }
+
+    /**
+     * Get the preset manager used to build this importer
+     *
+     * @return manager
+     */
+    public function get_manager():manager {
+        return $this->manager;
     }
 
     /**
@@ -388,5 +531,14 @@ abstract class preset_importer {
             $importer = new preset_existing_importer($manager, $fullname);
         }
         return $importer;
+    }
+
+    /**
+     * Get stats once preset has been imported
+     *
+     * @return object stats with elements such as number of field created (created)
+     */
+    public function get_import_stats(): object {
+        return $this->stats;
     }
 }

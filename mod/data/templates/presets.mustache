@@ -23,7 +23,6 @@
 
     Example context (json):
     {
-        "formactionurl": "http://www.example.com",
         "id": 1,
         "presets": [
             {
@@ -34,6 +33,7 @@
                 "description": "Use this preset to collect images",
                 "userid": 0,
                 "url": "http://www.example.com",
+                "presetuid": "2132Sbbbb",
                 "actions": []
             },
             {
@@ -43,6 +43,7 @@
                 "fullname": "Preset saved manually (admin)",
                 "userid": 2,
                 "url": "http://www.example.com",
+                "presetuid": "2132Saaaa",
                 "actions": []
             }
         ]
@@ -50,7 +51,7 @@
 }}
 {{#str}}presetshelp, mod_data{{/str}}
 
-<form method="post" action="{{formactionurl}}" class="mt-4">
+<div class="mt-4">
     <input type="hidden" name="id" value="{{id}}">
     <input type="hidden" name="mode" value="usepreset">
     <input type="hidden" name="action" value="select">
@@ -68,10 +69,10 @@
             {{#presets}}
             <tr>
                 <td class="p-4 border-right">
-                    <input type="radio" name="fullname" value="{{userid}}/{{shortname}}" />
+                    <input type="radio" name="fullname" value="{{userid}}/{{shortname}}" id="{{presetuid}}"/>
                 </td>
                 <td class="p-4">
-                    <a href="{{{url}}}">{{fullname}}</a>
+                    <label for="{{presetuid}}"><a href="{{{url}}}">{{fullname}}</a></label>
                 </td>
                 <td class="p-4">{{description}}</td>
                 <td class="p-4 preset_action_menu">
@@ -86,8 +87,8 @@
         </tbody>
     </table>
 
-    <input type="submit" name="selectpreset" value="{{#str}}usepreset, mod_data{{/str}}" class="btn btn-secondary mt-2 float-right" disabled>
-</form>
+    <input type="submit" name="selectpreset"  data-cmid="{{id}}" value="{{#str}}usepreset, mod_data{{/str}}" class="btn btn-secondary mt-2 float-right" disabled>
+</div>
 
 {{#js}}
     require(['mod_data/selectpreset'], function(selectPreset) {

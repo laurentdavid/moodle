@@ -41,9 +41,6 @@ class presets implements templatable, renderable {
     /** @var array $presets The array containing the existing presets. */
     private $presets;
 
-    /** @var moodle_url $formactionurl The the action url for the form. */
-    private $formactionurl;
-
     /** @var bool $manage Whether the manage preset options should be displayed. */
     private $manage;
 
@@ -52,13 +49,11 @@ class presets implements templatable, renderable {
      *
      * @param manager $manager The database manager
      * @param array $presets The array containing the existing presets
-     * @param moodle_url $formactionurl The action url for the form
      * @param bool $manage Whether the manage preset options should be displayed
      */
-    public function __construct(manager $manager, array $presets, moodle_url $formactionurl, bool $manage = false) {
+    public function __construct(manager $manager, array $presets, bool $manage = false) {
         $this->manager = $manager;
         $this->presets = $presets;
-        $this->formactionurl = $formactionurl;
         $this->manage = $manage;
     }
 
@@ -72,7 +67,6 @@ class presets implements templatable, renderable {
         $presets = $this->get_presets($output);
         return [
             'id' => $this->manager->get_coursemodule()->id,
-            'formactionurl' => $this->formactionurl->out(),
             'showmanage' => $this->manage,
             'presets' => $presets,
         ];
@@ -112,6 +106,7 @@ class presets implements templatable, renderable {
                 'name' => $preset->name,
                 'url' => $previewurl->out(),
                 'shortname' => $preset->shortname,
+                'presetuid' => sha1($preset->shortname. $id),
                 'fullname' => $presetname,
                 'description' => $preset->description,
                 'userid' => $userid,

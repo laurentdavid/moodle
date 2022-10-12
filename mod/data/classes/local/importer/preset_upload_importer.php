@@ -36,10 +36,13 @@ class preset_upload_importer extends preset_importer {
     public function __construct(manager $manager, string $filepath) {
         if (is_file($filepath)) {
             $fp = get_file_packer();
-            if ($fp->extract_to_pathname($filepath, $filepath.'_extracted')) {
+            if ($fp->extract_to_pathname($filepath, $filepath . '_extracted')) {
                 fulldelete($filepath);
             }
             $filepath .= '_extracted';
+        }
+        if (!file_exists($filepath) || !is_dir($filepath)) {
+            throw new \moodle_exception('cannotimport');
         }
         parent::__construct($manager, $filepath);
     }
@@ -51,5 +54,20 @@ class preset_upload_importer extends preset_importer {
      */
     public function cleanup(): bool {
         return fulldelete($this->directory);
+    }
+
+    /**
+     * Get parameters for mapping form
+     *
+     * @param string|null $action the action for the form
+     * @return array
+     */
+    public function get_importer_mapping_parameters(?string $action = 'finishimport'): array {
+        $basearray = [
+                'action' => $action,
+                'directory' => $this->get_directory(),
+                'sesskey' => sesskey()
+        ];
+        return $basearray;
     }
 }

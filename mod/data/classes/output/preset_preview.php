@@ -83,7 +83,6 @@ class preset_preview implements templatable, renderable {
      * @return array
      */
     public function export_for_template(\renderer_base $output): array {
-        $instance = $this->manager->get_instance();
         $preset = $this->preset;
 
         // Get fields for preview.
@@ -107,7 +106,7 @@ class preset_preview implements templatable, renderable {
         }
 
         return [
-            'd' => $instance->id,
+            'id' => $this->manager->get_coursemodule()->id,
             'description' => $preset->description ?? '',
             'preview' => $content,
             'formactionurl' => $useurl->out(),
