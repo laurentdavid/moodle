@@ -97,7 +97,7 @@ Feature: Users can use predefined presets
     And I should see "Preset applied."
     And I should see "Fields created: 3"
 
-  Scenario: If Teacher use the same preset twice then there is a warning saying that no changes have been made.
+  Scenario: If Teacher use the same preset twice then there is a warning saying that no changes have been made
     Given I am on the "Mountain landscapes" "data activity" page logged in as teacher1
     And I follow "Presets"
     And I click on "fullname" "radio" in the "Image gallery" "table_row"
@@ -131,6 +131,27 @@ Feature: Users can use predefined presets
     And I should see "Title"
     And I should see "Content"
     And I should not see "image"
+
+  Scenario: If Teacher use another preset then the previous fields are removed
+    Given I am on the "Mountain landscapes" "data activity" page logged in as teacher1
+    And I follow "Presets"
+    And I click on "fullname" "radio" in the "Image gallery" "table_row"
+    And the "Use preset" "button" should be enabled
+    Then I click on "Use preset" "button"
+    And I should not see "Field mappings"
+    And I should see "No entries yet"
+    Then I follow "Presets"
+    And I click on "fullname" "radio" in the "Journal" "table_row"
+    And the "Use preset" "button" should be enabled
+    Then I click on "Use preset" "button"
+    Then I click on "Apply preset" "button"
+    And I should see "Preset applied."
+    And I should see "Fields created: 2"
+    Then I follow "Fields"
+    And I should see "Title"
+    And I should see "Content"
+    And I should not see "image"
+
 
   Scenario: Teacher can use a preset from zero state page on an empty database
     Given I am on the "Mountain landscapes" "data activity" page logged in as teacher1
