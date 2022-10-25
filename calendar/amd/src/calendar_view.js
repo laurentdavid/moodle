@@ -31,7 +31,8 @@ define([
         'core/modal_factory',
         'core_calendar/modal_event_form',
         'core/modal_events',
-        'core_calendar/crud'
+        'core_calendar/crud',
+        'core_calendar/import_link'
     ],
     function(
         $,
@@ -44,7 +45,8 @@ define([
         ModalFactory,
         ModalEventForm,
         ModalEvents,
-        CalendarCrud
+        CalendarCrud,
+        ImportLink
     ) {
 
         var registerEventListeners = function(root, type) {
@@ -73,6 +75,7 @@ define([
                         return root.find(CalendarSelectors.courseSelector).val(courseId);
                     })
                     .then(function() {
+                        ImportLink.init(root.get(0), courseId);
                         window.history.pushState({}, '', '?view=upcoming&course=' + courseId);
 
                         return;

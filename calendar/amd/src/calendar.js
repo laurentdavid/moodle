@@ -40,6 +40,7 @@ define([
             'core_calendar/view_manager',
             'core_calendar/crud',
             'core_calendar/selectors',
+            'core_calendar/import_link'
         ],
         function(
             $,
@@ -56,7 +57,8 @@ define([
             CalendarEvents,
             CalendarViewManager,
             CalendarCrud,
-            CalendarSelectors
+            CalendarSelectors,
+            ImportLink
         ) {
 
     var SELECTORS = {
@@ -192,6 +194,8 @@ define([
             var courseId = selectElement.val();
             CalendarViewManager.reloadCurrentMonth(root, courseId, null)
                 .then(function() {
+                    // Update manage subscription button.
+                    ImportLink.init(root.get(0), courseId);
                     // We need to get the selector again because the content has changed.
                     return root.find(CalendarSelectors.elements.courseSelector).val(courseId);
                 })
