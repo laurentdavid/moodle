@@ -24,11 +24,13 @@
         "footerlinks": [
             {
                 "url": "calendar/view.php?view=month",
-                "linkname": "Full calendar"
+                "linkname": "Full calendar",
+                "class": "link-class"
             },
             {
                 "url": "calendar/managesubscriptions.php",
-                "linkname": "Manage subcriptions"
+                "linkname": "Manage subcriptions",
+                "class": "link-class"
             }
         ]
     }
@@ -36,7 +38,7 @@
 <div class="bottom">
     {{#footerlinks}}
         <span class="footer-link">
-            <a href="{{url}}">{{linkname}}</a>
+            <a href="{{url}}" {{#class}}class="{{.}}"{{/class}}>{{linkname}}</a>
         </span>
     {{/footerlinks}}
 </div>
