@@ -78,12 +78,11 @@ class footer_options_exporter extends exporter {
     /**
      * Get manage subscription link.
      *
-     * @return string|null The manage subscription hyperlink.
+     * @return moodle_url|null The manage subscription hyperlink.
      */
-    protected function get_manage_subscriptions_link(): ?string {
+    protected function get_manage_subscriptions_link(): ?moodle_url {
         if (calendar_user_can_add_event($this->calendar->course)) {
-            $managesubscriptionurl = new moodle_url('/calendar/managesubscriptions.php');
-            return $managesubscriptionurl->out(true);
+            return new moodle_url('/calendar/managesubscriptions.php');
         }
         return null;
     }
@@ -108,9 +107,15 @@ class footer_options_exporter extends exporter {
         }
 
         if (!empty($CFG->enablecalendarexport) && $managesubscriptionlink = $this->get_manage_subscriptions_link()) {
+            if (SITEID !== $this->calendar->course->id) {
+                $managesubscriptionlink->param('course', $this->calendar->course->id);
+            } else if (null !== $this->calendar->categoryid && $this->calendar->categoryid > 0) {
+                $managesubscriptionlink->param('category', $this->calendar->categoryid);
+            }
             $values->footerlinks[] = (object)[
-                'url' => $managesubscriptionlink,
+                'url' => $managesubscriptionlink->out(true),
                 'linkname' => get_string('managesubscriptions', 'calendar'),
+                'class' => 'manage-subscription-link'
             ];
         }
 

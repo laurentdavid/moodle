@@ -40,6 +40,7 @@ define([
             'core_calendar/view_manager',
             'core_calendar/crud',
             'core_calendar/selectors',
+            'core_calendar/import_link',
             'core/config',
         ],
         function(
@@ -58,6 +59,7 @@ define([
             CalendarViewManager,
             CalendarCrud,
             CalendarSelectors,
+            ImportLink,
             Config,
         ) {
 
@@ -205,6 +207,11 @@ define([
                     return root.find(CalendarSelectors.elements.courseSelector).val(courseId);
                 })
                 .fail(Notification.exception);
+        });
+
+        // Reinit link when course change.
+        $('body').on(CalendarEvents.courseChanged, function(event, year, month, courseId) {
+            ImportLink.init(root.get(0), courseId);
         });
 
         var eventFormPromise = CalendarCrud.registerEventFormModal(root),
