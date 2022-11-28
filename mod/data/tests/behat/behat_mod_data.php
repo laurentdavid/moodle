@@ -94,12 +94,11 @@ class behat_mod_data extends behat_base {
      * @throws Exception with a meaningful error message if the specified page cannot be found.
      */
     protected function resolve_page_instance_url(string $type, string $identifier): moodle_url {
-        global $DB;
 
         switch (strtolower($type)) {
             case 'add entry':
                 return new moodle_url('/mod/data/edit.php', [
-                    'd' => $this->get_cm_by_activity_name('data', $identifier)->instance,
+                    'id' => $this->get_cm_by_activity_name('data', $identifier)->id,
                 ]);
 
             default:

@@ -409,7 +409,7 @@ class data_field_base {     // Base class for Database Field Types (see field/*/
         echo $OUTPUT->box_start('generalbox boxaligncenter boxwidthwide');
 
         echo '<form id="editfield" action="'.$CFG->wwwroot.'/mod/data/field.php" method="post">'."\n";
-        echo '<input type="hidden" name="d" value="'.$this->data->id.'" />'."\n";
+        echo '<input type="hidden" name="id" value="'.$this->cm->id.'" />'."\n";
         if (empty($this->field->id)) {
             echo '<input type="hidden" name="mode" value="add" />'."\n";
         } else {
@@ -1679,7 +1679,7 @@ function data_print_preference_form($data, $perpage, $search, $sort='', $order='
     echo '<form id="options" action="view.php" method="get">';
     echo '<div class="d-flex">';
     echo '<div>';
-    echo '<input type="hidden" name="d" value="'.$data->id.'" />';
+    echo '<input type="hidden" name="id" value="'.$cm->id.'" />';
     if ($mode =='asearch') {
         $advanced = 1;
         echo '<input type="hidden" name="mode" value="list" />';
@@ -3498,13 +3498,16 @@ function data_extend_navigation($navigation, $course, $module, $cm) {
         $entriesnode->add_class('note');
     }
 
-    $navigation->add(get_string('list', 'data'), new moodle_url('/mod/data/view.php', array('d'=>$cm->instance)));
+    $navigation->add(get_string('list', 'data'), new moodle_url('/mod/data/view.php', ['id' => $cm->id]));
     if (!empty($rid)) {
-        $navigation->add(get_string('single', 'data'), new moodle_url('/mod/data/view.php', array('d'=>$cm->instance, 'rid'=>$rid)));
+        $navigation->add(get_string('single', 'data'),
+            new moodle_url('/mod/data/view.php', ['id' => $cm->id, 'rid' => $rid]));
     } else {
-        $navigation->add(get_string('single', 'data'), new moodle_url('/mod/data/view.php', array('d'=>$cm->instance, 'mode'=>'single')));
+        $navigation->add(get_string('single', 'data'),
+            new moodle_url('/mod/data/view.php', ['id' => $cm->id, 'mode' => 'single']));
     }
-    $navigation->add(get_string('search', 'data'), new moodle_url('/mod/data/view.php', array('d'=>$cm->instance, 'mode'=>'asearch')));
+    $navigation->add(get_string('search', 'data'),
+        new moodle_url('/mod/data/view.php', ['id' => $cm->id, 'mode' => 'asearch']));
 }
 
 /**
@@ -3516,37 +3519,38 @@ function data_extend_navigation($navigation, $course, $module, $cm) {
 function data_extend_settings_navigation(settings_navigation $settings, navigation_node $datanode) {
     global $DB, $CFG, $USER;
 
-    $data = $DB->get_record('data', array("id" => $settings->get_page()->cm->instance));
-
-    $currentgroup = groups_get_activity_group($settings->get_page()->cm);
-    $groupmode = groups_get_activity_groupmode($settings->get_page()->cm);
+    $cm = $settings->get_page()->cm;
+    $manager = manager::create_from_coursemodule($cm);
+    $data = $manager->get_instance();
+    $currentgroup = groups_get_activity_group($cm);
+    $groupmode = groups_get_activity_groupmode($cm);
 
     // Took out participation list here!
-    if (data_user_can_add_entry($data, $currentgroup, $groupmode, $settings->get_page()->cm->context)) {
+    if (data_user_can_add_entry($data, $currentgroup, $groupmode, $cm->context)) {
         if (empty($editentry)) { //TODO: undefined
             $addstring = get_string('add', 'data');
         } else {
             $addstring = get_string('editentry', 'data');
         }
         $addentrynode = $datanode->add($addstring,
-            new moodle_url('/mod/data/edit.php', array('d' => $settings->get_page()->cm->instance)));
+            new moodle_url('/mod/data/edit.php', ['id' => $cm->id]));
         $addentrynode->set_show_in_secondary_navigation(false);
     }
 
-    if (has_capability(DATA_CAP_EXPORT, $settings->get_page()->cm->context)) {
+    if (has_capability(DATA_CAP_EXPORT, $cm->context)) {
         // The capability required to Export database records is centrally defined in 'lib.php'
         // and should be weaker than those required to edit Templates, Fields and Presets.
         $exportentriesnode = $datanode->add(get_string('exportentries', 'data'),
-            new moodle_url('/mod/data/export.php', array('d' => $data->id)));
+            new moodle_url('/mod/data/export.php', ['id' => $cm->id]));
         $exportentriesnode->set_show_in_secondary_navigation(false);
     }
-    if (has_capability('mod/data:manageentries', $settings->get_page()->cm->context)) {
+    if (has_capability('mod/data:manageentries', $cm->context)) {
         $importentriesnode = $datanode->add(get_string('importentries', 'data'),
-            new moodle_url('/mod/data/import.php', array('d' => $data->id)));
+            new moodle_url('/mod/data/import.php', ['id' => $cm->id]));
         $importentriesnode->set_show_in_secondary_navigation(false);
     }
 
-    if (has_capability('mod/data:managetemplates', $settings->get_page()->cm->context)) {
+    if (has_capability('mod/data:managetemplates', $cm->context)) {
         $currenttab = '';
         if ($currenttab == 'list') {
             $defaultemplate = 'listtemplate';
@@ -3557,12 +3561,12 @@ function data_extend_settings_navigation(settings_navigation $settings, navigati
         } else {
             $defaultemplate = 'singletemplate';
         }
-
-        $datanode->add(get_string('presets', 'data'), new moodle_url('/mod/data/preset.php', array('d' => $data->id)));
+        $datanode->add(get_string('presets', 'data'),
+            new moodle_url('/mod/data/preset.php', ['id' => $cm->id]));
         $datanode->add(get_string('fields', 'data'),
-            new moodle_url('/mod/data/field.php', array('d' => $data->id)));
+            new moodle_url('/mod/data/field.php', ['id' => $cm->id]));
         $datanode->add(get_string('templates', 'data'),
-            new moodle_url('/mod/data/templates.php', array('d' => $data->id)));
+            new moodle_url('/mod/data/templates.php', ['id' => $cm->id]));
     }
 
     if (!empty($CFG->enablerssfeeds) && !empty($CFG->data_enablerssfeeds) && $data->rssarticles > 0) {
@@ -3570,7 +3574,7 @@ function data_extend_settings_navigation(settings_navigation $settings, navigati
 
         $string = get_string('rsstype', 'data');
 
-        $url = new moodle_url(rss_get_url($settings->get_page()->cm->context->id, $USER->id, 'mod_data', $data->id));
+        $url = new moodle_url(rss_get_url($cm->context->id, $USER->id, 'mod_data', $data->id));
         $datanode->add($string, $url, settings_navigation::TYPE_SETTING, null, null, new pix_icon('i/rss', ''));
     }
 }

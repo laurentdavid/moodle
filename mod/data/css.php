@@ -28,25 +28,13 @@ define('NO_MOODLE_COOKIES', true); // Session not used here.
 
 require_once('../../config.php');
 
-$id = optional_param('id', 0, PARAM_INT); // Course module id.
-$d = optional_param('d', 0, PARAM_INT); // Database id.
 $presetfullname = optional_param('preset', '', PARAM_PATH); // The directory the preset is in.
 
 $lifetime  = 600; // Seconds to cache this stylesheet.
-$url = new moodle_url('/mod/data/css.php');
 
-$manager = null;
-if ($id) {
-    list($course, $cm) = get_course_and_cm_from_cmid($id, manager::MODULE);
-    $manager = manager::create_from_coursemodule($cm);
-    $instance = $manager->get_instance();
-} else {
-    // We must have the database activity id.
-    $d = required_param('d', PARAM_INT);
-    $instance = $DB->get_record('data', ['id' => $d], '*', MUST_EXIST);
-    $manager = manager::create_from_instance($instance);
-}
-$url->param('d', $instance->id);
+$manager = manager::create_from_page_parameters();
+$instance = $manager->get_instance();
+$url = new moodle_url('/mod/data/css.php', ['id' => $manager->get_coursemodule_id()]);
 
 // Get the content.
 if ($presetfullname) {

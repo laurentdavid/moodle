@@ -70,7 +70,7 @@ class zero_state_action_bar implements templatable, renderable {
             $importpresetbutton = new \single_button($importpresetlink,
                 get_string('importapreset', 'mod_data'), 'get', \single_button::BUTTON_SECONDARY, [
                     'data-action' => 'importpresets',
-                    'data-dataid' => $cm->id,
+                    'data-id' => $cm->id,
                 ]);
             $data['importpresetbutton'] = $importpresetbutton->export_for_template($output);
         }

@@ -63,7 +63,7 @@ const registerEventListeners = () => {
  */
 const showMappingDialogue = (usepreset) => {
     const presetName = usepreset.dataset.presetname;
-    const cmId = usepreset.dataset.cmid;
+    const cmId = usepreset.dataset.id;
 
     getMappingInformation(cmId, presetName).then((result) => {
         if (result.data && result.data.needsmapping) {

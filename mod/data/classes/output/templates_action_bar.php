@@ -29,7 +29,7 @@ use renderable;
  */
 class templates_action_bar implements templatable, renderable {
 
-    /** @var int $id The database module id. */
+    /** @var int $id The database course module id. */
     private $id;
 
     /** @var select_menu $selectmenu The URL selector object. */
@@ -41,7 +41,7 @@ class templates_action_bar implements templatable, renderable {
     /**
      * The class constructor.
      *
-     * @param int $id The database module id.
+     * @param int $id The database course module id.
      * @param select_menu $selectmenu The URL selector object.
      * @param null $unused1 This parameter has been deprecated since 4.1 and should not be used anymore.
      * @param null $unused2 This parameter has been deprecated since 4.1 and should not be used anymore.
@@ -62,7 +62,7 @@ class templates_action_bar implements templatable, renderable {
     public function export_for_template(\renderer_base $output): array {
 
         return [
-            'd' => $this->id,
+            'id' => $this->id,
             'selectmenu' => $this->selectmenu->export_for_template($output),
             'actionsselect' => $this->actionsselect->export_for_template($output),
         ];

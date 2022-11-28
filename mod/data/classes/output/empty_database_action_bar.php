@@ -50,13 +50,12 @@ class empty_database_action_bar implements templatable, renderable {
      */
     public function export_for_template(\renderer_base $output): array {
         global $PAGE;
-
-        $instance = $this->manager->get_instance();
-        $addentrybutton = new add_entries_action($instance->id);
+        // The parameter cmid has been deprecated, so here is a dummy value.
+        $addentrybutton = new add_entries_action(0, $this->manager);
         $data = ['addentrybutton' => $addentrybutton->export_for_template($output)];
 
         if (has_capability('mod/data:manageentries', $PAGE->context)) {
-            $params = ['d' => $instance->id, 'backto' => $PAGE->url->out(false)];
+            $params = ['id' => $this->manager->get_coursemodule_id(), 'backto' => $PAGE->url->out(false)];
 
             $importentrieslink = new moodle_url('/mod/data/import.php', $params);
             $importentriesbutton = new \single_button($importentrieslink,

@@ -23,6 +23,7 @@ use core_external\external_multiple_structure;
 use core_external\external_single_structure;
 use core_external\external_value;
 use core_external\external_warnings;
+use invalid_parameter_exception;
 use mod_data\manager;
 use mod_data\preset;
 
@@ -42,30 +43,44 @@ class delete_saved_preset extends external_api {
      */
     public static function execute_parameters(): external_function_parameters {
         return new external_function_parameters([
-            'dataid' => new external_value(PARAM_INT, 'Id of the data activity', VALUE_REQUIRED),
+            'dataid' => new external_value(PARAM_INT, 'Id of the data activity', VALUE_DEFAULT, null),
             'presetnames' => new external_multiple_structure(
                 new external_value(PARAM_TEXT, 'The preset name to delete', VALUE_REQUIRED)
-            )
+            ),
+            'datacmid' => new external_value(PARAM_INT, 'Course module id of the data activity', VALUE_DEFAULT, null),
         ]);
     }
 
     /**
      * Delete saved preset from the file system.
      *
-     * @param  int $dataid Id of the data activity to check context and permissions.
-     * @param  array $presetnames List of saved preset names to delete.
+     * @param int|null $dataid Id of the data activity to check context and permissions.  This option will be deprecated.
+     * @param array $presetnames List of saved preset names to delete.
+     * @param int|null $datacmid Id of the data activity course module to check context and permissions?
      * @return array True if the content has been deleted; false and the warning, otherwise.
      */
-    public static function execute(int $dataid, array $presetnames): array {
+    public static function execute(?int $dataid, array $presetnames, ?int $datacmid): array {
         global $DB;
 
         $result = false;
         $warnings = [];
 
-        $params = self::validate_parameters(self::execute_parameters(), ['dataid' => $dataid, 'presetnames' => $presetnames]);
-
-        $instance = $DB->get_record('data', ['id' => $params['dataid']], '*', MUST_EXIST);
-        $manager = manager::create_from_instance($instance);
+        $params = self::validate_parameters(self::execute_parameters(), [
+            'dataid' => $dataid,
+            'presetnames' => $presetnames,
+            'datacmid' => $datacmid
+        ]);
+        if (empty($datacmid) && empty($dataid)) {
+            throw new invalid_parameter_exception('Missing required module id as parameter');
+        }
+        if ($datacmid) {
+            [$course, $cm] = get_course_and_cm_from_cmid($datacmid, manager::MODULE);
+            $manager = manager::create_from_coursemodule($cm);
+        } else {
+            $instance = $DB->get_record('data', ['id' => $params['dataid']], '*', MUST_EXIST);
+            $manager = manager::create_from_instance($instance);
+            debugging('dataid parameter is deprecated. Please use datacmid as parameter.', DEBUG_DEVELOPER);
+        }
 
         foreach ($params['presetnames'] as $presetname) {
             try {

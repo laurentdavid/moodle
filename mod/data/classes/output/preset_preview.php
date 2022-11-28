@@ -66,12 +66,14 @@ class preset_preview implements templatable, renderable {
         // Add CSS and JS.
         $csscontent = $preset->get_template_content('csstemplate');
         if (!empty($csscontent)) {
-            $url = new moodle_url('/mod/data/css.php', ['d' => $instance->id, 'preset' => $preset->get_fullname()]);
+            $url = new moodle_url('/mod/data/css.php',
+                ['id' => $this->manager->get_coursemodule_id(), 'preset' => $preset->get_fullname()]);
             $page->requires->css($url);
         }
         $jscontent = $preset->get_template_content('jstemplate');
         if (!empty($jscontent)) {
-            $url = new moodle_url('/mod/data/js.php', ['d' => $instance->id, 'preset' => $preset->get_fullname()]);
+            $url = new moodle_url('/mod/data/js.php',
+                ['id' => $this->manager->get_coursemodule_id(), 'preset' => $preset->get_fullname()]);
             $page->requires->js($url);
         }
     }
@@ -107,7 +109,7 @@ class preset_preview implements templatable, renderable {
         }
 
         return [
-            'cmid' => $coursemodule->id,
+            'id' => $coursemodule->id,
             'description' => $preset->description ?? '',
             'preview' => $content,
             'formactionurl' => $useurl->out(),

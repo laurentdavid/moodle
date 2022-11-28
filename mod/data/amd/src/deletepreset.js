@@ -66,30 +66,30 @@ const registerEventListeners = () => {
  */
 const deletePresetConfirm = (deleteOption) => {
     const presetName = deleteOption.getAttribute('data-presetname');
-    const dataId = deleteOption.getAttribute('data-dataid');
+    const dataCmId = deleteOption.getAttribute('data-id');
 
     Notification.deleteCancelPromise(
         getString('deleteconfirm', 'mod_data', presetName),
         getString('deletewarning', 'mod_data'),
     ).then(() => {
-        return deletePreset(dataId, presetName);
-    }).catch(() => {
-        return;
+        return deletePreset(dataCmId, presetName);
+    }).catch((error) => {
+        Notification.exception(error);
     });
 };
 
 /**
  * Delete site user preset.
  *
- * @param {int} dataId The id of the current database activity.
+ * @param {int} dataCmId The id of the current database activity course module.
  * @param {string} presetName The preset name to delete.
  * @return {promise} Resolved with the result and warnings of deleting a preset.
  */
-async function deletePreset(dataId, presetName) {
+async function deletePreset(dataCmId, presetName) {
     var request = {
         methodname: 'mod_data_delete_saved_preset',
         args: {
-            dataid: dataId,
+            datacmid: dataCmId,
             presetnames: {presetname: presetName},
         }
     };
@@ -98,7 +98,7 @@ async function deletePreset(dataId, presetName) {
         window.location.href = Url.relativeUrl(
             'mod/data/preset.php',
             {
-                d: dataId,
+                id: dataCmId,
             },
             false
         );

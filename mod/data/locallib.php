@@ -933,7 +933,7 @@ function mod_data_get_tagged_records($tag, $exclusivemode = false, $fromctx = 0,
             $cm = $modinfo->get_cm($item->cmid);
             $pageurl = new moodle_url('/mod/data/view.php', array(
                     'rid' => $item->id,
-                    'd' => $item->dataid
+                    'id' => $cm->id
             ));
 
             if (!isset($titlefields[$item->dataid])) {

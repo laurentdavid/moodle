@@ -23,13 +23,13 @@
  * @package mod_data
  */
 
+use mod_data\manager;
+
 require_once('../../config.php');
 require_once('lib.php');
 require_once($CFG->libdir.'/csvlib.class.php');
 require_once('import_form.php');
 
-$id              = optional_param('id', 0, PARAM_INT);  // course module id
-$d               = optional_param('d', 0, PARAM_INT);   // database id
 $rid             = optional_param('rid', 0, PARAM_INT); // record id
 $fielddelimiter  = optional_param('fielddelimiter', ',', PARAM_CLEANHTML); // characters used as field delimiters for csv file import
 $fieldenclosure = optional_param('fieldenclosure', '', PARAM_CLEANHTML);   // characters used as record delimiters for csv file import
@@ -46,32 +46,26 @@ if ($fieldenclosure !== '') {
     $url->param('fieldenclosure', $fieldenclosure);
 }
 
-if ($id) {
-    $url->param('id', $id);
-    $PAGE->set_url($url);
-    $cm     = get_coursemodule_from_id('data', $id, 0, false, MUST_EXIST);
-    $course = $DB->get_record('course', array('id'=>$cm->course), '*', MUST_EXIST);
-    $data   = $DB->get_record('data', array('id'=>$cm->instance), '*', MUST_EXIST);
-
-} else {
-    $url->param('d', $d);
-    $PAGE->set_url($url);
-    $data   = $DB->get_record('data', array('id'=>$d), '*', MUST_EXIST);
-    $course = $DB->get_record('course', array('id'=>$data->course), '*', MUST_EXIST);
-    $cm     = get_coursemodule_from_instance('data', $data->id, $course->id, false, MUST_EXIST);
-}
+$manager = manager::create_from_page_parameters();
+$instance = $manager->get_instance();
+$cm = $manager->get_coursemodule();
+$course = get_course($cm->course);
+$url->param('id', $cm->id);
 
 require_login($course, false, $cm);
 
 $context = context_module::instance($cm->id);
 require_capability('mod/data:manageentries', $context);
 
-$form = new mod_data_import_form(new moodle_url('/mod/data/import.php'), ['dataid' => $data->id,
-    'backtourl' => $redirectbackto]);
+$form = new mod_data_import_form(new moodle_url('/mod/data/import.php'), [
+        'id' => $cm->id,
+        'backtourl' => $redirectbackto
+    ]
+);
 
 if ($form->is_cancelled()) {
     $redirectbackto = !empty($redirectbackto) ? $redirectbackto :
-        new \moodle_url('/mod/data/view.php', ['d' => $data->id]);
+        new \moodle_url('/mod/data/view.php', ['id' => $cm->id]);
     redirect($redirectbackto);
 }
 

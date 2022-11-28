@@ -23,14 +23,14 @@
     * All data attributes are required
 
     Context variables required for this template:
-    * d - The database id.
+    * id - The database course module id.
 
     Example context (json):
     {
-        "d": 1
+        "id": 1
     }
 }}
-<button type="button" class="btn btn-secondary" data-action="saveaspreset" data-dataid={{d}}>
+<button type="button" class="btn btn-secondary" data-action="saveaspreset" data-id={{id}}>
    {{#str}}saveaspreset, mod_data{{/str}}
 </button>
 {{#js}}

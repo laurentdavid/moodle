@@ -11,7 +11,7 @@ class mod_data_import_form extends moodleform {
     function definition() {
         $mform =& $this->_form;
 
-        $dataid = $this->_customdata['dataid'];
+        $id = $this->_customdata['id'];
         $backtourl = $this->_customdata['backtourl'];
 
         $mform->addElement('filepicker', 'recordsfile', get_string('csvfile', 'data'));
@@ -28,9 +28,9 @@ class mod_data_import_form extends moodleform {
         $mform->setDefault('encoding', 'UTF-8');
 
         // Database activity ID.
-        $mform->addElement('hidden', 'd');
-        $mform->setType('d', PARAM_INT);
-        $mform->setDefault('d', $dataid);
+        $mform->addElement('hidden', 'id');
+        $mform->setType('id', PARAM_INT);
+        $mform->setDefault('id', $id);
 
         // Back to URL.
         $mform->addElement('hidden', 'backto');

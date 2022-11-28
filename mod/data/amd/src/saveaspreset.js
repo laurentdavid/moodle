@@ -47,7 +47,9 @@ export const init = () => {
                 title: getString('savedataaspreset', 'mod_data'),
             },
             formClass: 'mod_data\\form\\save_as_preset',
-            args: {d: saveAsPresetButton.dataset.dataid},
+            args: {
+                id: saveAsPresetButton.dataset.id
+            },
             saveButtonText: getString('save'),
             returnFocus: saveAsPresetButton,
         });

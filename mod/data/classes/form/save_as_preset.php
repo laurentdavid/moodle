@@ -38,8 +38,8 @@ class save_as_preset extends dynamic_form {
      */
     protected function definition() {
 
-        $this->_form->addElement('hidden', 'd');
-        $this->_form->setType('d', PARAM_INT);
+        $this->_form->addElement('hidden', 'id');
+        $this->_form->setType('id', PARAM_INT);
         $this->_form->addElement('hidden', 'action', 'save');
         $this->_form->setType('action', PARAM_ALPHANUM);
         $this->_form->addElement('hidden', 'oldpresetname', '');
@@ -62,14 +62,8 @@ class save_as_preset extends dynamic_form {
      * @return context
      */
     protected function get_context_for_dynamic_submission(): context {
-        global $DB;
-
-        $d = $this->optional_param('d', null, PARAM_INT);
-        $data = $DB->get_record('data', array('id' => $d), '*', MUST_EXIST);
-        $course = $DB->get_record('course', array('id' => $data->course), '*', MUST_EXIST);
-        $cm = get_coursemodule_from_instance('data', $data->id, $course->id, null, MUST_EXIST);
-
-        return \context_module::instance($cm->id, MUST_EXIST);
+        $context = \context_module::instance($this->optional_param('id', null, PARAM_INT));
+        return $context;
     }
 
     /**
@@ -83,7 +77,7 @@ class save_as_preset extends dynamic_form {
 
         $errors = parent::validation($formdata, $files);
         $context = $this->get_context_for_dynamic_submission();
-        $cm = get_coursemodule_from_id('', $context->instanceid, 0, false, MUST_EXIST);
+        $cm = get_coursemodule_from_id(manager::MODULE, $context->instanceid, 0, false, MUST_EXIST);
         $manager = manager::create_from_coursemodule($cm);
 
         if (!empty($formdata['overwrite'])) {
@@ -139,9 +133,9 @@ class save_as_preset extends dynamic_form {
         $action = $this->optional_param('action', '', PARAM_ALPHANUM);
         if ($action == 'saveaspreset') {
             // For saving it as a new preset, some fields need to be created; otherwise, an exception will be raised.
-            $instanceid = $this->optional_param('d', null, PARAM_INT);
-            $hasfields = $DB->record_exists('data_fields', ['dataid' => $instanceid]);
-
+            [$course, $cm] = get_course_and_cm_from_cmid($this->optional_param('id', null, PARAM_INT),
+                manager::MODULE);
+            $hasfields = $DB->record_exists('data_fields', ['dataid' => $cm->instance]);
             if (!$hasfields) {
                 throw new moodle_exception('nofieldindatabase', 'data');
             }
@@ -160,13 +154,11 @@ class save_as_preset extends dynamic_form {
         $formdata = $this->get_data();
         $result = false;
         $errors = [];
-        $data = $DB->get_record('data', array('id' => $formdata->d), '*', MUST_EXIST);
-        $course = $DB->get_record('course', array('id' => $data->course), '*', MUST_EXIST);
-        $cm = get_coursemodule_from_instance('data', $data->id, $course->id, null, MUST_EXIST);
-        $context = \context_module::instance($cm->id, MUST_EXIST);
+        $context = $this->get_context_for_dynamic_submission();
+        $cm = get_coursemodule_from_id(manager::MODULE, $context->instanceid, 0, false, MUST_EXIST);
+        $manager = manager::create_from_coursemodule($cm);
 
         try {
-            $manager = manager::create_from_instance($data);
             if (!empty($formdata->overwrite)) {
                 $presets = $manager->get_available_presets();
                 $selectedpreset = new \stdClass();
@@ -217,7 +209,7 @@ class save_as_preset extends dynamic_form {
      */
     public function set_data_for_dynamic_submission(): void {
         $data = (object)[
-            'd' => $this->optional_param('d', 0, PARAM_INT),
+            'id' => $this->optional_param('id', 0, PARAM_INT),
             'action' => $this->optional_param('action', '', PARAM_ALPHANUM),
             'oldpresetname' => $this->optional_param('presetname', '', PARAM_FILE),
             'name' => $this->optional_param('presetname', '', PARAM_FILE),
@@ -232,8 +224,8 @@ class save_as_preset extends dynamic_form {
      * @return moodle_url
      */
     protected function get_page_url_for_dynamic_submission(): moodle_url {
-        $d = $this->optional_param('d', null, PARAM_INT);
+        $id = $this->optional_param('id', null, PARAM_INT);
 
-        return new moodle_url('/user/field.php', ['d' => $d]);
+        return new moodle_url('/user/field.php', ['id' => $id]);
     }
 }

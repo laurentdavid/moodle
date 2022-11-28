@@ -28,16 +28,16 @@ use renderable;
  */
 class fields_mappings_action_bar implements templatable, renderable {
 
-    /** @var int $id The database module id. */
+    /** @var int $id The database course module id. */
     private $id;
 
     /**
      * The class constructor.
      *
-     * @param int $id The database module id
+     * @param int $cmid The database course module id
      */
-    public function __construct(int $id) {
-        $this->id = $id;
+    public function __construct(int $cmid) {
+        $this->id = $cmid;
     }
 
     /**
@@ -51,7 +51,7 @@ class fields_mappings_action_bar implements templatable, renderable {
             'tertiarytitle' => get_string('fieldmappings', 'mod_data'),
             'hasback' => true,
             'backtitle' => get_string('back'),
-            'backurl' => new \moodle_url('/mod/data/preset.php', ['d' => $this->id]),
+            'backurl' => new \moodle_url('/mod/data/preset.php', ['id' => $this->id]),
         ];
     }
 }

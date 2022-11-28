@@ -101,7 +101,7 @@ class template_editor implements templatable, renderable {
         $PAGE->requires->js_call_amd(
             'mod_data/templateseditor',
             'init',
-            ['d' => $instance->id, 'mode' => $this->templatename]
+            ['id' => $manager->get_coursemodule_id(), 'mode' => $this->templatename]
         );
 
         $format = FORMAT_PLAIN;

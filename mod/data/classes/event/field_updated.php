@@ -79,7 +79,7 @@ class field_updated extends \core\event\base {
      * @return \moodle_url
      */
     public function get_url() {
-        return new \moodle_url('/mod/data/field.php', array('d' => $this->other['dataid']));
+        return new \moodle_url('/mod/data/field.php', array('id' => $this->contextinstanceid));
     }
 
     /**
@@ -88,7 +88,7 @@ class field_updated extends \core\event\base {
      * @return array
      */
     public function get_legacy_logdata() {
-        return array($this->courseid, 'data', 'fields update', 'field.php?d=' . $this->other['dataid'] .
+        return array($this->courseid, 'data', 'fields update', 'field.php?id=' . $this->contextinstanceid .
             '&amp;mode=display&amp;fid=' . $this->objectid, $this->objectid, $this->contextinstanceid);
     }
 

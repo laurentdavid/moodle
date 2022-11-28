@@ -40,7 +40,7 @@ class manager_test extends \advanced_testcase {
      * @covers ::create_from_data_record
      */
     public function test_create() {
-
+        global $_POST;
         $this->resetAfterTest();
         $this->setAdminUser();
 
@@ -75,6 +75,15 @@ class manager_test extends \advanced_testcase {
             'approved' => 0,
         ];
         $manager = manager::create_from_data_record($datarecord);
+        $manageractivity = $manager->get_instance();
+        $this->assertEquals($activity->id, $manageractivity->id);
+        $managercm = $manager->get_coursemodule();
+        $this->assertEquals($cm->id, $managercm->id);
+        $managercontext = $manager->get_context();
+        $this->assertEquals($context->id, $managercontext->id);
+
+        $_POST['id'] = $manager->get_coursemodule_id();
+        $manager = manager::create_from_page_parameters();
         $manageractivity = $manager->get_instance();
         $this->assertEquals($activity->id, $manageractivity->id);
         $managercm = $manager->get_coursemodule();
@@ -158,7 +167,7 @@ class manager_test extends \advanced_testcase {
         // Checking that the event contains the expected values.
         $this->assertInstanceOf('mod_data\event\template_viewed', $event);
         $this->assertEquals($context, $event->get_context());
-        $moodleurl = new moodle_url('/mod/data/templates.php', ['d' => $instance->id]);
+        $moodleurl = new moodle_url('/mod/data/templates.php', ['id' => $manager->get_coursemodule_id()]);
         $this->assertEquals($moodleurl, $event->get_url());
         $this->assertEventContextNotUsed($event);
         $this->assertNotEmpty($event->get_name());

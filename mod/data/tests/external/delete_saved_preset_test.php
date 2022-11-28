@@ -57,7 +57,7 @@ class delete_saved_preset_test extends externallib_advanced_testcase {
         $preset2name = 'Teacher preset';
 
         // Trying to delete a preset when there is no saved preset created.
-        $result = delete_saved_preset::execute($data->id, [$preset1name, $preset2name]);
+        $result = delete_saved_preset::execute(null, [$preset1name, $preset2name], $manager->get_coursemodule_id());
         $result = external_api::clean_returnvalue(delete_saved_preset::execute_returns(), $result);
         $this->assertFalse($result['result']);
         $this->assertCount(2, $result['warnings']);
@@ -76,7 +76,7 @@ class delete_saved_preset_test extends externallib_advanced_testcase {
         $initialpresets = $manager->get_available_presets();
 
         // There is a warning for non-existing preset.
-        $result = delete_saved_preset::execute($data->id, ['Another preset']);
+        $result = delete_saved_preset::execute(null, ['Another preset'], $manager->get_coursemodule_id());
         $result = external_api::clean_returnvalue(delete_saved_preset::execute_returns(), $result);
         $this->assertFalse($result['result']);
         $this->assertCount(1, $result['warnings']);
@@ -98,7 +98,7 @@ class delete_saved_preset_test extends externallib_advanced_testcase {
 
         // Student can't delete presets.
         $this->setUser($student);
-        $result = delete_saved_preset::execute($data->id, [$preset1name, $preset2name]);
+        $result = delete_saved_preset::execute(null, [$preset1name, $preset2name], $manager->get_coursemodule_id());
         $result = external_api::clean_returnvalue(delete_saved_preset::execute_returns(), $result);
         $this->assertFalse($result['result']);
         $this->assertCount(2, $result['warnings']);
@@ -109,7 +109,7 @@ class delete_saved_preset_test extends externallib_advanced_testcase {
 
         // Teacher can delete their preset.
         $this->setUser($teacher);
-        $result = delete_saved_preset::execute($data->id, [$preset2name]);
+        $result = delete_saved_preset::execute(null, [$preset2name], $manager->get_coursemodule_id());
         $result = external_api::clean_returnvalue(delete_saved_preset::execute_returns(), $result);
         $this->assertTrue($result['result']);
         $this->assertCount(0, $result['warnings']);
@@ -123,7 +123,7 @@ class delete_saved_preset_test extends externallib_advanced_testcase {
 
         // Teacher can't delete other users' preset.
         $this->setUser($teacher);
-        $result = delete_saved_preset::execute($data->id, [$preset1name]);
+        $result = delete_saved_preset::execute(null, [$preset1name], $manager->get_coursemodule_id());
         $result = external_api::clean_returnvalue(delete_saved_preset::execute_returns(), $result);
         $this->assertFalse($result['result']);
         $this->assertCount(1, $result['warnings']);

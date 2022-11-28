@@ -1,7 +1,11 @@
 This files describes API changes in /mod/data - plugins,
 information provided here is intended especially for developers.
 
-== 4.2 ==
+=== 4.2 ===
+* We removed all references to the database activity (mostly called 'd' in the code), in favor of the more standard course module id
+(called 'id' in the code). This implies also some changes in the API:
+    * delete_saved_preset: the dataid is optional and will be deprecated in favor of the datacmid parameter.
+    * Pages will accept id as per the course module id as well as 'd' for the database instance id. 'd' parameter is deprecated.
 * The field base class now has a method validate(). Overwrite it in the field type to provide validation of field type's
   parameters in the field add/modify form.
 * New tags are added to the current mod_data\templates class: ##otherfields##, [[FIELD#name]],

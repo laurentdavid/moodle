@@ -889,7 +889,7 @@ class template_test extends \advanced_testcase {
                 ['Cats', 'Dogs']
             );
             $entry = (object)[
-                'd' => $activity->id,
+                'id' => $activity->cmid,
                 'rid' => $entryid,
                 "field_{$field->field->id}" => "New value",
                 "field_{$otherfield->field->id}" => "Altered value",

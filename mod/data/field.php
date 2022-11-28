@@ -33,8 +33,6 @@ require_once('../../config.php');
 require_once('lib.php');
 require_once($CFG->dirroot.'/mod/data/preset_form.php');
 
-$id             = optional_param('id', 0, PARAM_INT);            // course module id
-$d              = optional_param('d', 0, PARAM_INT);             // database id
 $fid            = optional_param('fid', 0 , PARAM_INT);          // update field id
 $newtype        = optional_param('newtype','',PARAM_ALPHA);      // type of the new field
 $mode           = optional_param('mode','',PARAM_ALPHA);
@@ -71,20 +69,13 @@ if ($action !== '') {
     $url->param('action', $action);
 }
 
-if ($id) {
-    list($course, $cm) = get_course_and_cm_from_cmid($id, manager::MODULE);
-    $manager = manager::create_from_coursemodule($cm);
-    $url->param('id', $cm->id);
-} else {   // We must have $d.
-    $instance = $DB->get_record('data', ['id' => $d], '*', MUST_EXIST);
-    $manager = manager::create_from_instance($instance);
-    $cm = $manager->get_coursemodule();
-    $course = get_course($cm->course);
-    $url->param('d', $d);
-}
+$manager = manager::create_from_page_parameters();
+$data = $manager->get_instance();
+$cm = $manager->get_coursemodule();
+$course = get_course($cm->course);
+$url->param('id', $manager->get_coursemodule_id());
 
 $PAGE->set_url($url);
-$data = $manager->get_instance();
 $context = $manager->get_context();
 
 require_login($course, true, $cm);
@@ -353,11 +344,11 @@ if (($mode == 'new') && (!empty($newtype))) { // Adding a new field.
 
         $field = data_get_field($fieldrecord, $data);
 
-        $baseurl = new moodle_url('/mod/data/field.php', array(
-            'd'         => $data->id,
-            'fid'       => $field->field->id,
-            'sesskey'   => sesskey(),
-        ));
+        $baseurl = new moodle_url('/mod/data/field.php', [
+            'id' => $manager->get_coursemodule_id(),
+            'fid' => $field->field->id,
+            'sesskey' => sesskey(),
+        ]);
 
         $displayurl = new moodle_url($baseurl, array(
             'mode'      => 'display',
@@ -411,7 +402,7 @@ if (($mode == 'new') && (!empty($newtype))) { // Adding a new field.
     echo '<div class="sortdefault">';
     echo '<form id="sortdefault" action="'.$CFG->wwwroot.'/mod/data/field.php" method="get">';
     echo '<div>';
-    echo '<input type="hidden" name="d" value="'.$data->id.'" />';
+    echo '<input type="hidden" name="id" value="'.$manager->get_coursemodule_id().'" />';
     echo '<input type="hidden" name="mode" value="sort" />';
     echo '<input type="hidden" name="sesskey" value="'.sesskey().'" />';
     echo '<label for="defaultsort">'.get_string('defaultsortfield','data').'</label>';

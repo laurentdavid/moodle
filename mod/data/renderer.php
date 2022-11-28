@@ -61,13 +61,14 @@ class mod_data_renderer extends plugin_renderer_base {
         $params = $importer->settings;
         $newfields = $params->importfields;
         $currentfields = $params->currentfields;
+        $manager = manager::create_from_instance($datamodule);
 
         $html = html_writer::start_tag('div', ['class' => 'presetmapping']);
         $html .= html_writer::start_tag('form', ['method' => 'post', 'action' => '']);
         $html .= html_writer::start_tag('div');
         $html .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'action', 'value' => 'finishimport']);
         $html .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
-        $html .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'd', 'value' => $datamodule->id]);
+        $html .= html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'id', 'value' => $manager->get_coursemodule_id()]);
 
         $inputselector = $importer->get_preset_selector();
         $html .= html_writer::empty_tag(
@@ -128,7 +129,7 @@ class mod_data_renderer extends plugin_renderer_base {
         $html .= html_writer::end_tag('div');
 
         $actionbuttons = html_writer::start_div();
-        $cancelurl = new moodle_url('/mod/data/field.php', ['d' => $datamodule->id]);
+        $cancelurl = new moodle_url('/mod/data/field.php', ['id' => $manager->get_coursemodule_id()]);
         $actionbuttons .= html_writer::tag('a', get_string('cancel') , [
             'href' => $cancelurl->out(false),
             'class' => 'btn btn-secondary mx-1',
@@ -172,8 +173,7 @@ class mod_data_renderer extends plugin_renderer_base {
      * @return string The HTML output
      */
     public function render_fields_footer(manager $manager): string {
-        $cm = $manager->get_coursemodule();
-        $pageurl = new moodle_url('/mod/data/templates.php', ['id' => $cm->id]);
+        $pageurl = new moodle_url('/mod/data/templates.php', ['id' => $manager->get_coursemodule_id()]);
         return $this->render_from_template('mod_data/fields_footer', [
             'pageurl' => $pageurl->out(false),
         ]);

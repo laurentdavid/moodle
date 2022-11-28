@@ -53,12 +53,12 @@ const selectors = {
 /**
  * Register event listeners for the module.
  *
- * @param {Number} instanceId The database ID
+ * @param {Number} cmInstanceId The database ID
  * @param {string} mode The template mode
  */
-const registerEventListeners = (instanceId, mode) => {
+const registerEventListeners = (cmInstanceId, mode) => {
     registerResetButton();
-    registerEditorToggler(instanceId, mode);
+    registerEditorToggler(cmInstanceId, mode);
 };
 
 const registerResetButton = () => {
@@ -97,7 +97,7 @@ const registerResetButton = () => {
     });
 };
 
-const registerEditorToggler = (instanceId, mode) => {
+const registerEditorToggler = (cmInstanceId, mode) => {
     const toggleTemplateEditor = document.querySelector(selectors.toggleTemplateEditor);
 
     if (!toggleTemplateEditor) {
@@ -116,13 +116,13 @@ const registerEditorToggler = (instanceId, mode) => {
                 getString('enabletemplateeditorcheck', 'mod_data'),
                 getString('editorenable', 'mod_data'),
                 () => {
-                    window.location = relativeUrl('/mod/data/templates.php', {d: instanceId, mode: mode, useeditor: true});
+                    window.location = relativeUrl('/mod/data/templates.php', {id: cmInstanceId, mode: mode, useeditor: true});
                 },
                 null,
                 {triggerElement: event.target}
             );
         } else {
-            window.location = relativeUrl('/mod/data/templates.php', {d: instanceId, mode: mode, useeditor: false});
+            window.location = relativeUrl('/mod/data/templates.php', {id: cmInstanceId, mode: mode, useeditor: false});
         }
     });
 };
@@ -130,9 +130,9 @@ const registerEditorToggler = (instanceId, mode) => {
 /**
  * Initialize the module.
  *
- * @param {int} instanceId The database ID
+ * @param {int} cmInstanceId The course Module ID
  * @param {string} mode The template mode
  */
-export const init = (instanceId, mode) => {
-    registerEventListeners(instanceId, mode);
+export const init = (cmInstanceId, mode) => {
+    registerEventListeners(cmInstanceId, mode);
 };

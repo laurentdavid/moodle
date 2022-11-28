@@ -78,7 +78,7 @@ class record_created extends \core\event\base {
      * @return \moodle_url
      */
     public function get_url() {
-        return new \moodle_url('/mod/data/view.php', array('d' => $this->other['dataid'], 'rid' => $this->objectid));
+        return new \moodle_url('/mod/data/view.php', array('id' => $this->contextinstanceid, 'rid' => $this->objectid));
     }
 
     /**
@@ -87,7 +87,7 @@ class record_created extends \core\event\base {
      * @return array
      */
     public function get_legacy_logdata() {
-        return array($this->courseid, 'data', 'add', 'view.php?d=' . $this->other['dataid'] . '&amp;rid=' . $this->objectid,
+        return array($this->courseid, 'data', 'add', 'view.php?id=' . $this->contextinstanceid . '&amp;rid=' . $this->objectid,
             $this->other['dataid'], $this->contextinstanceid);
     }
 

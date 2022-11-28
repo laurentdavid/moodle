@@ -431,7 +431,7 @@ abstract class preset_importer {
         } else {
             notification::error(get_string('cannotapplypreset', 'mod_data'));
         }
-        $backurl = new \moodle_url('/mod/data/field.php', ['d' => $instance->id]);
+        $backurl = new \moodle_url('/mod/data/field.php', ['id' => $this->manager->get_coursemodule_id()]);
         redirect($backurl);
     }
 

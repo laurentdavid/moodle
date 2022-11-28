@@ -107,12 +107,11 @@ class presets implements templatable, renderable {
             $fullname = $preset->get_fullname();
             $previewurl = new moodle_url(
                     '/mod/data/preset.php',
-                    ['d' => $this->id, 'fullname' => $fullname, 'action' => 'preview']
+                    ['id' => $this->cmid, 'fullname' => $fullname, 'action' => 'preview']
             );
 
             $presets[] = [
-                'id' => $this->id,
-                'cmid' => $this->cmid,
+                'id' => $this->cmid,
                 'name' => $preset->name,
                 'url' => $previewurl->out(),
                 'shortname' => $preset->shortname,
@@ -149,12 +148,12 @@ class presets implements templatable, renderable {
 
         $usepreseturl = new moodle_url('/mod/data/preset.php', [
             'action' => 'usepreset',
-            'cmid' => $this->cmid,
+            'id' => $this->cmid,
         ]);
         $this->add_action_menu($actionmenu, get_string('usepreset', 'mod_data'), $usepreseturl, [
                 'data-action' => 'selectpreset',
                 'data-presetname' => $preset->get_fullname(),
-                'data-cmid' => $this->cmid,
+                'data-id' => $this->cmid,
             ]
         );
 
@@ -175,7 +174,7 @@ class presets implements templatable, renderable {
             if ($canmanage) {
                 $editactionurl = new moodle_url('/mod/data/preset.php', [
                     'action' => 'edit',
-                    'd' => $this->id,
+                    'id' => $this->cmid,
                 ]);
                 $this->add_action_menu($actionmenu, get_string('edit'), $editactionurl, [
                     'data-action' => 'editpreset',
@@ -188,7 +187,7 @@ class presets implements templatable, renderable {
             $exporturl = new moodle_url('/mod/data/preset.php', [
                 'presetname' => $preset->name,
                 'action' => 'export',
-                'd' => $this->id,
+                'id' => $this->cmid,
             ]);
             $this->add_action_menu($actionmenu, get_string('export', 'mod_data'), $exporturl, [
                 'data-action' => 'exportpreset',
@@ -201,7 +200,7 @@ class presets implements templatable, renderable {
 
                 $deleteactionurl = new moodle_url('/mod/data/preset.php', [
                     'action' => 'delete',
-                    'd' => $this->id,
+                    'id' => $this->cmid,
                 ]);
                 $this->add_action_menu($actionmenu, get_string('delete'), $deleteactionurl, [
                     'data-action' => 'deletepreset',
@@ -225,7 +224,7 @@ class presets implements templatable, renderable {
     private function add_action_menu(action_menu &$actionmenu, string $actionlabel, moodle_url $actionurl,
         array $otherattributes) {
         $attributes = [
-            'data-dataid' => $this->id,
+            'data-id' => $this->cmid,
         ];
         $actionmenu->add(new action_menu_link_secondary(
             $actionurl,

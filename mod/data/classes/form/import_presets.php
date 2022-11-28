@@ -57,7 +57,7 @@ class import_presets extends dynamic_form {
      * @return context
      */
     protected function get_context_for_dynamic_submission(): context {
-        $cmid = $this->optional_param('cmid', null, PARAM_INT);
+        $cmid = $this->optional_param('id', null, PARAM_INT);
         $cm = get_coursemodule_from_id('data', $cmid);
         $context = \context_module::instance($cm->id);
         return $context;
@@ -70,7 +70,7 @@ class import_presets extends dynamic_form {
      */
     public function set_data_for_dynamic_submission(): void {
         $data = (object) [
-            'cmid' => $this->optional_param('cmid', 0, PARAM_INT),
+            'id' => $this->optional_param('id', 0, PARAM_INT),
         ];
         $this->set_data($data);
     }
@@ -93,7 +93,7 @@ class import_presets extends dynamic_form {
      * @return moodle_url
      */
     protected function get_page_url_for_dynamic_submission(): moodle_url {
-        $cmid = $this->optional_param('cmid', null, PARAM_INT);
+        $cmid = $this->optional_param('id', null, PARAM_INT);
         return new moodle_url('/mod/data/preset.php', ['id' => $cmid]);
     }
 
@@ -105,8 +105,8 @@ class import_presets extends dynamic_form {
     protected function definition() {
         $mform = $this->_form;
         $mform->addElement('html', \html_writer::div(get_string('importpreset_desc', 'mod_data'), 'py-3'));
-        $mform->addElement('hidden', 'cmid');
-        $mform->setType('cmid', PARAM_INT);
+        $mform->addElement('hidden', 'id');
+        $mform->setType('id', PARAM_INT);
 
         $mform->addElement('filepicker', 'importfile', get_string('choosepreset', 'mod_data'), null,
             ['accepted_types' => '.zip']);

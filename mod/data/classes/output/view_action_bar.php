@@ -32,9 +32,6 @@ use renderable;
  */
 class view_action_bar implements templatable, renderable {
 
-    /** @var int $id The database module id. */
-    private $id;
-
     /** @var \url_select $urlselect The URL selector object. */
     private $urlselect;
 
@@ -44,16 +41,25 @@ class view_action_bar implements templatable, renderable {
     /** @var bool $mode The current view mode (list, view...). */
     private $mode;
 
+    /** @var manager $manager Current manager. */
+    private $manager;
+
     /**
      * The class constructor.
      *
-     * @param int $id The database module id.
+     * @param int|null $id The database module id.
      * @param \url_select $urlselect The URL selector object.
      * @param bool $hasentries Whether entries exist.
      * @param string $mode The current view mode (list, view...).
+     * @param manager|null $manager $manager current manager
      */
-    public function __construct(int $id, \url_select $urlselect, bool $hasentries, string $mode) {
-        $this->id = $id;
+    public function __construct(?int $id = null, \url_select $urlselect, bool $hasentries, string $mode, manager $manager = null) {
+        if (empty($manager)) {
+            debugging('id parameter is deprecated. Please use manager as parameter.', DEBUG_DEVELOPER);
+            [$course, $cm] = get_coursemodule_from_id(manager::MODULE, $id);
+            $manager = manager::create_from_coursemodule($cm);
+        }
+        $this->manager = $manager;
         $this->urlselect = $urlselect;
         $this->hasentries = $hasentries;
         $this->mode = $mode;
@@ -66,22 +72,22 @@ class view_action_bar implements templatable, renderable {
      * @return array
      */
     public function export_for_template(\renderer_base $output): array {
-        global $PAGE, $DB, $CFG;
+        global $PAGE, $CFG;
 
         $data = [
             'urlselect' => $this->urlselect->export_for_template($output),
         ];
-
-        $activity = $DB->get_record('data', ['id' => $this->id], '*', MUST_EXIST);
-        $manager = manager::create_from_instance($activity);
+        $cm = $this->manager->get_coursemodule();
+        $instance = $this->manager->get_instance();
 
         $actionsselect = null;
         // Import entries.
-        if (has_capability('mod/data:manageentries', $manager->get_context())) {
+        if (has_capability('mod/data:manageentries', $this->manager->get_context())) {
             $actionsselect = new \action_menu();
             $actionsselect->set_menu_trigger(get_string('actions'), 'btn btn-secondary');
 
-            $importentrieslink = new moodle_url('/mod/data/import.php', ['d' => $this->id, 'backto' => $PAGE->url->out(false)]);
+            $importentrieslink = new moodle_url('/mod/data/import.php', ['id' => $cm->id,
+                'backto' => $PAGE->url->out(false)]);
             $actionsselect->add(new \action_menu_link(
                 $importentrieslink,
                 null,
@@ -91,12 +97,13 @@ class view_action_bar implements templatable, renderable {
         }
 
         // Export entries.
-        if (has_capability(DATA_CAP_EXPORT, $manager->get_context()) && $this->hasentries) {
+        if (has_capability(DATA_CAP_EXPORT, $this->manager->get_context()) && $this->hasentries) {
             if (!$actionsselect) {
                 $actionsselect = new \action_menu();
                 $actionsselect->set_menu_trigger(get_string('actions'), 'btn btn-secondary');
             }
-            $exportentrieslink = new moodle_url('/mod/data/export.php', ['d' => $this->id, 'backto' => $PAGE->url->out(false)]);
+            $exportentrieslink = new moodle_url('/mod/data/export.php', ['id' => $cm->id,
+                'backto' => $PAGE->url->out(false)]);
             $actionsselect->add(new \action_menu_link(
                 $exportentrieslink,
                 null,
@@ -107,11 +114,11 @@ class view_action_bar implements templatable, renderable {
 
         // Export to portfolio. This is for exporting all records, not just the ones in the search.
         if ($this->mode == '' && !empty($CFG->enableportfolios) && $this->hasentries) {
-            if ($manager->can_export_entries()) {
+            if ($this->manager->can_export_entries()) {
                 // Add the portfolio export button.
                 require_once($CFG->libdir . '/portfoliolib.php');
 
-                $cm = $manager->get_coursemodule();
+                $cm = $this->manager->get_coursemodule();
 
                 $button = new portfolio_add_button();
                 $button->set_callback_options(
@@ -119,7 +126,7 @@ class view_action_bar implements templatable, renderable {
                     ['id' => $cm->id],
                     'mod_data'
                 );
-                if (data_portfolio_caller::has_files($activity)) {
+                if (data_portfolio_caller::has_files($instance)) {
                     // No plain HTML.
                     $button->set_formats([PORTFOLIO_FORMAT_RICHHTML, PORTFOLIO_FORMAT_LEAP2A]);
                 }

@@ -29,8 +29,6 @@ require_once($CFG->dirroot . '/mod/data/locallib.php');
 require_once($CFG->libdir . '/rsslib.php');
 
 /// One of these is necessary!
-$id = optional_param('id', 0, PARAM_INT);  // course module id
-$d = optional_param('d', 0, PARAM_INT);   // database id
 $rid = optional_param('rid', 0, PARAM_INT);    //record id
 $mode = optional_param('mode', '', PARAM_ALPHA);    // Force the browse mode  ('single')
 $filter = optional_param('filter', 0, PARAM_BOOL);
@@ -47,22 +45,19 @@ $serialdelete = optional_param('serialdelete', null, PARAM_RAW);
 
 $record = null;
 
-if ($id) {
-    list($course, $cm) = get_course_and_cm_from_cmid($id, manager::MODULE);
-    $manager = manager::create_from_coursemodule($cm);
-} else if ($rid) {
+$pageurl = new moodle_url('/mod/data/view.php');
+if ($rid) {
+    global $DB;
     $record = $DB->get_record('data_records', ['id' => $rid], '*', MUST_EXIST);
     $manager = manager::create_from_data_record($record);
-    $cm = $manager->get_coursemodule();
-    $course = get_course($cm->course);
-} else {   // We must have $d.
-    $data = $DB->get_record('data', ['id' => $d], '*', MUST_EXIST);
-    $manager = manager::create_from_instance($data);
-    $cm = $manager->get_coursemodule();
-    $course = get_course($cm->course);
+    $pageurl->param('rid', $rid);
+} else {
+    $manager = manager::create_from_page_parameters();
+    $pageurl->param('id', $manager->get_coursemodule_id());
 }
-
 $data = $manager->get_instance();
+$cm = $manager->get_coursemodule();
+$course = get_course($cm->course);
 $context = $manager->get_context();
 
 require_login($course, true, $cm);
@@ -166,20 +161,18 @@ if ($perpage != $oldperpage) {
 // Trigger module viewed event and completion.
 $manager->set_module_viewed($course);
 
-$urlparams = array('d' => $data->id);
 if ($record) {
-    $urlparams['rid'] = $record->id;
+    $pageurl->param('rid', $record->id);
 }
 if ($mode) {
-    $urlparams['mode'] = $mode;
+    $pageurl->param('mode', $mode);
 }
 if ($page) {
-    $urlparams['page'] = $page;
+    $pageurl->param('page', $page);
 }
 if ($filter) {
-    $urlparams['filter'] = $filter;
+    $pageurl->param('filter', $filter);
 }
-$pageurl = new moodle_url('/mod/data/view.php', $urlparams);
 
 // Initialize $PAGE, compute blocks.
 $PAGE->set_url($pageurl);
@@ -285,9 +278,15 @@ if ($delete && confirm_sesskey() && (data_user_can_manage_entry($delete, $data, 
                                                   WHERE dr.id = ?", $dbparams, MUST_EXIST)) { // Need to check this is valid.
             if ($deleterecord->dataid == $data->id) {                       // Must be from this database
                 echo $OUTPUT->heading(get_string('deleteentry', 'mod_data'), 2, 'mb-4');
+                $deleteurl = new moodle_url('/mod/data/view.php', [
+                    'id' => $cm->id,
+                    'delete' => $delete,
+                    'confirm' => '1'
+                ]);
                 $deletebutton = new single_button(
-                    new moodle_url('/mod/data/view.php?d=' . $data->id . '&delete=' . $delete . '&confirm=1'),
-                    get_string('delete'), 'post',
+                    $deleteurl,
+                    get_string('delete'),
+                    'post',
                     single_button::BUTTON_DANGER
                 );
                 echo $OUTPUT->confirm(get_string('confirmdeleterecord','data'),
@@ -333,10 +332,15 @@ if ($multidelete && confirm_sesskey() && $canmanageentries) {
             }
         }
         $serialiseddata = json_encode($recordids);
-        $submitactions = array('d' => $data->id, 'sesskey' => sesskey(), 'confirm' => '1', 'serialdelete' => $serialiseddata);
+        $submitactions = [
+            'id' => $cm->id,
+            'sesskey' => sesskey(),
+            'confirm' => '1',
+            'serialdelete' => $serialiseddata
+        ];
         $action = new moodle_url('/mod/data/view.php', $submitactions);
-        $cancelurl = new moodle_url('/mod/data/view.php', array('d' => $data->id));
-        $deletebutton = new single_button($action, get_string('delete'), 'post', single_button::BUTTON_DANGER);
+        $cancelurl = new moodle_url('/mod/data/view.php', ['id' => $cm->id]);
+        $deletebutton = new single_button($action, get_string('delete'));
         echo $OUTPUT->confirm(get_string('confirmdeleterecords', 'data'), $deletebutton, $cancelurl);
         $parser = $manager->get_template('listtemplate');
         echo $parser->parse_entries($validrecords);
@@ -400,10 +404,12 @@ if ($showactivity) {
         }
 
         $actionbar = new \mod_data\output\action_bar($data->id, $pageurl);
-        echo $actionbar->get_view_action_bar($hasrecords, $mode);
+        echo $actionbar->get_view_action_bar($hasrecords, $mode, $manager);
 
         if ($groupmode) {
-            $returnurl = new moodle_url('/mod/data/view.php', ['d' => $data->id, 'mode' => $mode, 'search' => s($search),
+            $returnurl = new moodle_url('/mod/data/view.php', [
+                'id' => $cm->id,
+                'mode' => $mode, 'search' => s($search),
                 'sort' => s($sort), 'order' => s($order)]);
             echo html_writer::div(groups_print_activity_menu($cm, $returnurl, true), 'mb-3');
         }
@@ -429,7 +435,7 @@ if ($showactivity) {
 
         } else {
             //  We have some records to print.
-            $formurl = new moodle_url('/mod/data/view.php', ['d' => $data->id, 'sesskey' => sesskey()]);
+            $formurl = new moodle_url('/mod/data/view.php', ['id' => $cm->id, 'sesskey' => sesskey()]);
             echo html_writer::start_tag('form', ['action' => $formurl, 'method' => 'post']);
 
             if ($maxcount != $totalcount) {
@@ -444,7 +450,7 @@ if ($showactivity) {
 
             if ($mode == 'single') { // Single template
                 $baseurl = '/mod/data/view.php';
-                $baseurlparams = ['d' => $data->id, 'mode' => 'single'];
+                $baseurlparams = ['id' => $cm->id, 'mode' => 'single'];
                 if (!empty($search)) {
                     $baseurlparams['filter'] = 1;
                 }
@@ -483,7 +489,7 @@ if ($showactivity) {
             } else {
                 // List template.
                 $baseurl = '/mod/data/view.php';
-                $baseurlparams = ['d' => $data->id, 'advanced' => $advanced, 'paging' => $paging];
+                $baseurlparams = ['id' => $cm->id, 'advanced' => $advanced, 'paging' => $paging];
                 if (!empty($search)) {
                     $baseurlparams['filter'] = 1;
                 }

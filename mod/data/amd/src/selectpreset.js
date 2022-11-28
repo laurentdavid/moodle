@@ -63,13 +63,13 @@ const disableUsePresetButton = () => {
         selectPresetButton.classList.remove('btn-secondary');
         selectPresetButton.classList.add('btn-primary');
         selectPresetButton.setAttribute('data-presetname', selectedRadioButton.getAttribute('value'));
-        selectPresetButton.setAttribute('data-cmid', selectedRadioButton.getAttribute('data-cmid'));
+        selectPresetButton.setAttribute('data-id', selectedRadioButton.getAttribute('data-id'));
     } else {
         // There is no any preset selected, so the button should be disabled.
         selectPresetButton.setAttribute('disabled', true);
         selectPresetButton.classList.remove('btn-primary');
         selectPresetButton.classList.add('btn-secondary');
         selectPresetButton.removeAttribute('data-presetname');
-        selectPresetButton.removeAttribute('data-cmid');
+        selectPresetButton.removeAttribute('data-id');
     }
 };

@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+use mod_data\manager;
 
 /**
  * Class picture field for database activity
@@ -225,7 +226,7 @@ class data_field_picture extends data_field_base {
             // Thumbnails are already converted to the correct width and height.
             $width = '';
             $height = '';
-            $url = new moodle_url('/mod/data/view.php', ['d' => $this->field->dataid, 'rid' => $recordid]);
+            $url = new moodle_url('/mod/data/view.php', ['id' => $this->cm->id, 'rid' => $recordid]);
         } else {
             $filename = $content->content;
             $url = null;
@@ -309,7 +310,8 @@ class data_field_picture extends data_field_base {
                     }
 
                     if ($file->get_imageinfo() === false) {
-                        $url = new moodle_url('/mod/data/edit.php', array('d' => $this->field->dataid));
+                        $manager = \mod_data\manager::create_from_instance($this->field->dataid);
+                        $url = new moodle_url('/mod/data/edit.php', ['id' => $manager->get_coursemodule_id()]);
                         redirect($url, get_string('invalidfiletype', 'error', $file->get_filename()));
                     }
                     $content->content = $file->get_filename();

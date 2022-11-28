@@ -30,29 +30,20 @@ require_once('locallib.php');
 require_once("$CFG->libdir/rsslib.php");
 require_once("$CFG->libdir/form/filemanager.php");
 
-$id = optional_param('id', 0, PARAM_INT); // Course module id.
-$d = optional_param('d', 0, PARAM_INT); // Database id.
 $rid = optional_param('rid', 0, PARAM_INT); // Record id.
 $mode = 'addtemplate'; // Define the mode for this page, only 1 mode available.
 $tags = optional_param_array('tags', [], PARAM_TAGLIST);
 $redirectbackto = optional_param('backto', '', PARAM_LOCALURL); // The location to redirect back.
 
-$url = new moodle_url('/mod/data/edit.php');
-
 $record = null;
 
-if ($id) {
-    list($course, $cm) = get_course_and_cm_from_cmid($id, manager::MODULE);
-    $manager = manager::create_from_coursemodule($cm);
-} else {   // We must have $d.
-    $data = $DB->get_record('data', ['id' => $d], '*', MUST_EXIST);
-    $manager = manager::create_from_instance($data);
-    $cm = $manager->get_coursemodule();
-    $course = get_course($cm->course);
-}
+$manager = manager::create_from_page_parameters();
 $data = $manager->get_instance();
+$cm = $manager->get_coursemodule();
+$course = get_course($cm->course);
+$url = new moodle_url('/mod/data/edit.php', ['id' => $cm->id]);
+
 $context = $manager->get_context();
-$url->param('id', $cm->id);
 
 if ($rid !== 0) {
     $record = $DB->get_record(
@@ -70,13 +61,13 @@ require_login($course, false, $cm);
 $url->param('backto', $redirectbackto);
 
 if (isguestuser()) {
-    redirect('view.php?d='.$data->id);
+    redirect('view.php?id=' . $cm->id);
 }
 
 /// Can't use this if there are no fields
 if ($manager->can_manage_templates()) {
     if (!$manager->has_fields()) {
-        redirect($CFG->wwwroot.'/mod/data/field.php?d='.$data->id);  // Redirect to field entry.
+        redirect($CFG->wwwroot.'/mod/data/field.php?id=' . $cm->id);  // Redirect to field entry.
     }
 }
 
@@ -108,10 +99,10 @@ if (!empty($CFG->enablerssfeeds) && !empty($CFG->data_enablerssfeeds) && $data->
     rss_add_http_header($context, 'mod_data', $data, $rsstitle);
 }
 if ($data->csstemplate) {
-    $PAGE->requires->css('/mod/data/css.php?d='.$data->id);
+    $PAGE->requires->css('/mod/data/css.php?id=' . $cm->id);
 }
 if ($data->jstemplate) {
-    $PAGE->requires->js('/mod/data/js.php?d='.$data->id, true);
+    $PAGE->requires->js('/mod/data/js.php?id=' . $cm->id, true);
 }
 
 // Define page variables.
@@ -162,7 +153,7 @@ if ($datarecord && confirm_sesskey()) {
                 $datarecord = null;
             } else {
                 $viewurl = new moodle_url('/mod/data/view.php', [
-                    'd' => $data->id,
+                    'id' => $cm->id,
                     'rid' => $recordid,
                 ]);
                 redirect($viewurl);
@@ -174,12 +165,12 @@ if ($datarecord && confirm_sesskey()) {
 
 echo $OUTPUT->header();
 
-groups_print_activity_menu($cm, $CFG->wwwroot.'/mod/data/edit.php?d='.$data->id);
+groups_print_activity_menu($cm, $CFG->wwwroot.'/mod/data/edit.php?id='. $cm->id);
 
 // Form goes here first in case add template is empty.
 echo '<form enctype="multipart/form-data" action="edit.php" method="post">';
 echo '<div>';
-echo '<input name="d" value="'.$data->id.'" type="hidden" />';
+echo '<input name="id" value="'.$cm->id.'" type="hidden" />';
 echo '<input name="rid" value="'.$rid.'" type="hidden" />';
 echo '<input name="sesskey" value="'.sesskey().'" type="hidden" />';
 echo $OUTPUT->box_start('generalbox boxaligncenter boxwidthwide');

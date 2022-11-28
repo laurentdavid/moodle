@@ -39,22 +39,11 @@ require_once('../../config.php');
 require_once($CFG->dirroot.'/mod/data/lib.php');
 require_once($CFG->dirroot.'/mod/data/preset_form.php');
 
-// The course module id.
-$id = optional_param('id', 0, PARAM_INT);
-
-$manager = null;
-if ($id) {
-    list($course, $cm) = get_course_and_cm_from_cmid($id, manager::MODULE);
-    $manager = manager::create_from_coursemodule($cm);
-    $data = $manager->get_instance();
-} else {
-    // We must have the database activity id.
-    $d = required_param('d', PARAM_INT);
-    $data = $DB->get_record('data', ['id' => $d], '*', MUST_EXIST);
-    $manager = manager::create_from_instance($data);
-    $cm = $manager->get_coursemodule();
-    $course = get_course($cm->course);
-}
+$manager = manager::create_from_page_parameters();
+$data = $manager->get_instance();
+$cm = $manager->get_coursemodule();
+$course = get_course($cm->course);
+$url = new moodle_url('/mod/data/preset.php', ['id' => $cm->id]);
 
 $action = optional_param('action', 'view', PARAM_ALPHA); // The page action.
 $allowedactions = ['view', 'importzip', 'finishimport',
@@ -67,8 +56,6 @@ $context = $manager->get_context();
 
 require_login($course, false, $cm);
 require_capability('mod/data:managetemplates', $context);
-
-$url = new moodle_url('/mod/data/preset.php', array('d' => $data->id));
 
 $PAGE->add_body_class('mediumwidth');
 $PAGE->set_url($url);

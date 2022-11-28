@@ -28,25 +28,15 @@ use mod_data\manager;
 require_once('../../config.php');
 require_once('lib.php');
 
-$id    = optional_param('id', 0, PARAM_INT);  // course module id
-$d     = optional_param('d', 0, PARAM_INT);   // database id
 $mode  = optional_param('mode', 'addtemplate', PARAM_ALPHA);
 $action  = optional_param('action', '', PARAM_ALPHA);
 $useeditor = optional_param('useeditor', null, PARAM_BOOL);
 
-$url = new moodle_url('/mod/data/templates.php');
-
-if ($id) {
-    list($course, $cm) = get_course_and_cm_from_cmid($id, manager::MODULE);
-    $manager = manager::create_from_coursemodule($cm);
-    $url->param('d', $cm->instance);
-} else {   // We must have $d.
-    $instance = $DB->get_record('data', ['id' => $d], '*', MUST_EXIST);
-    $manager = manager::create_from_instance($instance);
-    $cm = $manager->get_coursemodule();
-    $course = get_course($cm->course);
-    $url->param('d', $d);
-}
+$manager = manager::create_from_page_parameters();
+$instance = $manager->get_instance();
+$cm = $manager->get_coursemodule();
+$course = get_course($cm->course);
+$url = new moodle_url('/mod/data/templates.php', ['id' => $manager->get_coursemodule_id()]);
 
 $instance = $manager->get_instance();
 $context = $manager->get_context();

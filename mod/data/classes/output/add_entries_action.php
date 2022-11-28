@@ -16,6 +16,7 @@
 
 namespace mod_data\output;
 
+use mod_data\manager;
 use moodle_url;
 use templatable;
 use renderable;
@@ -29,17 +30,22 @@ use renderable;
  */
 class add_entries_action implements templatable, renderable {
 
-    /** @var int $id The database module id. */
-    private $id;
+    /** @var manager $manager The manager class. */
+    private $manager;
 
     /**
      * The class constructor.
      *
-     * @param int $id The database module id.
-     * @param bool $hasentries Whether entries exist.
+     * @param int $cmid The database course module id : deprecated.
+     * @param manager|null $manager $manager The database course module id.
      */
-    public function __construct(int $id) {
-        $this->id = $id;
+    public function __construct(int $cmid, manager $manager = null) {
+        if (empty($manager)) {
+            debugging('cmid parameter is deprecated. Please use manager as parameter.', DEBUG_DEVELOPER);
+            [$course, $cm] = get_coursemodule_from_id(manager::MODULE, $cmid);
+            $manager = manager::create_from_coursemodule($cm);
+        }
+        $this->manager = $manager;
     }
 
     /**
@@ -49,15 +55,17 @@ class add_entries_action implements templatable, renderable {
      * @return \stdClass or null if the user has no permission to add new entries.
      */
     public function export_for_template(\renderer_base $output): ?\stdClass {
-        global $PAGE, $DB;
-
-        $database = $DB->get_record('data', ['id' => $this->id]);
-        $cm = get_coursemodule_from_instance('data', $this->id);
+        global $PAGE;
+        $database = $this->manager->get_instance();
+        $cm = $this->manager->get_coursemodule();
         $currentgroup = groups_get_activity_group($cm);
         $groupmode = groups_get_activity_groupmode($cm);
 
         if (data_user_can_add_entry($database, $currentgroup, $groupmode, $PAGE->context)) {
-            $addentrylink = new moodle_url('/mod/data/edit.php', ['d' => $this->id, 'backto' => $PAGE->url->out(false)]);
+            $addentrylink = new moodle_url('/mod/data/edit.php', [
+                'id' => $cm->id,
+                'backto' => $PAGE->url->out(false)
+            ]);
             $button = new \single_button($addentrylink, get_string('add', 'mod_data'), 'get', \single_button::BUTTON_PRIMARY);
             return $button->export_for_template($output);
         }

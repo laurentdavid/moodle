@@ -61,7 +61,7 @@ const showEditPresetModal = (editAction) => {
         },
         formClass: 'mod_data\\form\\save_as_preset',
         args: {
-            d: editAction.getAttribute('data-dataid'),
+            id: editAction.getAttribute('data-id'),
             action: editAction.getAttribute('data-action'),
             presetname: editAction.getAttribute('data-presetname'),
             presetdescription: editAction.getAttribute('data-presetdescription')

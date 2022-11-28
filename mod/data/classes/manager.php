@@ -26,10 +26,18 @@ use mod_data\event\template_viewed;
 use mod_data\event\template_updated;
 use moodle_page;
 use core_component;
+use moodle_url;
 use stdClass;
 
 /**
  * Class manager for database activity
+ *
+ * Manager class has been introduced in different places (mod_forum...) as a class that is carrying a set of information and
+ * behaviour throughout the execution (from the view.php for example) and should be passed as a parameter when used further
+ * down. Manager can be seen as a "Parameter Object" (see https://refactoring.guru/fr/introduce-parameter-object).
+ * In any case the Manager should not be seen as a singleton nor a factory as it can be adjusted through
+ * the page execution (for example to adjust to a certain behaviour). We need to refactor some part of the module
+ * to take this into account (especially the create_from_xxx calls).
  *
  * @package    mod_data
  * @copyright  2022 Ferran Recio <ferran@moodle.com>
@@ -131,6 +139,29 @@ class manager {
     }
 
     /**
+     * Retrieve information from current optional parameter to create the database
+     * manager.
+     *
+     * This is used in multiple location to initialise the instance and manager in a page.
+     *
+     * @return manager
+     */
+    public static function create_from_page_parameters(): manager {
+        global $DB;
+        $id = optional_param('id', 0, PARAM_INT); // Course module id.
+        if ($id) {
+            [$course, $cm] = get_course_and_cm_from_cmid($id, self::MODULE);
+            $manager = self::create_from_coursemodule($cm);
+        } else {
+            // We must have the database activity id.
+            $d = required_param('d', PARAM_INT);
+            $database = $DB->get_record('data', array('id' => $d), '*', MUST_EXIST);
+            list($course, $cm) = get_course_and_cm_from_instance($database, 'data');
+            $manager = new self($cm, $database);
+        }
+        return $manager;
+    }
+    /**
      * Return the current context.
      *
      * @return context_module
@@ -156,6 +187,17 @@ class manager {
     public function get_coursemodule(): cm_info {
         return $this->cm;
     }
+
+    /**
+     * Return the current course module id.
+     *
+     * Shorthand for {@see self::get_coursemodule}
+     * @return int the course module
+     */
+    public function get_coursemodule_id(): int {
+        return $this->cm->id;
+    }
+
 
     /**
      * Return the current module renderer.

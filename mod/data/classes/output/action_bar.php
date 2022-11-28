@@ -47,7 +47,7 @@ class action_bar {
      */
     public function __construct(int $id, moodle_url $pageurl) {
         $this->id = $id;
-        [$course, $cm] = get_course_and_cm_from_instance($this->id, 'data');
+        [$course, $cm] = get_course_and_cm_from_instance($this->id, manager::MODULE);
         $this->cmid = $cm->id;
         $this->currenturl = $pageurl;
     }
@@ -77,7 +77,7 @@ class action_bar {
         }
 
         $renderer = $PAGE->get_renderer('mod_data');
-        $fieldsactionbar = new fields_action_bar($this->id, null, null, null, null, $fieldselect);
+        $fieldsactionbar = new fields_action_bar($this->cmid, null, null, null, null, $fieldselect);
 
         return $renderer->render_fields_action_bar($fieldsactionbar);
     }
@@ -91,7 +91,7 @@ class action_bar {
         global $PAGE;
 
         $renderer = $PAGE->get_renderer('mod_data');
-        $fieldsactionbar = new fields_mappings_action_bar($this->id);
+        $fieldsactionbar = new fields_mappings_action_bar($this->cmid);
 
         $data = $fieldsactionbar->export_for_template($renderer);
         return $renderer->render_from_template('mod_data/fields_action_bar', $data);
@@ -113,7 +113,7 @@ class action_bar {
 
         $fieldselect = new \action_menu();
         $fieldselect->set_menu_trigger(get_string('newfield', 'mod_data'), 'btn btn-secondary');
-        $fieldselectparams = ['d' => $this->id, 'mode' => 'new'];
+        $fieldselectparams = ['id' => $this->cmid, 'mode' => 'new'];
         foreach ($menufield as $fieldtype => $fieldname) {
             $fieldselectparams['newtype'] = $fieldtype;
             $fieldselect->add(new \action_menu_link(
@@ -133,13 +133,14 @@ class action_bar {
      *
      * @param bool $hasentries Whether entries exist.
      * @param string $mode The current view mode (list, view...).
+     * @param manager $manager The current view mode (list, view...).
      * @return string The HTML code for the action selector.
      */
-    public function get_view_action_bar(bool $hasentries, string $mode): string {
+    public function get_view_action_bar(bool $hasentries, string $mode, manager $manager): string {
         global $PAGE;
 
-        $viewlistlink = new moodle_url('/mod/data/view.php', ['d' => $this->id]);
-        $viewsinglelink = new moodle_url('/mod/data/view.php', ['d' => $this->id, 'mode' => 'single']);
+        $viewlistlink = new moodle_url('/mod/data/view.php', ['id' => $this->cmid]);
+        $viewsinglelink = new moodle_url('/mod/data/view.php', ['id' => $this->cmid, 'mode' => 'single']);
 
         $menu = [
             $viewlistlink->out(false) => get_string('listview', 'mod_data'),
@@ -155,7 +156,8 @@ class action_bar {
         $urlselect = new url_select($menu, $activeurl->out(false), null, 'viewactionselect');
         $urlselect->set_label(get_string('viewnavigation', 'mod_data'), ['class' => 'sr-only']);
         $renderer = $PAGE->get_renderer('mod_data');
-        $viewactionbar = new view_action_bar($this->id, $urlselect, $hasentries, $mode);
+        // The parameter cmid has been deprecated, so here is a dummy value.
+        $viewactionbar = new view_action_bar(0, $urlselect, $hasentries, $mode, $manager);
 
         return $renderer->render_view_action_bar($viewactionbar);
     }
@@ -168,16 +170,16 @@ class action_bar {
     public function get_templates_action_bar(): string {
         global $PAGE;
 
-        $listtemplatelink = new moodle_url('/mod/data/templates.php', ['d' => $this->id,
+        $listtemplatelink = new moodle_url('/mod/data/templates.php', ['id' => $this->cmid,
             'mode' => 'listtemplate']);
-        $singletemplatelink = new moodle_url('/mod/data/templates.php', ['d' => $this->id,
+        $singletemplatelink = new moodle_url('/mod/data/templates.php', ['id' => $this->cmid,
             'mode' => 'singletemplate']);
-        $advancedsearchtemplatelink = new moodle_url('/mod/data/templates.php', ['d' => $this->id,
+        $advancedsearchtemplatelink = new moodle_url('/mod/data/templates.php', ['id' => $this->cmid,
             'mode' => 'asearchtemplate']);
-        $addtemplatelink = new moodle_url('/mod/data/templates.php', ['d' => $this->id, 'mode' => 'addtemplate']);
-        $rsstemplatelink = new moodle_url('/mod/data/templates.php', ['d' => $this->id, 'mode' => 'rsstemplate']);
-        $csstemplatelink = new moodle_url('/mod/data/templates.php', ['d' => $this->id, 'mode' => 'csstemplate']);
-        $jstemplatelink = new moodle_url('/mod/data/templates.php', ['d' => $this->id, 'mode' => 'jstemplate']);
+        $addtemplatelink = new moodle_url('/mod/data/templates.php', ['id' => $this->cmid, 'mode' => 'addtemplate']);
+        $rsstemplatelink = new moodle_url('/mod/data/templates.php', ['id' => $this->cmid, 'mode' => 'rsstemplate']);
+        $csstemplatelink = new moodle_url('/mod/data/templates.php', ['id' => $this->cmid, 'mode' => 'csstemplate']);
+        $jstemplatelink = new moodle_url('/mod/data/templates.php', ['id' => $this->cmid, 'mode' => 'jstemplate']);
 
         $menu = [
             $addtemplatelink->out(false) => get_string('addtemplate', 'mod_data'),
@@ -204,10 +206,10 @@ class action_bar {
             null,
             get_string('resetalltemplates', 'mod_data'),
             false,
-            ['data-action' => 'resetalltemplates', 'data-dataid' => $this->id]
+            ['data-action' => 'resetalltemplates', 'data-dataid' => $this->cmid]
         ));
 
-        $templatesactionbar = new templates_action_bar($this->id, $selectmenu, null, null, $presetsactions);
+        $templatesactionbar = new templates_action_bar($this->cmid, $selectmenu, null, null, $presetsactions);
 
         return $renderer->render_templates_action_bar($templatesactionbar);
     }
@@ -245,7 +247,7 @@ class action_bar {
         $selected = null;
         foreach (['listtemplate', 'singletemplate'] as $templatename) {
             $link = new moodle_url('/mod/data/preset.php', [
-                'd' => $this->id,
+                'id' => $cm->id,
                 'template' => $templatename,
                 'fullname' => $fullname,
                 'action' => 'preview',
@@ -296,7 +298,7 @@ class action_bar {
                 null,
                 get_string('importpreset', 'mod_data'),
                 false,
-                ['data-action' => 'importpresets', 'data-dataid' => $this->cmid]
+                ['data-action' => 'importpresets', 'data-id' => $this->cmid]
             ));
         }
 
@@ -316,7 +318,7 @@ class action_bar {
                 null,
                 get_string('saveaspreset', 'mod_data'),
                 false,
-                ['data-action' => 'saveaspreset', 'data-dataid' => $this->id]
+                ['data-action' => 'saveaspreset', 'data-id' => $this->cmid]
             ));
         }
 

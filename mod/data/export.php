@@ -23,32 +23,26 @@
  * @package mod_data
  */
 
+use mod_data\manager;
+
 require_once('../../config.php');
 require_once('lib.php');
 require_once('export_form.php');
 
-// database ID
-$d = required_param('d', PARAM_INT);
+global $DB;
+$manager = manager::create_from_page_parameters();
+$instance = $manager->get_instance();
+$cm = $manager->get_coursemodule();
+$course = get_course($cm->course);
+$url = new moodle_url('/mod/data/export.php', array('id' => $cm->id));
+
 $exportuser = optional_param('exportuser', false, PARAM_BOOL); // Flag for exporting user details
 $exporttime = optional_param('exporttime', false, PARAM_BOOL); // Flag for exporting date/time information
 $exportapproval = optional_param('exportapproval', false, PARAM_BOOL); // Flag for exporting user details
 $tags = optional_param('exporttags', false, PARAM_BOOL); // Flag for exporting user details.
 $redirectbackto = optional_param('backto', '', PARAM_LOCALURL); // The location to redirect back to.
 
-$url = new moodle_url('/mod/data/export.php', array('d' => $d));
 $PAGE->set_url($url);
-
-if (! $data = $DB->get_record('data', array('id'=>$d))) {
-    throw new \moodle_exception('wrongdataid', 'data');
-}
-
-if (! $cm = get_coursemodule_from_instance('data', $data->id, $data->course)) {
-    throw new \moodle_exception('invalidcoursemodule');
-}
-
-if(! $course = $DB->get_record('course', array('id'=>$cm->course))) {
-    throw new \moodle_exception('invalidcourseid');
-}
 
 // fill in missing properties needed for updating of instance
 $data->course     = $cm->course;
@@ -65,7 +59,7 @@ $fieldrecords = $DB->get_records('data_fields', array('dataid'=>$data->id), 'id'
 
 if(empty($fieldrecords)) {
     if (has_capability('mod/data:managetemplates', $context)) {
-        redirect($CFG->wwwroot.'/mod/data/field.php?d='.$data->id);
+        redirect($CFG->wwwroot.'/mod/data/field.php?id='.$manager->get_coursemodule_id());
     } else {
         throw new \moodle_exception('nofieldindatabase', 'data');
     }
@@ -77,12 +71,12 @@ foreach ($fieldrecords as $fieldrecord) {
     $fields[]= data_get_field($fieldrecord, $data);
 }
 
-$mform = new mod_data_export_form(new moodle_url('/mod/data/export.php', ['d' => $data->id,
+$mform = new mod_data_export_form(new moodle_url('/mod/data/export.php', ['id' => $manager->get_coursemodule_id(),
     'backto' => $redirectbackto]), $fields, $cm, $data);
 
 if ($mform->is_cancelled()) {
     $redirectbackto = !empty($redirectbackto) ? $redirectbackto :
-        new \moodle_url('/mod/data/view.php', ['d' => $data->id]);
+        new \moodle_url('/mod/data/view.php', ['id' => $manager->get_coursemodule_id()]);
     redirect($redirectbackto);
 } else if ($formdata = (array) $mform->get_data()) {
     $selectedfields = array();

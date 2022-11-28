@@ -28,7 +28,7 @@ use renderable;
  */
 class fields_action_bar implements templatable, renderable {
 
-    /** @var int $id The database module id. */
+    /** @var int $id The database course module id. */
     private $id;
 
     /** @var \action_menu|null $fieldselect The field selector object or null. */
@@ -37,14 +37,14 @@ class fields_action_bar implements templatable, renderable {
     /**
      * The class constructor.
      *
-     * @param int $id The database module id
+     * @param int $cmid The database course module id
      * @param null $unused1 This parameter has been deprecated since 4.1 and should not be used anymore.
      * @param null $unused2 This parameter has been deprecated since 4.1 and should not be used anymore.
      * @param null $unused3 This parameter has been deprecated since 4.1 and should not be used anymore.
      * @param null $unused4 This parameter has been deprecated since 4.1 and should not be used anymore.
      * @param \action_menu|null $fieldselect The field selector object or null
      */
-    public function __construct(int $id, $unused1 = null, $unused2 = null,
+    public function __construct(int $cmid, $unused1 = null, $unused2 = null,
             $unused3 = null, $unused4 = null,
             ?\action_menu $fieldselect = null) {
 
@@ -52,7 +52,7 @@ class fields_action_bar implements templatable, renderable {
             debugging('Deprecated argument passed to fields_action_bar constructor', DEBUG_DEVELOPER);
         }
 
-        $this->id = $id;
+        $this->id = $cmid;
         $this->fieldselect = $fieldselect;
     }
 
@@ -65,7 +65,7 @@ class fields_action_bar implements templatable, renderable {
     public function export_for_template(\renderer_base $output): array {
 
         $data = [
-            'd' => $this->id,
+            'id' => $this->id,
             'tertiarytitle' => get_string('managefields', 'mod_data'),
         ];
 

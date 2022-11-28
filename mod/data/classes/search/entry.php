@@ -195,7 +195,8 @@ class entry extends \core_search\base_mod {
      */
     public function get_doc_url(\core_search\document $doc) {
         $entry = $this->get_entry($doc->get('itemid'));
-        return new \moodle_url('/mod/data/view.php', array( 'd' => $entry->dataid, 'rid' => $entry->id ));
+        $cm = $this->get_cm('data', $entry->dataid, $doc->get('courseid'));
+        return new \moodle_url('/mod/data/view.php', ['id' => $cm->id, 'rid' => $entry->id ]);
     }
 
     /**
@@ -206,7 +207,8 @@ class entry extends \core_search\base_mod {
      */
     public function get_context_url(\core_search\document $doc) {
         $entry = $this->get_entry($doc->get('itemid'));
-        return new \moodle_url('/mod/data/view.php', array('d' => $entry->dataid));
+        $cm = $this->get_cm('data', $entry->dataid, $doc->get('courseid'));
+        return new \moodle_url('/mod/data/view.php', ['id' => $cm->id]);
     }
 
     /**
