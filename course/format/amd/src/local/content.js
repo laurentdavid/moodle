@@ -51,7 +51,6 @@ export default class Component extends BaseComponent {
             SECTION_CMLIST: `[data-for='cmlist']`,
             COURSE_SECTIONLIST: `[data-for='course_sectionlist']`,
             CM: `[data-for='cmitem']`,
-            PAGE: `#page`,
             TOGGLER: `[data-action="togglecoursecontentsection"]`,
             COLLAPSE: `[data-toggle="collapse"]`,
             TOGGLEALL: `[data-toggle="toggleall"]`,
@@ -142,7 +141,7 @@ export default class Component extends BaseComponent {
 
         // Capture page scroll to update page item.
         this.addEventListener(
-            document.querySelector(this.selectors.PAGE),
+            document,
             "scroll",
             this._scrollHandler
         );
@@ -335,7 +334,7 @@ export default class Component extends BaseComponent {
      * Check the current page scroll and update the active element if necessary.
      */
     _scrollHandler() {
-        const pageOffset = document.querySelector(this.selectors.PAGE).scrollTop;
+        const pageOffset = window.scrollY;
         const items = this.reactive.getExporter().allItemsArray(this.reactive.state);
         // Check what is the active element now.
         let pageItem = null;
