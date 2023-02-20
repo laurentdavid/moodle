@@ -15223,6 +15223,15 @@ body.drawer-ease {
     .drawer.drawer-bottom.show {
       bottom: 0; }
 
+#theme_boost-drawers-blocks .drawercontent {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */ }
+  #theme_boost-drawers-blocks .drawercontent::-webkit-scrollbar {
+    display: none;
+    /* Hide scrollbar for Chrome, Safari and Opera */ }
+
 @media (min-width: 992px) {
   .drawer {
     z-index: inherit; }
