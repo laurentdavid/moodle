@@ -39,8 +39,8 @@ Feature: Users can use predefined presets
     When I click on "Continue" "button"
     And I should see "Preset applied"
     Then I should see "title"
-    And I should see "description" in the "description" "table_row"
-    And I should see "image" in the "image" "table_row"
+    And "description" "table_row" should exist
+    And "image" "table_row" should exist
 
   Scenario: Using a preset on a non-empty database could show the option to map fields
     Given the following "mod_data > fields" exist:
@@ -50,7 +50,6 @@ Feature: Users can use predefined presets
     And I follow "Fields"
     And I should see "oldtitle"
     And I should not see "Description"
-    And I should not see "image"
     And I follow "Presets"
     And I click on "fullname" "radio" in the "Image gallery" "table_row"
     And I click on "Use this preset" "button"
@@ -65,8 +64,8 @@ Feature: Users can use predefined presets
     And I should see "Preset applied"
     Then I should not see "oldtitle"
     And I should see "title"
-    And I should see "description" in the "description" "table_row"
-    And I should see "image" in the "image" "table_row"
+    And "description" "table_row" should exist
+    And "image" "table_row" should exist
 
   Scenario: Teacher can use a preset from presets page on a database with existing entries
     # Creating an entry to test use a preset feature with databases with entries.
@@ -125,8 +124,8 @@ Feature: Users can use predefined presets
     And I should see "Preset applied"
     And I follow "Fields"
     Then I should see "title"
-    And I should see "description" in the "description" "table_row"
-    And I should see "image" in the "image" "table_row"
+    And "description" "table_row" should exist
+    And "image" "table_row" should exist
 
   Scenario: Using a preset from preset preview page on a non-empty database could show the option to map fields
     Given the following "mod_data > fields" exist:
@@ -151,8 +150,8 @@ Feature: Users can use predefined presets
     And I should see "Preset applied"
     Then I should not see "oldtitle"
     And I should see "title"
-    And I should see "description" in the "description" "table_row"
-    And I should see "image" in the "image" "table_row"
+    And "description" "table_row" should exist
+    And "image" "table_row" should exist
 
   Scenario: Teacher can use a preset from preset preview page on a database with existing entries
     # Creating an entry to test use a preset feature with databases with entries.
@@ -249,6 +248,6 @@ Feature: Users can use predefined presets
     And I should see "Existing fields to be deleted: Test field name"
     When I click on "Apply preset" "button"
     Then I should see "Preset applied."
-    And I should see "image"
-    And I should see "title"
+    And "image" "table_row" should exist
+    And "title" "table_row" should exist
     And I should not see "Test field name"

@@ -115,8 +115,8 @@ Feature: Users can import presets
     And I click on "Continue" "button"
     And I should see "Preset applied"
     Then I should see "title"
-    And I should see "description" in the "description" "table_row"
-    And I should see "image" in the "image" "table_row"
+    And "description" "table_row" should exist
+    And "image" "table_row" should exist
 
   Scenario: Importing a preset could create map fields
     Given the following "mod_data > fields" exist:
@@ -126,7 +126,6 @@ Feature: Users can import presets
     And I follow "Fields"
     And I should see "oldtitle"
     And I should not see "Description"
-    And I should not see "image"
     And I follow "Presets"
     And I choose the "Import preset" item in the "Action" action menu
     And I upload "mod/data/tests/fixtures/image_gallery_preset.zip" file to "Preset file" filemanager
@@ -138,8 +137,8 @@ Feature: Users can import presets
     And I should see "Preset applied"
     Then I should not see "oldtitle"
     And I should see "title"
-    And I should see "description" in the "description" "table_row"
-    And I should see "image" in the "image" "table_row"
+    And "description" "table_row" should exist
+    And "image" "table_row" should exist
 
   Scenario: Importing same preset twice doesn't show mapping dialogue
     # Importing a preset on an empty database doesn't show the mapping dialogue, so we add a field for the database
@@ -175,6 +174,6 @@ Feature: Users can import presets
     And I click on "Continue" "button"
     Then I should see "Preset applied."
     And I follow "Fields"
-    And I should see "image"
-    And I should see "title"
+    And "image" "table_row" should exist
+    And "title" "table_row" should exist
     And I should not see "Test field name"

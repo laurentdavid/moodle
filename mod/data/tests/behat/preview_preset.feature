@@ -142,8 +142,8 @@ Feature: Users can preview presets
     Given I follow "Presets"
     And I click on "Image gallery" "link"
     When I click on "Use this preset" "button"
-    Then I should see "image"
-    And I should see "title"
+    Then "image" "table_row" should exist
+    And "title" "table_row" should exist
 
   @javascript @_file_upload
   Scenario: Apply user preset from preview in database
