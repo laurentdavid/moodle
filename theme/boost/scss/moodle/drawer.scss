@@ -188,6 +188,11 @@ $right-drawer-width: 320px;
             margin-left: auto;
             margin-right: 5px;
         }
+        // This fixes a bug happening when you close the drawer, open it then
+        // scroll the page (using the mouse scroll wheel). Then if this is not
+        // set the right drawer will scroll down too.
+        /* stylelint-disable declaration-no-important */
+        position: fixed !important;
     }
     &.drawer-left {
         width: $drawer-left-width;

@@ -15198,7 +15198,9 @@ body.drawer-ease {
     width: 315px;
     max-width: 315px;
     right: calc(-315px + -10px);
-    visibility: hidden; }
+    visibility: hidden;
+    /* stylelint-disable declaration-no-important */
+    position: fixed !important; }
     .drawer.drawer-right.show {
       right: 0;
       visibility: visible; }
@@ -15264,7 +15266,9 @@ body.drawer-ease {
       width: 315px;
       max-width: 315px;
       right: calc(-315px + -10px);
-      visibility: hidden; }
+      visibility: hidden;
+      /* stylelint-disable declaration-no-important */
+      position: fixed !important; }
       .drawer-md.drawer-right.show {
         right: 0;
         visibility: visible; }
@@ -15307,7 +15311,9 @@ body.drawer-ease {
       width: 315px;
       max-width: 315px;
       right: calc(-315px + -10px);
-      visibility: hidden; }
+      visibility: hidden;
+      /* stylelint-disable declaration-no-important */
+      position: fixed !important; }
       .drawer-sm.drawer-right.show {
         right: 0;
         visibility: visible; }
