@@ -251,12 +251,15 @@ switch ($mode) {
 
     case 'sort':    // Set the default sort parameters
         if (confirm_sesskey()) {
+            global $SESSION;
+
             $rec = new stdClass();
             $rec->id = $data->id;
             $rec->defaultsort = $defaultsort;
             $rec->defaultsortdir = $defaultsortdir;
 
             $DB->update_record('data', $rec);
+            unset($SESSION->dataprefs[$data->id]);
             redirect($CFG->wwwroot.'/mod/data/field.php?d='.$data->id, get_string('changessaved'), 2);
             exit;
         }
@@ -408,53 +411,8 @@ if (($mode == 'new') && (!empty($newtype))) { // Adding a new field.
     }
     echo html_writer::table($table);
 
-    echo '<div class="sortdefault">';
-    echo '<form id="sortdefault" action="'.$CFG->wwwroot.'/mod/data/field.php" method="get">';
-    echo '<div>';
-    echo '<input type="hidden" name="d" value="'.$data->id.'" />';
-    echo '<input type="hidden" name="mode" value="sort" />';
-    echo '<input type="hidden" name="sesskey" value="'.sesskey().'" />';
-    echo '<label for="defaultsort">'.get_string('defaultsortfield','data').'</label>';
-    echo '<select id="defaultsort" name="defaultsort" class="custom-select">';
-    if ($fields = $DB->get_records('data_fields', array('dataid'=>$data->id))) {
-        echo '<optgroup label="'.get_string('fields', 'data').'">';
-        foreach ($fields as $field) {
-            if ($data->defaultsort == $field->id) {
-                echo '<option value="'.$field->id.'" selected="selected">'.$field->name.'</option>';
-            } else {
-                echo '<option value="'.$field->id.'">'.$field->name.'</option>';
-            }
-        }
-        echo '</optgroup>';
-    }
-    $options = array();
-    $options[DATA_TIMEADDED]    = get_string('timeadded', 'data');
-// TODO: we will need to change defaultsort db to unsinged to make these work in 2.0
-/*        $options[DATA_TIMEMODIFIED] = get_string('timemodified', 'data');
-    $options[DATA_FIRSTNAME]    = get_string('authorfirstname', 'data');
-    $options[DATA_LASTNAME]     = get_string('authorlastname', 'data');
-    if ($data->approval and has_capability('mod/data:approve', $context)) {
-        $options[DATA_APPROVED] = get_string('approved', 'data');
-    }*/
-    echo '<optgroup label="'.get_string('other', 'data').'">';
-    foreach ($options as $key => $name) {
-        if ($data->defaultsort == $key) {
-            echo '<option value="'.$key.'" selected="selected">'.$name.'</option>';
-        } else {
-            echo '<option value="'.$key.'">'.$name.'</option>';
-        }
-    }
-    echo '</optgroup>';
-    echo '</select>';
-
-    $options = array(0 => get_string('ascending', 'data'),
-                     1 => get_string('descending', 'data'));
-    echo html_writer::label(get_string('sortby'), 'menudefaultsortdir', false, array('class' => 'accesshide'));
-    echo html_writer::select($options, 'defaultsortdir', $data->defaultsortdir, false, array('class' => 'custom-select'));
-    echo '<input type="submit" class="btn btn-secondary ml-1" value="'.get_string('save', 'data').'" />';
-    echo '</div>';
-    echo '</form>';
-
+    $fieldsort = new \mod_data\output\view_fields_sort($manager);
+    echo $renderer->render($fieldsort);
     // Add a sticky footer.
     echo $renderer->render_fields_footer($manager);
 
