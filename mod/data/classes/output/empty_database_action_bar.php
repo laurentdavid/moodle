@@ -63,7 +63,8 @@ class empty_database_action_bar implements templatable, renderable {
                 get_string('importentries', 'mod_data'), 'get');
             $data['importentriesbutton'] = $importentriesbutton->export_for_template($output);
         }
-
+        $sortfield = new view_fields_sort($this->manager);
+        $data['sortfields'] = $sortfield->export_for_template($output);
         return $data;
     }
 }

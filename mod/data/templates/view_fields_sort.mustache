@@ -63,8 +63,9 @@
 }}
 <div class="mod_data_fields_sort sortdefault">
     <form id="sortdefault" action="{{formurl}}" method="get">
-        <input type="hidden" name="id" value="{{cmid}}"/>
-        <input type="hidden" name="mode" value="sort"/>
+        {{#currentparams}}
+            <input type="hidden" name="{{key}}" value="{{value}}"/>
+        {{/currentparams}}
         <input type="hidden" name="sesskey" value="{{sesskey}}"/>
         <label for="defaultsort">{{#str}}defaultsortfield, mod_data{{/str}}</label>
         <select id="defaultsort" name="defaultsort" class="custom-select">

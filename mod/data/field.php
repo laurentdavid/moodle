@@ -40,8 +40,6 @@ $newtype        = optional_param('newtype','',PARAM_ALPHA);      // type of the 
 $mode           = optional_param('mode','',PARAM_ALPHA);
 $action         = optional_param('action', '', PARAM_ALPHA);
 $fullname       = optional_param('fullname', '', PARAM_PATH);    // Directory the preset is in.
-$defaultsort    = optional_param('defaultsort', 0, PARAM_INT);
-$defaultsortdir = optional_param('defaultsortdir', 0, PARAM_INT);
 $cancel         = optional_param('cancel', 0, PARAM_BOOL);
 
 if ($cancel) {
@@ -58,12 +56,7 @@ if ($newtype !== '') {
 if ($mode !== '') {
     $url->param('mode', $mode);
 }
-if ($defaultsort !== 0) {
-    $url->param('defaultsort', $defaultsort);
-}
-if ($defaultsortdir !== 0) {
-    $url->param('defaultsortdir', $defaultsortdir);
-}
+
 if ($cancel !== 0) {
     $url->param('cancel', $cancel);
 }
@@ -248,23 +241,6 @@ switch ($mode) {
         }
         break;
 
-
-    case 'sort':    // Set the default sort parameters
-        if (confirm_sesskey()) {
-            global $SESSION;
-
-            $rec = new stdClass();
-            $rec->id = $data->id;
-            $rec->defaultsort = $defaultsort;
-            $rec->defaultsortdir = $defaultsortdir;
-
-            $DB->update_record('data', $rec);
-            unset($SESSION->dataprefs[$data->id]);
-            redirect($CFG->wwwroot.'/mod/data/field.php?d='.$data->id, get_string('changessaved'), 2);
-            exit;
-        }
-        break;
-
     case 'usepreset':
         $importer = preset_importer::create_from_parameters($manager);
         if (!$importer->needs_mapping() || $action == 'notmapping') {
@@ -411,8 +387,6 @@ if (($mode == 'new') && (!empty($newtype))) { // Adding a new field.
     }
     echo html_writer::table($table);
 
-    $fieldsort = new \mod_data\output\view_fields_sort($manager);
-    echo $renderer->render($fieldsort);
     // Add a sticky footer.
     echo $renderer->render_fields_footer($manager);
 

@@ -44,6 +44,8 @@ $disapprove = optional_param('disapprove', 0, PARAM_INT);    // disapproval reco
 $delete = optional_param('delete', 0, PARAM_INT);    //delete recordid
 $multidelete = optional_param_array('delcheck', null, PARAM_INT);
 $serialdelete = optional_param('serialdelete', null, PARAM_RAW);
+$defaultsort    = optional_param('defaultsort', null, PARAM_INT);
+$defaultsortdir = optional_param('defaultsortdir', null, PARAM_INT);
 
 $record = null;
 
@@ -61,7 +63,6 @@ if ($id) {
     $cm = $manager->get_coursemodule();
     $course = get_course($cm->course);
 }
-
 $data = $manager->get_instance();
 $context = $manager->get_context();
 
@@ -76,6 +77,17 @@ require_capability('mod/data:viewentry', $context);
 if (!isset($SESSION->dataprefs)) {
     $SESSION->dataprefs = array();
 }
+if (!is_null($defaultsort)) {
+    if (confirm_sesskey()) {
+        global $SESSION;
+        $data->defaultsort = $defaultsort ?? 0;
+        $data->defaultsortdir = $defaultsortdir ?? 0;
+
+        $DB->update_record('data', $data);
+        \core\notification::info(get_string('changessaved'));
+    }
+}
+
 if (!isset($SESSION->dataprefs[$data->id])) {
     $SESSION->dataprefs[$data->id] = array();
     $SESSION->dataprefs[$data->id]['search'] = '';
@@ -84,6 +96,12 @@ if (!isset($SESSION->dataprefs[$data->id])) {
     $SESSION->dataprefs[$data->id]['advanced'] = 0;
     $SESSION->dataprefs[$data->id]['order'] = ($data->defaultsortdir == 0) ? 'ASC' : 'DESC';
 }
+
+$sort = optional_param('defaultsort', $SESSION->dataprefs[$data->id]['sort'], PARAM_INT);
+$SESSION->dataprefs[$data->id]['sort'] = $sort;       // Make it sticky
+
+$order = (optional_param('order', $SESSION->dataprefs[$data->id]['order'], PARAM_ALPHA) == 'ASC') ? 'ASC': 'DESC';
+$SESSION->dataprefs[$data->id]['defaultsortdir'] = $order;     // Make it sticky
 
 // reset advanced form
 if (!is_null(optional_param('resetadv', null, PARAM_RAW))) {
@@ -146,13 +164,6 @@ if (! $filter) {
 
 $SESSION->dataprefs[$data->id]['search'] = $search;   // Make it sticky
 
-$sort = optional_param('sort', $SESSION->dataprefs[$data->id]['sort'], PARAM_INT);
-$SESSION->dataprefs[$data->id]['sort'] = $sort;       // Make it sticky
-
-$order = (optional_param('order', $SESSION->dataprefs[$data->id]['order'], PARAM_ALPHA) == 'ASC') ? 'ASC': 'DESC';
-$SESSION->dataprefs[$data->id]['order'] = $order;     // Make it sticky
-
-
 $oldperpage = get_user_preferences('data_perpage_'.$data->id, 10);
 $perpage = optional_param('perpage', $oldperpage, PARAM_INT);
 
@@ -178,6 +189,12 @@ if ($page) {
 }
 if ($filter) {
     $urlparams['filter'] = $filter;
+}
+if ($defaultsort !== 0) {
+    $urlparams['defaultsort'] = $defaultsort;
+}
+if ($defaultsortdir !== 0) {
+    $urlparams['defaultsortdir'] = $defaultsortdir;
 }
 $pageurl = new moodle_url('/mod/data/view.php', $urlparams);
 
@@ -412,7 +429,9 @@ if ($showactivity) {
         if ($maxcount && $mode != 'single') {
             data_print_preference_form($data, $perpage, $search, $sort, $order, $search_array, $advanced, $mode);
         }
-
+        $fieldsort = new \mod_data\output\view_fields_sort($manager, $pageurl);
+        $renderer = $manager->get_renderer();
+        echo $renderer->render($fieldsort);
         if (empty($records)) {
             if ($maxcount){
                 $a = new stdClass();

@@ -12,7 +12,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template mod_data/view_no_fields_nomanagers
+    @template mod_data/view_noentries
 
     Form containing all database presets displayed within a table.
 
@@ -54,6 +54,10 @@
         }
     }
 }}
+<div class="mod_data_view_noentries">
+    {{#sortfields}}
+        {{> mod_data/view_fields_sort }}
+    {{/sortfields}}
 <div class="text-xs-center text-center mt-4" data-region="empty-message">
     <img
             src="{{noitemsimgurl}}"
@@ -71,4 +75,5 @@
             {{> core/single_button }}
         {{/addentrybutton}}
     </div>
+</div>
 </div>

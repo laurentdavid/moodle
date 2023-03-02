@@ -17,6 +17,7 @@
 namespace mod_data\output;
 
 use mod_data\manager;
+use moodle_url;
 use renderable;
 use renderer_base;
 use templatable;
@@ -29,7 +30,10 @@ use templatable;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class view_fields_sort implements templatable, renderable {
-
+    /**
+     * @var \moodle_url $currenturl
+     */
+    private $currenturl;
     /**
      * Current manager
      *
@@ -42,8 +46,9 @@ class view_fields_sort implements templatable, renderable {
      *
      * @param manager $manager
      */
-    public function __construct(manager $manager) {
+    public function __construct(manager $manager, ?moodle_url $currenturl = null) {
         $this->manager = $manager;
+        $this->currenturl = $currenturl ?? new moodle_url('/mod/data/view.php', ['id' => $manager->get_coursemodule()->id]);
     }
 
     /**
@@ -57,9 +62,17 @@ class view_fields_sort implements templatable, renderable {
         $instance = $this->manager->get_instance();
         $defaultsortid = $instance->defaultsort;
         $defaultsortdirid = $instance->defaultsortdir;
+        $currentparams = [];
+        foreach ($this->currenturl->params() as $key => $value) {
+            if (in_array($key, ['defaultsort', 'defaultsortdir'])) {
+                continue; // Do not add the actual form fields.
+            }
+            $currentparams[] = ['key' => $key, 'value' => $value];
+        }
         $data = [
-            'formurl' => (new \moodle_url('/mod/data/field.php'))->out(false),
+            'formurl' => $this->currenturl->out_omit_querystring(),
             'cmid' => $this->manager->get_coursemodule()->id,
+            'currentparams' => $currentparams,
             'sesskey' => sesskey(),
         ];
         $fields = $DB->get_records('data_fields', ['dataid' => $this->manager->get_instance()->id]);
@@ -79,13 +92,17 @@ class view_fields_sort implements templatable, renderable {
                 'options' => $options
             ];
         }
+        $timeadded = [
+            'id' => DATA_TIMEADDED,
+            'label' => get_string('timeadded', 'data')
+        ];
+        if ($defaultsortid == DATA_TIMEADDED) {
+            $timeadded['selected'] = true;
+        }
         $data['sorts'][] = [
             'groupname' => get_string('other', 'mod_data'),
             'options' => [
-                [
-                    'id' => DATA_TIMEADDED,
-                    'label' => get_string('timeadded', 'data')
-                ]
+                $timeadded
             ]
         ];
         $data['sortdir'] = [
