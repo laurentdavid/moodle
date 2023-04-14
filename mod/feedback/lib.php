@@ -1481,9 +1481,15 @@ function feedback_load_feedback_items($dir = 'mod/feedback/item') {
     $names = get_list_of_plugins($dir);
     $ret_names = array();
 
+    $gcaptchaallowed = (bool) get_config('feedback', 'allowgcaptcha');
+    $gcaptchaconfigured = (bool) $CFG->recaptchapublickey && (bool) $CFG->recaptchaprivatekey;
+
     foreach ($names as $name) {
         require_once($CFG->dirroot.'/'.$dir.'/'.$name.'/lib.php');
         if (class_exists('feedback_item_'.$name)) {
+            if ($name == "captcha" && !($gcaptchaallowed && $gcaptchaconfigured)) {
+                continue;
+            }
             $ret_names[] = $name;
         }
     }

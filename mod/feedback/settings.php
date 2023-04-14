@@ -22,4 +22,7 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configselect('feedback_allowfullanonymous',
                                     get_string('allowfullanonymous', 'feedback'),
                                     $str, 0, $options));
+    $settings->add(new admin_setting_configcheckbox('feedback_allowgcaptcha',
+                                    get_string('allowgcaptcha', 'feedback'),
+                                    get_string('configallowgcaptcha', 'feedback'), 1));
 }
