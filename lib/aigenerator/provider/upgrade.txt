@@ -1,0 +1,2 @@
+=== 4.3 ===
+* Added new AI generator plugin type

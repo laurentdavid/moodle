@@ -1,5 +1,6 @@
 {
     "plugintypes": {
+        "aigenerator": "lib\/aigenerator\/provider",
         "antivirus": "lib\/antivirus",
         "availability": "availability\/condition",
         "qtype": "question\/type",
@@ -47,6 +48,7 @@
         "access": null,
         "admin": "admin",
         "adminpresets": "admin/presets",
+        "aigenerator": "lib\/aigenerator",
         "analytics": "analytics",
         "antivirus": "lib\/antivirus",
         "auth": "auth",

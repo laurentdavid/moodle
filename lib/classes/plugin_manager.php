@@ -1751,6 +1751,8 @@ class core_plugin_manager {
 
         $standard_plugins = array(
 
+            'aigenerator' => [],
+
             'antivirus' => array(
                 'clamav'
             ),
