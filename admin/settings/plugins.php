@@ -769,7 +769,6 @@ if ($hassiteconfig) {
         }
     }
 }
-
 // Add Calendar type settings.
 if ($hassiteconfig) {
     $ADMIN->add('modules', new admin_category('calendartype', new lang_string('calendartypes', 'calendar')));
@@ -813,6 +812,20 @@ if ($hassiteconfig) {
     $ADMIN->add('modules', new admin_category('localplugins', new lang_string('localplugins')));
     $ADMIN->add('localplugins', new admin_externalpage('managelocalplugins', new lang_string('localpluginsmanage'),
                                                         $CFG->wwwroot . '/' . $CFG->admin . '/localplugins.php'));
+}
+
+// Add AI Generator settings.
+if ($hassiteconfig && !empty($CFG->enableaigeneratorsubsystem)) {
+    $ADMIN->add('modules', new admin_category('aigeneratorsettings', new lang_string('aigenerator', 'core_aigenerator')));
+    $temp = new admin_settingpage('manageaigeneratorproviders',
+        new lang_string('manageaigeneratorproviders', 'core_aigenerator'));
+    $temp->add(new \core_aigenerator\admin\manage_aigenerator_providers_page());
+    $ADMIN->add('aigeneratorsettings', $temp);
+    $plugins = core_plugin_manager::instance()->get_plugins_of_type('aigenerator');
+    foreach ($plugins as $plugin) {
+        /** @var \core\plugininfo\aigenerator $plugin */
+        $plugin->load_settings($ADMIN, 'aigeneratorsettings', $hassiteconfig);
+    }
 }
 
 // Extend settings for each local plugin. Note that their settings may be in any part of the

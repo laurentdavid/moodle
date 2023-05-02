@@ -70,6 +70,11 @@ if ($hassiteconfig) { // speedup for non-admins, add all caps used on this page
         1
     ));
 
+    // AI Generator subsystem settings.
+    $optionalsubsystems->add(new admin_setting_configcheckbox('enableaigeneratorsubsystem',
+        new lang_string('enableaigeneratorsubsystem', 'core_admin'),
+        new lang_string('enableaigeneratorsubsystem_desc', 'core_admin'), 0));
+
     $fullunicodesupport = true;
     if ($DB->get_dbfamily() == 'mysql') {
         $collation = $DB->get_dbcollation();

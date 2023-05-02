@@ -585,6 +585,9 @@ $string['emoticons_desc'] = 'This form defines the emoticons (or smileys) used a
 * Alternative text (optional) - String identifier and component of the alternative text of the emoticon.';
 $string['emoticonsreset'] = 'Reset emoticons setting to default values';
 $string['emptysettingvalue'] = 'Empty';
+$string['enableaigeneratorsubsystem'] = 'Enable AI Generator subsystem';
+$string['enableaigeneratorsubsystem_desc'] = 'This setting enables the new AI Generator subsystem.
+ This new subsystem allow teachers to generate content for activities using AI.';
 $string['enableanalytics'] = 'Analytics';
 $string['enableblogs'] = 'Enable blogs';
 $string['enablecalendarexport'] = 'Enable calendar export';
