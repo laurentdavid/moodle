@@ -1,0 +1,14 @@
+{
+  "id": "cmpl-xxxxx",
+  "object": "text_completion",
+  "created": 12457475477,
+  "model": "text-davinci-003",
+  "choices": [
+    {
+      "text": "\\n\\nA generated text",
+      "index": 0,
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+
+    // Unfinished
