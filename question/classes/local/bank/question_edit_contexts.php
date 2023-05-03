@@ -52,6 +52,7 @@ class question_edit_contexts {
                     'moodle/question:managecategory'],
             'import' => [
                     'moodle/question:add'],
+            'aicreate' => ['moodle/question:add'],
             'export' => [
                     'moodle/question:viewall',
                     'moodle/question:viewmine']];

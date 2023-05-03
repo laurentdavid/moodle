@@ -61,7 +61,7 @@ class qbank_action_menu implements templatable, renderable {
         }
         $importlink = new moodle_url('/question/bank/importquestions/import.php', $this->currenturl->params());
         $exportlink = new moodle_url('/question/bank/exportquestions/export.php', $this->currenturl->params());
-
+        $aicreatelink = new moodle_url('/question/bank/aicreate/create.php', $this->currenturl->params());
         $menu = [
             $questionslink->out(false) => get_string('questions', 'question'),
         ];
@@ -71,6 +71,7 @@ class qbank_action_menu implements templatable, renderable {
         }
         $menu[$importlink->out(false)] = get_string('import', 'question');
         $menu[$exportlink->out(false)] = get_string('export', 'question');
+        $menu[$aicreatelink->out(false)] = get_string('aicreate', 'qbank_aicreate');
 
         $addcategory = null;
         if (strpos($this->currenturl->get_path(), 'category.php') !== false &&
