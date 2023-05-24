@@ -55,21 +55,19 @@ if (!empty($name)) {
 }
 
 $course = $DB->get_record('course', $params, '*', MUST_EXIST);
-
-$urlparams = ['id' => $course->id];
+$format = course_get_format($course);
 
 // Sectionid should get priority over section number.
 if ($sectionid) {
     $section = $DB->get_field('course_sections', 'section', ['id' => $sectionid, 'course' => $course->id], MUST_EXIST);
 }
-if ($section) {
-    $urlparams['section'] = $section;
-}
-if ($expandsection !== -1) {
-    $urlparams['expandsection'] = $expandsection;
-}
-
-$PAGE->set_url('/course/view.php', $urlparams); // Defined here to avoid notices on errors etc.
+// Defined here to avoid notices on errors etc.
+$url = $format->get_view_url($section, [
+    'expanded' => $expandsection !== -1 ? $expandsection : false
+]);
+// We to remove the anchor here as using anchor here will disrupt Behat step i_visit.
+$url->set_anchor(null);
+$PAGE->set_url($url);
 
 // Prevent caching of this page to stop confusion when changing page after making AJAX changes.
 $PAGE->set_cacheable(false);
@@ -146,7 +144,6 @@ if ($section && $section > 0) {
 }
 
 // Fix course format if it is no longer installed.
-$format = course_get_format($course);
 $course->format = $format->get_format();
 
 $PAGE->set_pagetype('course-view-' . $course->format);
@@ -220,7 +217,7 @@ if ($PAGE->user_allowed_editing()) {
     }
 
     if (!empty($section) && !empty($move) &&
-            has_capability('moodle/course:movesections', $context) && confirm_sesskey()) {
+        has_capability('moodle/course:movesections', $context) && confirm_sesskey()) {
         $destsection = $section + $move;
         if (move_section_to($course, $section, $destsection)) {
             if ($course->id == SITEID) {
