@@ -118,11 +118,14 @@ Feature: We can set the grade to pass value
       | Assessment grade to pass | 10 |
     And I press "Save and return to course"
     And I navigate to "View > Grader report" in the course gradebook
+    # Make space to be able to see the edit button.
+    And I keep block drawer closed
     And I click on "Edit  workshop Test Workshop 1 (submission)" "link"
     And I expand all fieldsets
     Then the field "Grade to pass" matches value "40"
     And I set the field "Grade to pass" to "45"
     And I press "Save changes"
+    And I keep block drawer closed
     And I click on "Edit  workshop Test Workshop 1 (assessment)" "link"
     And I expand all fieldsets
     And the field "Grade to pass" matches value "10"

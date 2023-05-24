@@ -39,6 +39,7 @@ Feature: We can use calculated grade totals
     And I log in as "admin"
     And I set the following administration settings values:
       | grade_aggregations_visible | Mean of grades,Weighted mean of grades,Simple weighted mean of grades,Mean of grades (with extra credits),Median of grades,Lowest grade,Highest grade,Mode of grades,Natural |
+    And I keep block drawer closed
     And I log out
     And I log in as "teacher1"
     And I am on "Course 1" course homepage
@@ -382,6 +383,7 @@ Feature: We can use calculated grade totals
   Scenario: Natural aggregation with drop lowest
     When I log out
     And I log in as "admin"
+    And I change window size to "large"
     And I am on "Course 1" course homepage
     And I navigate to "View > Grader report" in the course gradebook
     And I turn editing mode on

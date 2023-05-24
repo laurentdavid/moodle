@@ -42,7 +42,7 @@ class behat_grade extends behat_base {
     public function i_give_the_grade($grade, $userfullname, $itemname) {
         $gradelabel = $userfullname . ' ' . $itemname;
         $fieldstr = get_string('useractivitygrade', 'gradereport_grader', $gradelabel);
-
+        $this->execute("behat_navigation::i_close_block_drawer_if_open");
         $this->execute('behat_forms::i_set_the_field_to', array($this->escape($fieldstr), $grade));
     }
 
@@ -76,6 +76,8 @@ class behat_grade extends behat_base {
         $gradeitem = behat_context_helper::escape($gradeitem);
 
         if ($this->running_javascript()) {
+            $this->execute("behat_navigation::i_close_block_drawer_if_open");
+
             $xpath = "//tr[contains(.,$gradeitem)]//*[contains(@class,'moodle-actionmenu')]";
             if ($this->getSession()->getPage()->findAll('xpath', $xpath)) {
                 $this->execute("behat_action_menu::i_open_the_action_menu_in",
