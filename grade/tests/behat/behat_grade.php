@@ -40,6 +40,7 @@ class behat_grade extends behat_base {
      * @param string $itemname
      */
     public function i_give_the_grade($grade, $userfullname, $itemname) {
+        $this->execute('behat_navigation::i_close_block_drawer_if_open');
         $gradelabel = $userfullname . ' ' . $itemname;
         $fieldstr = get_string('useractivitygrade', 'gradereport_grader', $gradelabel);
 
