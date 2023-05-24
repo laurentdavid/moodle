@@ -225,7 +225,7 @@ class behat_grades extends behat_base {
      * @throws Exception
      */
     public function i_click_on_grade_item_menu(string $itemname, string $itemtype, string $page) {
-
+        $this->execute("behat_navigation::i_close_block_drawer_if_open");
         if ($itemtype == 'gradeitem') {
             $itemid = $this->get_grade_item_id($itemname);
         } else if ($itemtype == 'category') {
