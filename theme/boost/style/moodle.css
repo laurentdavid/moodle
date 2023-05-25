@@ -25158,7 +25158,7 @@ body {
   height: 61px;
   bottom: -60px;
   transition: bottom 0.5s;
-  z-index: 1000;
+  z-index: 1030;
   overflow: hidden;
   box-shadow: 0 0 1rem rgba(0, 0, 0, 0.15);
 }

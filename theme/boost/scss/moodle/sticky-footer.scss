@@ -14,7 +14,7 @@ body {
     height: $navbar-height + 1px;
     bottom: -$navbar-height;
     transition: bottom .5s;
-    z-index: $zindex-dropdown;
+    z-index: $zindex-fixed;
     overflow: hidden;
     box-shadow: 0 0 1rem rgba($black, .15);
 }

@@ -37,19 +37,6 @@ let initialized = false;
 let previousScrollPosition = 0;
 
 /**
- * Return the current page scroll position.
- * @package
- * @returns {number} the current scroll position
- */
-const getScrollPosition = () => {
-    const page = document.querySelector(SELECTORS.PAGE);
-    if (page) {
-        return page.scrollTop;
-    }
-    return window.pageYOffset;
-};
-
-/**
  * Scroll handler.
  * @package
  */
@@ -59,7 +46,7 @@ const scrollSpy = () => {
         return;
     }
     // Detect if scroll is going down.
-    let scrollPosition = getScrollPosition();
+    let scrollPosition = window.scrollY;
     if (scrollPosition > previousScrollPosition) {
         disableStickyFooter();
     } else {
@@ -102,6 +89,5 @@ export const init = () => {
     }
     initialized = true;
     enableStickyFooter();
-    const content = document.querySelector(SELECTORS.PAGE) ?? document.body;
-    content.addEventListener("scroll", scrollSpy);
+    document.addEventListener("scroll", scrollSpy);
 };
