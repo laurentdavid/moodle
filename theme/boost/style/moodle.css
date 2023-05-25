@@ -15085,22 +15085,22 @@ body.drawer-ease {
   box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25); }
 
 .drawer {
-  transition: left 0.2s ease, right 0.2s ease, top 0.2s ease, bottom 0.2s ease, visibility 0.2s ease;
   background-color: #f8f9fa;
   z-index: 1020;
   position: fixed;
   height: 100vh;
   top: 0; }
-  @media (prefers-reduced-motion: reduce) {
-    .drawer {
-      transition: none; } }
   .drawer.not-initialized {
     display: none; }
   .drawer.drawer-right {
+    transition: right 0.2s ease, top 0.2s ease, bottom 0.2s ease, visibility 0.2s ease, transform 0.5s ease;
     width: 315px;
     max-width: 315px;
     right: calc(-315px + -10px);
     visibility: hidden; }
+    @media (prefers-reduced-motion: reduce) {
+      .drawer.drawer-right {
+        transition: none; } }
     .drawer.drawer-right.show {
       right: 0;
       visibility: visible; }
@@ -15108,10 +15108,14 @@ body.drawer-ease {
       margin-left: auto;
       margin-right: 5px; }
   .drawer.drawer-left {
+    transition: left 0.2s ease, top 0.2s ease, bottom 0.2s ease, visibility 0.2s ease;
     width: 285px;
     max-width: 285px;
     left: calc(-285px + -10px);
     visibility: hidden; }
+    @media (prefers-reduced-motion: reduce) {
+      .drawer.drawer-left {
+        transition: none; } }
     .drawer.drawer-left.show {
       left: 0;
       visibility: visible; }
@@ -15145,24 +15149,24 @@ body.drawer-ease {
 @media (max-width: 991.98px) {
   .drawer-md {
     display: block;
-    transition: left 0.2s ease, right 0.2s ease, top 0.2s ease, bottom 0.2s ease, visibility 0.2s ease;
     background-color: #f8f9fa;
     z-index: 1020;
     position: fixed;
     height: 100vh;
-    top: 0; } }
-  @media (max-width: 991.98px) and (prefers-reduced-motion: reduce) {
-    .drawer-md {
-      transition: none; } }
-
-@media (max-width: 991.98px) {
+    top: 0; }
     .drawer-md.not-initialized {
       display: none; }
     .drawer-md.drawer-right {
+      transition: right 0.2s ease, top 0.2s ease, bottom 0.2s ease, visibility 0.2s ease, transform 0.5s ease;
       width: 315px;
       max-width: 315px;
       right: calc(-315px + -10px);
-      visibility: hidden; }
+      visibility: hidden; } }
+    @media (max-width: 991.98px) and (prefers-reduced-motion: reduce) {
+      .drawer-md.drawer-right {
+        transition: none; } }
+
+@media (max-width: 991.98px) {
       .drawer-md.drawer-right.show {
         right: 0;
         visibility: visible; }
@@ -15170,10 +15174,16 @@ body.drawer-ease {
         margin-left: auto;
         margin-right: 5px; }
     .drawer-md.drawer-left {
+      transition: left 0.2s ease, top 0.2s ease, bottom 0.2s ease, visibility 0.2s ease;
       width: 285px;
       max-width: 285px;
       left: calc(-285px + -10px);
-      visibility: hidden; }
+      visibility: hidden; } }
+    @media (max-width: 991.98px) and (prefers-reduced-motion: reduce) {
+      .drawer-md.drawer-left {
+        transition: none; } }
+
+@media (max-width: 991.98px) {
       .drawer-md.drawer-left.show {
         left: 0;
         visibility: visible; }
@@ -15188,24 +15198,24 @@ body.drawer-ease {
 @media (max-width: 767.98px) {
   .drawer-sm {
     display: block;
-    transition: left 0.2s ease, right 0.2s ease, top 0.2s ease, bottom 0.2s ease, visibility 0.2s ease;
     background-color: #f8f9fa;
     z-index: 1020;
     position: fixed;
     height: 100vh;
-    top: 0; } }
-  @media (max-width: 767.98px) and (prefers-reduced-motion: reduce) {
-    .drawer-sm {
-      transition: none; } }
-
-@media (max-width: 767.98px) {
+    top: 0; }
     .drawer-sm.not-initialized {
       display: none; }
     .drawer-sm.drawer-right {
+      transition: right 0.2s ease, top 0.2s ease, bottom 0.2s ease, visibility 0.2s ease, transform 0.5s ease;
       width: 315px;
       max-width: 315px;
       right: calc(-315px + -10px);
-      visibility: hidden; }
+      visibility: hidden; } }
+    @media (max-width: 767.98px) and (prefers-reduced-motion: reduce) {
+      .drawer-sm.drawer-right {
+        transition: none; } }
+
+@media (max-width: 767.98px) {
       .drawer-sm.drawer-right.show {
         right: 0;
         visibility: visible; }
@@ -15213,10 +15223,16 @@ body.drawer-ease {
         margin-left: auto;
         margin-right: 5px; }
     .drawer-sm.drawer-left {
+      transition: left 0.2s ease, top 0.2s ease, bottom 0.2s ease, visibility 0.2s ease;
       width: 285px;
       max-width: 285px;
       left: calc(-285px + -10px);
-      visibility: hidden; }
+      visibility: hidden; } }
+    @media (max-width: 767.98px) and (prefers-reduced-motion: reduce) {
+      .drawer-sm.drawer-left {
+        transition: none; } }
+
+@media (max-width: 767.98px) {
       .drawer-sm.drawer-left.show {
         left: 0;
         visibility: visible; }
@@ -19408,16 +19424,16 @@ p.arrow_button {
   outline: 0.2rem solid black;
   box-shadow: inset 0 0 0 2px #343a40; }
 
-.gradetreebox h4 {
-  font-size: 0.9375rem; }
-
-.gradetreebox th.cell,
-.gradetreebox input[type=text] {
-  width: auto; }
-
-.gradetreebox input[type=text],
-.gradetreebox select {
-  margin-bottom: 0; }
+.gradetreebox {
+  margin: 20px 0 30px 0; }
+  .gradetreebox h4 {
+    font-size: 0.9375rem; }
+  .gradetreebox th.cell,
+  .gradetreebox input[type=text] {
+    width: auto; }
+  .gradetreebox input[type=text],
+  .gradetreebox select {
+    margin-bottom: 0; }
 
 .core_grades_notices .singlebutton {
   display: inline-block; }
@@ -19427,7 +19443,6 @@ p.arrow_button {
   left: 40vw; }
 
 .path-grade-report-grader #region-main {
-  overflow-x: visible;
   min-width: 100%;
   width: auto;
   display: flex;
@@ -19449,6 +19464,13 @@ p.arrow_button {
 .path-grade-report-grader .gradefail,
 .path-grade-report-user .gradefail {
   color: #ca3120; }
+
+.path-grade #region-main {
+  overflow-x: visible; }
+
+.path-grade .user-heading .userinitials {
+  width: 50px;
+  height: 50px; }
 
 #page-grade-grading-manage #activemethodselector label {
   display: inline-block; }
@@ -19584,135 +19606,146 @@ p.arrow_button {
 .criterion .criterion-toggle.collapsed .collapsed-icon {
   display: block; }
 
-.path-grade-edit-tree .setup-grades h4 {
-  margin: 0; }
-
-.path-grade-edit-tree .setup-grades .column-rowspan {
-  padding: 0;
-  width: 24px;
-  min-width: 24px;
-  max-width: 24px; }
-
-.path-grade-edit-tree .setup-grades .category td.column-name {
-  padding-left: 0; }
-
-.path-grade-edit-tree .setup-grades td.column-name {
-  padding-left: 24px; }
-
-.path-grade-edit-tree .setup-grades td.movehere {
-  padding: 0; }
-
-.path-grade-edit-tree .setup-grades td.movehere a.movehere {
-  display: block;
-  width: 100%;
-  height: 2rem;
-  border: 2px dashed #343a40; }
-
-.path-grade-edit-tree .setup-grades .category input[type="text"],
-.path-grade-edit-tree .setup-grades .category .column-range,
-.path-grade-edit-tree .setup-grades .categoryitem,
-.path-grade-edit-tree .setup-grades .courseitem {
-  font-weight: bold; }
-
-.path-grade-edit-tree .setup-grades .emptyrow {
-  display: none; }
-
-.path-grade-edit-tree .setup-grades .gradeitemdescription {
-  font-weight: normal;
-  padding-left: 24px; }
-
-.path-grade-edit-tree .setup-grades .column-weight {
-  white-space: nowrap; }
-  .path-grade-edit-tree .setup-grades .column-weight.level3 {
-    padding-left: 37px; }
-  .path-grade-edit-tree .setup-grades .column-weight.level4 {
-    padding-left: 66px; }
-  .path-grade-edit-tree .setup-grades .column-weight.level5 {
-    padding-left: 95px; }
-  .path-grade-edit-tree .setup-grades .column-weight.level6 {
-    padding-left: 124px; }
-  .path-grade-edit-tree .setup-grades .column-weight.level7 {
-    padding-left: 153px; }
-  .path-grade-edit-tree .setup-grades .column-weight.level8 {
-    padding-left: 182px; }
-  .path-grade-edit-tree .setup-grades .column-weight.level9 {
-    padding-left: 211px; }
-  .path-grade-edit-tree .setup-grades .column-weight.level10 {
-    padding-left: 240px; }
-
-.path-grade-edit-tree .setup-grades .column-range.level2 {
-  padding-left: 37px; }
-
-.path-grade-edit-tree .setup-grades .column-range.level3 {
-  padding-left: 66px; }
-
-.path-grade-edit-tree .setup-grades .column-range.level4 {
-  padding-left: 95px; }
-
-.path-grade-edit-tree .setup-grades .column-range.level5 {
-  padding-left: 124px; }
-
-.path-grade-edit-tree .setup-grades .column-range.level6 {
-  padding-left: 153px; }
-
-.path-grade-edit-tree .setup-grades .column-range.level7 {
-  padding-left: 182px; }
-
-.path-grade-edit-tree .setup-grades .column-range.level8 {
-  padding-left: 211px; }
-
-.path-grade-edit-tree .setup-grades .column-range.level9 {
-  padding-left: 240px; }
-
-.path-grade-edit-tree .setup-grades .column-range.level10 {
-  padding-left: 269px; }
-
-.path-grade-edit-tree .setup-grades.generaltable .levelodd {
-  background-color: rgba(0, 0, 0, 0.03); }
+.path-grade-edit-tree .gradetree-wrapper {
+  padding: 10px 10px;
+  background-color: #f8f9fa; }
+  .path-grade-edit-tree .gradetree-wrapper .setup-grades h4 {
+    margin: 0; }
+  .path-grade-edit-tree .gradetree-wrapper .setup-grades .column-rowspan {
+    padding: 0;
+    width: 24px;
+    min-width: 24px;
+    max-width: 24px; }
+  .path-grade-edit-tree .gradetree-wrapper .setup-grades .emptyrow {
+    display: none; }
+  .path-grade-edit-tree .gradetree-wrapper .setup-grades .gradeitemdescription {
+    font-weight: normal;
+    padding-left: 24px; }
+  .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr.spacer {
+    height: 0.5rem; }
+  .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr[data-hidden="true"] {
+    display: none; }
+  .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr th {
+    vertical-align: bottom;
+    border: none;
+    text-align: left;
+    background-color: #f8f9fa; }
+    .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr th.rowspan {
+      padding: 0;
+      width: 24px;
+      min-width: 24px; }
+  .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr td {
+    min-width: 4.5em;
+    background-color: #f8f9fa;
+    border: none;
+    vertical-align: middle; }
+    .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr td.column-name {
+      padding-left: 38px; }
+      .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr td.column-name .small {
+        font-size: 70%; }
+      .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr td.column-name .itemicon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px; }
+    .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr td.column-weight {
+      min-width: 15em; }
+      .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr td.column-weight .weightoverride {
+        margin-right: 5px; }
+    .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr td.column-actions .dropdown-toggle::after {
+      display: none; }
+    .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr td.movehere {
+      padding: 0; }
+      .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr td.movehere a.movehere {
+        display: block;
+        width: 100%;
+        margin: 5px 0 5px 0;
+        padding: 3px 0 3px 0; }
+        .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr td.movehere a.movehere hr {
+          border-top: 2px dashed #8f959e;
+          margin: 0; }
+        .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr td.movehere a.movehere:hover hr {
+          border-top: 2px dashed #0f6cbf; }
+  .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr.category td {
+    background-color: white;
+    border-top: 1px solid #dee2e6;
+    border-bottom: 1px solid #dee2e6; }
+    .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr.category td:first-child {
+      border-left: 1px solid #dee2e6; }
+    .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr.category td:last-child {
+      border-right: 1px solid #dee2e6; }
+    .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr.category td.column-name {
+      padding-left: 10px;
+      font-weight: bold; }
+      .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr.category td.column-name div {
+        display: flex;
+        min-height: 30px;
+        align-items: center; }
+        .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr.category td.column-name div a.toggle-category {
+          height: 24px;
+          width: 24px;
+          font-size: 12px;
+          line-height: 24px;
+          margin-right: 3px; }
+          .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr.category td.column-name div a.toggle-category[aria-expanded="true"] .expanded,
+          .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr.category td.column-name div a.toggle-category[aria-expanded="false"] .collapsed {
+            display: none; }
+          .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr.category td.column-name div a.toggle-category i {
+            font-size: 12px;
+            width: 12px;
+            height: 12px;
+            color: #1d2125;
+            margin: 0; }
+  .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr.item td {
+    background-color: white;
+    border-top: 3px solid #f8f9fa; }
+  .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr.item.categoryitem td, .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr.item.courseitem td {
+    min-width: 4.5em;
+    background-color: #f8f9fa;
+    border: none;
+    vertical-align: middle; }
+    .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr.item.categoryitem td.column-name, .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr.item.courseitem td.column-name {
+      padding-left: 0; }
+    .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr.item.categoryitem td:not(.column-actions), .path-grade-edit-tree .gradetree-wrapper .setup-grades.generaltable tr.item.courseitem td:not(.column-actions) {
+      font-weight: bold; }
+  .path-grade-edit-tree .gradetree-wrapper .badge-light {
+    color: #1d2125;
+    background-color: #ced4da;
+    margin-right: 0.5em;
+    margin-bottom: 0.5em; }
 
 /**
  * Grader report.
  */
-.path-grade-report-grader .gradeparent tr .cell,
-.path-grade-report-grader .gradeparent .floater .cell {
-  background-color: #fff; }
-
-.path-grade-report-grader .gradeparent table,
-.path-grade-report-grader .gradeparent .cell {
-  border-color: #dee2e6; }
-
-.path-grade-report-grader .gradeparent .userrow.odd .cell,
-.path-grade-report-grader .gradeparent .floater .cell.odd,
-.path-grade-report-grader .gradeparent .heading .cell,
-.path-grade-report-grader .gradeparent .cell.category,
-.path-grade-report-grader .gradeparent .avg .cell {
-  background-color: #f8f9fa; }
-
-.path-grade-report-grader .gradeparent table .clickable {
-  cursor: pointer; }
-
-.path-grade-report-grader .gradeparent tr.heading {
-  position: sticky;
-  top: 0;
-  z-index: 1; }
-
-.path-grade-report-grader .gradeparent tr.lastrow {
-  position: sticky;
-  bottom: 0;
-  z-index: 1; }
-  .path-grade-report-grader .gradeparent tr.lastrow td,
-  .path-grade-report-grader .gradeparent tr.lastrow th {
-    border-top: 1px solid #dee2e6; }
-
-.path-grade-report-grader .gradeparent th.header {
-  position: sticky;
-  left: -3rem; }
-
-.path-grade-report-grader .gradeparent td.noborder {
-  border-right: transparent; }
-
-.path-grade-report-grader .show-drawer-left .gradeparent th.header {
-  left: -1rem; }
+.path-grade-report-grader .gradeparent {
+  z-index: 5; }
+  .path-grade-report-grader .gradeparent tr .cell,
+  .path-grade-report-grader .gradeparent .floater .cell {
+    background-color: #fff; }
+  .path-grade-report-grader .gradeparent table,
+  .path-grade-report-grader .gradeparent .cell {
+    border-color: #dee2e6; }
+  .path-grade-report-grader .gradeparent .heading .cell,
+  .path-grade-report-grader .gradeparent .cell.category,
+  .path-grade-report-grader .gradeparent .avg .cell {
+    background-color: #f8f9fa; }
+  .path-grade-report-grader .gradeparent table .clickable {
+    cursor: pointer; }
+  .path-grade-report-grader .gradeparent tr.heading {
+    position: sticky;
+    top: 60px;
+    z-index: 1; }
+  .path-grade-report-grader .gradeparent tr.lastrow {
+    position: sticky;
+    bottom: 0; }
+    .path-grade-report-grader .gradeparent tr.lastrow td,
+    .path-grade-report-grader .gradeparent tr.lastrow th {
+      border-top: 1px solid #dee2e6; }
+  .path-grade-report-grader .gradeparent th.header {
+    left: 0;
+    position: sticky;
+    z-index: 1; }
+  .path-grade-report-grader .gradeparent td.noborder {
+    border-right: transparent; }
 
 /**
  * User report.
@@ -19731,8 +19764,47 @@ p.arrow_button {
 /**
  * Single view.
  */
-.path-grade-report-singleview input[name^="finalgrade"] {
-  width: 80px; }
+.path-grade-report-singleview .reporttable input[name^="finalgrade"] {
+  width: 80px;
+  display: inline-block; }
+
+.path-grade-report-singleview .reporttable .action-menu {
+  display: inline-block;
+  margin-left: 0.5rem;
+  float: right; }
+
+.path-grade-report-singleview .reporttable .dropdown-toggle::after {
+  display: none; }
+
+.gradereport-grader-table input[name^="grade"] {
+  width: 80px;
+  display: inline-block; }
+
+.gradereport-grader-table .dropdown-toggle::after {
+  display: none; }
+
+.search-widget .dropdown-menu {
+  padding: 0.8rem 1.2rem; }
+  .search-widget .dropdown-menu.wide {
+    width: 350px; }
+  .search-widget .dropdown-menu.narrow {
+    width: 250px; }
+  .search-widget .dropdown-menu .dropdown-item span.email {
+    color: #6a737b; }
+  .search-widget .dropdown-menu .dropdown-item:hover span,
+  .search-widget .dropdown-menu .dropdown-item:active span {
+    color: #fff; }
+  .search-widget .dropdown-menu .searchresultscontainer {
+    height: 178px;
+    font-size: 90%; }
+    .search-widget .dropdown-menu .searchresultscontainer .searchresultitemscontainer {
+      height: 178px;
+      max-height: 178px;
+      overflow: auto; }
+  .search-widget .dropdown-menu .unsearchablecontentcontainer {
+    border-top: 1px solid #dee2e6;
+    padding-top: 10px;
+    font-size: 90%; }
 
 .columns-autoflow-1to1to1 {
   column-count: 3; }
@@ -20577,6 +20649,13 @@ span[data-flexitour="container"][x-placement="right"], span[data-flexitour="cont
     width: 100%;
     margin: 0 auto;
     border-radius: 0.5rem; }
+  body.mediumwidth #page.drawers .main-inner {
+    max-width: 1120px; }
+  body.mediumwidth #page.drawers .footer-popover {
+    max-width: 1120px;
+    width: 100%;
+    margin: 0 auto;
+    border-radius: 0.5rem; }
   .header-maxwidth {
     max-width: 830px;
     margin: 0 auto;
@@ -20645,9 +20724,7 @@ span[data-flexitour="container"][x-placement="right"], span[data-flexitour="cont
 
 @media (min-width: 576px) {
   #page.drawers .main-inner {
-    margin-top: 1.5rem; }
-  #page.drawers .drawer-right-toggle {
-    margin-right: 0.7rem; } }
+    margin-top: 1.5rem; } }
 
 @media (min-width: 768px) {
   #page.drawers {
@@ -20664,11 +20741,14 @@ span[data-flexitour="container"][x-placement="right"], span[data-flexitour="cont
   .drawer-right {
     top: 60px;
     height: calc(100vh - 60px); }
+  .hasstickyfooter .drawer-left,
+  .hasstickyfooter .drawer-right {
+    top: 60px;
+    height: calc(100vh - 60px - calc(max(96px, calc(0.9375rem * 3)))); }
   #page.drawers {
     position: relative;
     overflow-y: visible;
     transition: 0.2s;
-    height: calc(100vh - 60px);
     left: 0;
     right: 0; } }
   @media (min-width: 992px) and (prefers-reduced-motion: reduce) {
@@ -20688,7 +20768,9 @@ span[data-flexitour="container"][x-placement="right"], span[data-flexitour="cont
         right: calc(315px + 2rem); }
     #page.drawers.show-drawer-left.show-drawer-right {
       margin-left: 285px;
-      margin-right: 315px; } }
+      margin-right: 315px; }
+    #page.drawers.hasstickyfooter {
+      margin-bottom: calc(max(96px, calc(0.9375rem * 3))); } }
 
 .drawercontrolbuttons {
   margin-top: 92px; }
