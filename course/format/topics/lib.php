@@ -137,8 +137,13 @@ class format_topics extends core_courseformat\base {
             } else {
                 $usercoursedisplay = $course->coursedisplay ?? COURSE_DISPLAY_SINGLEPAGE;
             }
-            if ($sectionno != 0 && $usercoursedisplay == COURSE_DISPLAY_MULTIPAGE) {
-                $url->param('section', $sectionno);
+            if ($usercoursedisplay == COURSE_DISPLAY_MULTIPAGE) {
+                $section = $this->get_section($sectionno);
+                if (!$section) {
+                    return $url;
+                }
+
+                $url->param('sectionid', $section->id);
             } else {
                 if (empty($CFG->linkcoursesections) && !empty($options['navigation'])) {
                     return null;
