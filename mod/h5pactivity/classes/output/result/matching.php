@@ -27,7 +27,6 @@ namespace mod_h5pactivity\output\result;
 defined('MOODLE_INTERNAL') || die();
 
 use mod_h5pactivity\output\result;
-use renderer_base;
 
 /**
  * Class to display H5P matching result.
@@ -50,66 +49,72 @@ class matching extends result {
 
         // Get sources (options).
         if (isset($additionals->source)) {
-            $options = $this->get_descriptions($additionals->source);
+            $draggables = $this->get_descriptions($additionals->source);
         } else {
-            $options = [];
+            $draggables = [];
         }
 
-        // Get targets.
+        // Get dropzones.
         if (isset($additionals->target)) {
-            $targets = $this->get_descriptions($additionals->target);
+            $dropzones = $this->get_descriptions($additionals->target);
         } else {
-            $targets = [];
+            $dropzones = [];
         }
+        $options = [];
 
         // Correct answers.
         foreach ($correctpattern as $pattern) {
             if (!is_array($pattern) || count($pattern) != 2) {
                 continue;
             }
-            // One pattern must be from options and the other from targets.
-            if (isset($options[$pattern[0]]) && isset($targets[$pattern[1]])) {
-                $option = $options[$pattern[0]];
-                $target = $targets[$pattern[1]];
-            } else if (isset($targets[$pattern[0]]) && isset($options[$pattern[1]])) {
-                $option = $options[$pattern[1]];
-                $target = $targets[$pattern[0]];
+            // Modifications here we were switching dropzone and draggable depending on if
+            // was defined or not and this lead to issue with reporting (MDL-71414)
+            // We took reference here from :
+            // https://github.com/h5p/h5p-php-report/blob/master/type-processors/matching-processor.class.php
+            // i.e. draggable is index 1 and dropzone is index 0.
+            if (isset($draggables[$pattern[1]]) && isset($dropzones[$pattern[0]])) {
+                $currentdraggable = clone $draggables[$pattern[1]];
+                $currentdropzone = $dropzones[$pattern[0]];
             } else {
-                $option = null;
+                $currentdraggable = null;
             }
-            if ($option) {
-                $option->correctanswer = $this->get_answer(parent::TEXT, $target->description);
-                $option->correctanswerid = $target->id;
+            if ($currentdraggable) {
+                $currentdraggable->correctanswer = $this->get_answer(parent::TEXT, $currentdropzone->description);
+                $currentdraggable->correctanswerid = $currentdropzone->id;
+                $options[$currentdraggable->id . '/' . $currentdropzone->id] = $currentdraggable;
             }
         }
+
+        // Sort options by keys.
+        ksort($options);
 
         // User responses.
         foreach ($this->response as $response) {
             if (!is_array($response) || count($response) != 2) {
                 continue;
             }
-            // One repsonse must be from options and the other from targets.
-            if (isset($options[$response[0]]) && isset($targets[$response[1]])) {
-                $option = $options[$response[0]];
-                $target = $targets[$response[1]];
+            if (isset($draggables[$response[1]]) && isset($dropzones[$response[0]])) {
+                $currentdraggable = $draggables[$response[1]];
+                $currentdropzone = $dropzones[$response[0]];
                 $answer = $response[1];
-            } else if (isset($targets[$response[0]]) && isset($options[$response[1]])) {
-                $option = $options[$response[1]];
-                $target = $targets[$response[0]];
-                $answer = $response[0];
             } else {
-                $option = null;
+                $currentdraggable = null;
             }
-            if ($option) {
+
+            if ($currentdraggable) {
+                $option = $options[$currentdraggable->id . '/' . $currentdropzone->id] ?? null;
                 if (isset($option->correctanswerid) && $option->correctanswerid == $answer) {
                     $state = parent::CORRECT;
                 } else {
                     $state = parent::INCORRECT;
                 }
-                $option->useranswer = $this->get_answer($state, $target->description);
+                if ($option) {
+                    $option->useranswer = $this->get_answer($state, $currentdropzone->description);
+                }
+
             }
         }
-        return $options;
+        return array_values($options);
     }
 
     /**

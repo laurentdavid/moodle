@@ -16,7 +16,6 @@
 namespace mod_h5pactivity\output\result;
 
 use core_xapi\local\statement\item_result;
-use core_xapi\xapi_exception;
 use mod_h5pactivity\local\manager;
 
 /**
@@ -79,13 +78,19 @@ class result_test extends \advanced_testcase {
 
         $data = $exportoptions->invoke($resultoutput);
         $useranswersdata = array_map(function($item) {
-            return $item->useranswer;
+            return $item->useranswer ?? null;
         }, $data);
+        $keys = array_map(function($item) {
+            return $item->description . ' - ' . ($item->correctanswer->answer ?? '');
+        }, $data);
+
+        $useranswersdata = array_combine($keys, $useranswersdata);
         $this->assertEquals($expecteduseranswers, $useranswersdata);
     }
 
     /**
      * Data provider for result export_options test
+     *
      * @return array[]
      */
     public function result_data_provider(): array {
@@ -103,8 +108,8 @@ class result_test extends \advanced_testcase {
                         . '"https:\\/\\/h5p.org\\/x-api\\/alternatives":[["cat"],["dog"]]},"contextExtensions":{}}',
                 ],
                 'useranswers' => [
-                    (object) ['answer' => 'Cat', 'incorrect' => true],
-                    (object) ['answer' => 'dog', 'correct' => true],
+                    'Gap #1 - cat' => (object) ['answer' => 'Cat', 'incorrect' => true],
+                    'Gap #2 - dog' => (object) ['answer' => 'dog', 'correct' => true],
                 ],
             ],
             'fill-in with case insensitive' => [
@@ -120,8 +125,31 @@ class result_test extends \advanced_testcase {
                         . '"https:\\/\\/h5p.org\\/x-api\\/alternatives":[["cat"],["dog"]]},"contextExtensions":{}}',
                 ],
                 'useranswers' => [
-                    (object) ['answer' => 'Cat', 'correct' => true],
-                    (object) ['answer' => 'dog', 'correct' => true],
+                    'Gap #1 - cat' => (object) ['answer' => 'Cat', 'correct' => true],
+                    'Gap #2 - dog' => (object) ['answer' => 'dog', 'correct' => true],
+                ],
+            ],
+            'drag and drop' => [
+                'result' => [
+                    'interactiontype' => 'matching',
+                    'description' => 'Drag and Drop Test',
+                    'correctpattern' => '["0[.]0[,]0[.]2[,]1[.]1[,]1[.]0"]',
+                    'response' => '0[.]0[,]1[.]1[,]0[.]2[,]0[.]3',
+                    'additionals' => '{"source":[{"id":"0","description":{"en-US":"Answer 1 (DZ1 and DZ2)\n"}},'
+                        . '{"id":"1","description":{"en-US":"Anwser 2 (DZ2)\n"}},'
+                        . '{"id":"2","description":{"en-US":"Anwser 3 (DZ1)\n"}},'
+                        . '{"id":"3","description":{"en-US":"Anwser 4 (neither)\n"}}],'
+                        . '"target":[{"id":"0","description":{"en-US":"Dropzone 1\n"}},'
+                        . '{"id":"1","description":{"en-US":"Dropzone 2\n"}}],'
+                        . '"extensions":{"http:\/\/h5p.org\/x-api\/h5p-local-content-id":41,'
+                        . '"http:\/\/h5p.org\/x-api\/h5p-subContentId":"59590246-f16e-4855-8dd6-c80e892ef96b"},'
+                        . '"contextExtensions":{}}',
+                ],
+                'useranswers' => [
+                    'Answer 1 (DZ1 and DZ2) - Dropzone 1' => (object) ['answer' => 'Dropzone 1', 'correct' => true, ],
+                    'Answer 1 (DZ1 and DZ2) - Dropzone 2' => null,
+                    'Anwser 2 (DZ2) - Dropzone 2' => (object) ['answer' => 'Dropzone 2', 'correct' => true, ],
+                    'Anwser 3 (DZ1) - Dropzone 1' => (object) ['answer' => 'Dropzone 1', 'incorrect' => true, ]
                 ],
             ]
         ];
