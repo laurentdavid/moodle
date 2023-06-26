@@ -69,6 +69,8 @@ $string['cannotdeletecategoryquestions'] = 'Could not delete questions from cate
 $string['cannotdeletecourse'] = 'You do not have the permission to delete this course';
 $string['cannotdeletecustomfield'] = 'Error deleting custom field data';
 $string['cannotdeletedir'] = 'Cannot delete ({$a})';
+$string['cannotdeletedisabledactivity'] = 'Module {$a} is disabled. Deleting main instance record, but some related records might
+ still exist.';
 $string['cannotdeletefile'] = 'Cannot delete this file';
 $string['cannotdeleterole'] = 'It cannot be deleted, because {$a}';
 $string['cannotdeleterolewithid'] = 'Could not delete role with ID {$a}';
