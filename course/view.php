@@ -35,8 +35,8 @@ $hide = optional_param('hide', 0, PARAM_INT);
 $show = optional_param('show', 0, PARAM_INT);
 $duplicatesection = optional_param('duplicatesection', 0, PARAM_INT);
 $idnumber = optional_param('idnumber', '', PARAM_RAW);
-$sectionid = optional_param('sectionid', 0, PARAM_INT);
-$section = optional_param('section', 0, PARAM_INT);
+$sectionid = optional_param('sectionid', null, PARAM_INT);
+$section = optional_param('section', null, PARAM_INT);
 $expandsection = optional_param('expandsection', -1, PARAM_INT);
 $move = optional_param('move', 0, PARAM_INT);
 $marker = optional_param('marker', -1 , PARAM_INT);
@@ -55,21 +55,30 @@ if (!empty($name)) {
 }
 
 $course = $DB->get_record('course', $params, '*', MUST_EXIST);
-
-$urlparams = ['id' => $course->id];
+$format = course_get_format($course);
+$modinfo = get_fast_modinfo($course);
+$sectioninfo = null;
 
 // Sectionid should get priority over section number.
 if ($sectionid) {
+    $sectioninfo = $modinfo->get_section_info_by_id($sectionid, MUST_EXIST);
+    // The $section variable cannot be renamed to $sectionum for legacy reasons :-(.
     $section = $DB->get_field('course_sections', 'section', ['id' => $sectionid, 'course' => $course->id], MUST_EXIST);
-}
-if ($section) {
-    $urlparams['section'] = $section;
-}
-if ($expandsection !== -1) {
-    $urlparams['expandsection'] = $expandsection;
+} else if ($section) {
+    $sectioninfo = $modinfo->get_section_info($section);
 }
 
-$PAGE->set_url('/course/view.php', $urlparams); // Defined here to avoid notices on errors etc.
+// Defined here to avoid notices on errors etc.
+$url = $format->get_view_url(
+    $sectioninfo,
+    [
+        'expanded' => $expandsection !== -1 ? $expandsection : false,
+    ]
+);
+
+// We to remove the anchor here as using anchor here will disrupt Behat step i_visit.
+$url->set_anchor(null);
+$PAGE->set_url($url);
 
 // Prevent caching of this page to stop confusion when changing page after making AJAX changes.
 $PAGE->set_cacheable(false);
@@ -146,7 +155,6 @@ if ($section && $section > 0) {
 }
 
 // Fix course format if it is no longer installed.
-$format = course_get_format($course);
 $course->format = $format->get_format();
 
 $PAGE->set_pagetype('course-view-' . $course->format);

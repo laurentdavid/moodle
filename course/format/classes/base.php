@@ -708,7 +708,7 @@ abstract class base {
      * of the view script, it is not enough to change just this function. Do not forget
      * to add proper redirection.
      *
-     * @param int|stdClass $section Section object from database or just field course_sections.section
+     * @param int|stdClass|null $section Section object from database or just field course_sections.section
      *     if null the course view page is returned
      * @param array $options options for view URL. At the moment core uses:
      *     'navigation' (bool) if true and section has no separate page, the function returns null
