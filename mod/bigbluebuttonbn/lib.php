@@ -178,9 +178,12 @@ function bigbluebuttonbn_delete_instance($id) {
         }
     }
     // Get all possible groups (course and course module).
+    // Get course module without using get_fast_modinfo() because it might not available at this point.
+    $cm = $DB->get_record('course_modules', ['id' => $instance->get_cm_id()], '*', MUST_EXIST);
+
     $groupids = [];
-    if (groups_get_activity_groupmode($instance->get_cm())) {
-        $coursegroups = groups_get_activity_allowed_groups($instance->get_cm());
+    if (groups_get_activity_groupmode($cm)) {
+        $coursegroups = groups_get_activity_allowed_groups($cm);
         $groupids = array_map(
             function($gp) {
                 return $gp->id;
