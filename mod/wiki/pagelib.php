@@ -384,7 +384,11 @@ class page_wiki_view extends page_wiki {
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class page_wiki_edit extends page_wiki {
-
+    /**
+     * @var array the attachment options for the filemanager
+     * @deprecated since Moodle 4.3 use page_wiki_edit::get_file_attachment_options instead
+     * @todo
+     */
     public static $attachmentoptions;
 
     protected $sectioncontent;
@@ -406,15 +410,44 @@ class page_wiki_edit extends page_wiki {
      * @param string|null $activesecondarytab Secondary navigation node to be activated on the page, if required
      */
     public function __construct($wiki, $subwiki, $cm, ?string $activesecondarytab = null) {
-        global $CFG, $PAGE;
+        global $PAGE;
         parent::__construct($wiki, $subwiki, $cm, $activesecondarytab);
+        $PAGE->requires->js_init_call('M.mod_wiki.renew_lock', null, true);
+    }
+
+    /**
+     * Get basic file attachment options
+     *
+     * @param context $context
+     * @return array
+     * @throws coding_exception
+     */
+    public static function get_file_attachment_options(context $context) {
+        global $CFG;
         $showfilemanager = false;
-        if (has_capability('mod/wiki:managefiles', context_module::instance($cm->id))) {
+        if (has_capability('mod/wiki:managefiles', $context)) {
             $showfilemanager = true;
         }
-        self::$attachmentoptions = array('subdirs' => false, 'maxfiles' => - 1, 'maxbytes' => $CFG->maxbytes,
-                'accepted_types' => '*', 'enable_filemanagement' => $showfilemanager);
-        $PAGE->requires->js_init_call('M.mod_wiki.renew_lock', null, true);
+        return [
+            'subdirs' => false,
+            'maxfiles' => - 1,
+            'maxbytes' => $CFG->maxbytes,
+            'accepted_types' => '*',
+            'enable_filemanagement' => $showfilemanager,
+        ];
+    }
+
+
+    /**
+     * Get basic file attachment options
+     *
+     * @param context $context
+     * @return array
+     * @throws coding_exception
+     */
+    public static function get_prepare_standard_editor_options(context $context) {
+        $options = self::get_file_attachment_options($context);
+        return array_merge(['trusttext' => true, 'context' => $context], $options);
     }
 
     protected function print_pagetitle() {
@@ -566,14 +599,14 @@ class page_wiki_edit extends page_wiki {
         if (!empty($this->section)) {
             $url .= "&section=" . urlencode($this->section);
         }
-
-        $params = array(
-            'attachmentoptions' => page_wiki_edit::$attachmentoptions,
+        $context = context_module::instance($this->cm->id);
+        $params = [
+            'attachmentoptions' => self::get_file_attachment_options($context),
             'format' => $version->contentformat,
             'version' => $versionnumber,
             'pagetitle' => $this->page->title,
-            'contextid' => $this->modcontext->id
-        );
+            'contextid' => $this->modcontext->id,
+        ];
 
         $data = new StdClass();
         $data->newcontent = $content;
@@ -581,14 +614,22 @@ class page_wiki_edit extends page_wiki {
         $data->format = $format;
 
         switch ($format) {
-        case 'html':
-            $data->newcontentformat = FORMAT_HTML;
-            // Append editor context to editor options, giving preference to existing context.
-            page_wiki_edit::$attachmentoptions = array_merge(array('context' => $this->modcontext), page_wiki_edit::$attachmentoptions);
-            $data = file_prepare_standard_editor($data, 'newcontent', page_wiki_edit::$attachmentoptions, $this->modcontext, 'mod_wiki', 'attachments', $this->subwiki->id);
-            break;
-        default:
-            break;
+            case 'html':
+                $data->newcontentformat = FORMAT_HTML;
+                $data->newcontenttrust = true;
+                // Append editor context to editor options, giving preference to existing context.
+                $data = file_prepare_standard_editor(
+                    $data,
+                    'newcontent',
+                    self::get_prepare_standard_editor_options($context),
+                    $this->modcontext,
+                    'mod_wiki',
+                    'attachments',
+                    $this->subwiki->id,
+                );
+                break;
+            default:
+                break;
         }
 
         if ($version->contentformat != 'html') {
@@ -1069,12 +1110,12 @@ class page_wiki_preview extends page_wiki_edit {
         if (!empty($this->section)) {
             $url .= "&section=" . urlencode($this->section);
         }
-        $params = array(
-            'attachmentoptions' => page_wiki_edit::$attachmentoptions,
+        $params = [
+            'attachmentoptions' => page_wiki_edit::get_file_attachment_options(context_module::instance($this->cm->id)),
             'format' => $this->format,
             'version' => $this->versionnumber,
-            'contextid' => $this->modcontext->id
-        );
+            'contextid' => $this->modcontext->id,
+        ];
 
         if ($this->format != 'html') {
             $params['component'] = 'mod_wiki';
@@ -2074,13 +2115,14 @@ class page_wiki_save extends page_wiki_edit {
         if (!empty($this->section)) {
             $url .= "&section=" . urlencode($this->section);
         }
-
-        $params = array(
-            'attachmentoptions' => page_wiki_edit::$attachmentoptions,
+        $context = context_module::instance($this->cm->id);
+        $params = [
+            'attachmentoptions' => page_wiki_edit::get_file_attachment_options($context),
             'format' => $this->format,
             'version' => $this->versionnumber,
-            'contextid' => $this->modcontext->id
-        );
+            'contextid' => $this->modcontext->id,
+            'trusted' => true,
+        ];
 
         if ($this->format != 'html') {
             $params['fileitemid'] = $this->page->id;
@@ -2094,7 +2136,15 @@ class page_wiki_save extends page_wiki_edit {
         $data = false;
         if ($data = $form->get_data()) {
             if ($this->format == 'html') {
-                $data = file_postupdate_standard_editor($data, 'newcontent', page_wiki_edit::$attachmentoptions, $this->modcontext, 'mod_wiki', 'attachments', $this->subwiki->id);
+                $data = file_postupdate_standard_editor(
+                    $data,
+                    'newcontent',
+                    page_wiki_edit::get_prepare_standard_editor_options($context),
+                    $this->modcontext,
+                    'mod_wiki',
+                    'attachments',
+                    $this->subwiki->id,
+                );
             }
 
             if (isset($this->section)) {

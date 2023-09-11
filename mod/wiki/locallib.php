@@ -1382,7 +1382,8 @@ function wiki_print_page_content($page, $context, $subwikiid) {
         }
     }
     $html = file_rewrite_pluginfile_urls($page->cachedcontent, 'pluginfile.php', $context->id, 'mod_wiki', 'attachments', $subwikiid);
-    $html = format_text($html, FORMAT_HTML, array('overflowdiv' => true, 'allowid' => true));
+    $options = ['overflowdiv' => true, 'allowid' => true, 'trusted' => true];
+    $html = format_text($html, FORMAT_HTML, $options);
     echo $OUTPUT->box($html);
 
     echo $OUTPUT->tag_list(core_tag_tag::get_item_tags('mod_wiki', 'wiki_pages', $page->id),
