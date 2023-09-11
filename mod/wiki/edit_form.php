@@ -86,7 +86,13 @@ class mod_wiki_edit_form extends moodleform {
             $mform->addHelpButton('newcontent', 'format'.$format, 'wiki');
             $mform->setType('newcontent', PARAM_RAW); // processed by trust text or cleaned before the display
         } else {
-            $mform->addElement('editor', 'newcontent_editor', $fieldname, null, page_wiki_edit::$attachmentoptions);
+            $context = context::instance_by_id($contextid);
+            $mform->addElement('editor',
+                'newcontent_editor',
+                $fieldname,
+                null,
+                page_wiki_edit::get_prepare_standard_editor_options($context),
+            );
             $mform->addHelpButton('newcontent_editor', 'formathtml', 'wiki');
             $mform->setType('newcontent_editor', PARAM_RAW); // processed by trust text or cleaned before the display
         }
