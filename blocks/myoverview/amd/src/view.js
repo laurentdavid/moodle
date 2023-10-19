@@ -22,7 +22,7 @@
 
 import $ from 'jquery';
 import * as Repository from 'block_myoverview/repository';
-import * as PagedContentFactory from 'core/paged_content_factory';
+import * as PagedContentFactory from 'core/local/pagination/factory';
 import * as PubSub from 'core/pubsub';
 import * as CustomEvents from 'core/custom_interaction_events';
 import * as Notification from 'core/notification';
