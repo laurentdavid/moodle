@@ -115,7 +115,7 @@ class format_weeks extends core_courseformat\base {
     /**
      * The URL to use for the specified course (with section)
      *
-     * @param int|stdClass $section Section object from database or just field course_sections.section
+     * @param int|stdClass|null $section Section object from database or just field course_sections.section
      *     if omitted the course view page is returned
      * @param array $options options for view URL. At the moment core uses:
      *     'navigation' (bool) if true and section has no separate page, the function returns null
@@ -148,7 +148,12 @@ class format_weeks extends core_courseformat\base {
                 $usercoursedisplay = $course->coursedisplay ?? COURSE_DISPLAY_SINGLEPAGE;
             }
             if ($sectionno != 0 && $usercoursedisplay == COURSE_DISPLAY_MULTIPAGE) {
-                $url->param('section', $sectionno);
+                if (is_object($section)) {
+                    $sectionid = $section->id;
+                } else {
+                    $sectionid = $this->get_section($sectionno)->id ?? null;
+                }
+                $url->param('sectionid', $sectionid);
             } else {
                 if (empty($CFG->linkcoursesections) && !empty($options['navigation'])) {
                     return null;
