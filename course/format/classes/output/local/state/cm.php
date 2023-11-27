@@ -18,6 +18,7 @@ namespace core_courseformat\output\local\state;
 
 use core_courseformat\base as course_format;
 use completion_info;
+use core_courseformat\output\local\content\cm\availability;
 use renderer_base;
 use section_info;
 use cm_info;
@@ -94,6 +95,7 @@ class cm implements renderable {
             'groupmode' => $cm->groupmode,
             'module' => $cm->modname,
             'plugin' => 'mod_' . $cm->modname,
+            'availabilityinfo' => $this->get_availability_info($output),
         ];
 
         // Check the user access type to this cm.
@@ -150,5 +152,23 @@ class cm implements renderable {
         }
         // Regular users can only see restrictions if apply to them.
         return false;
+    }
+
+    /**
+     * Return the list of modules this modules depends on.
+     *
+     * @return string return text associated with availability. If this changes, then we can reload
+     * the module.
+     */
+    protected function get_availability_info(renderer_base $output): string {
+        $availabilitydata = new availability($this->format, $this->section, $this->cm);
+        $infos = $availabilitydata->export_for_template($output);
+        $infotext = "";
+        if (!empty($infos->info)) {
+            foreach($infos->info as $info) {
+                $infotext .= $info->text;
+            }
+        }
+        return $infotext;
     }
 }

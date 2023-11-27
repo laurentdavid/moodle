@@ -27,6 +27,7 @@ namespace core_courseformat\output\local\content\section;
 use cm_info;
 use core\output\named_templatable;
 use core_courseformat\base as course_format;
+use core_courseformat\output\local\content\cm\availability;
 use core_courseformat\output\local\courseformat_named_templatable;
 use renderable;
 use renderer_base;
@@ -99,7 +100,8 @@ class cmitem implements named_templatable, renderable {
         $hasinfo = $showactivityconditions || $showactivitydates;
 
         $item = new $this->cmclass($format, $this->section, $mod, $this->displayoptions);
-        return (object)[
+
+        return (object) [
             'id' => $mod->id,
             'anchor' => "module-{$mod->id}",
             'module' => $mod->modname,

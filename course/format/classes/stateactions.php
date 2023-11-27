@@ -18,6 +18,9 @@ namespace core_courseformat;
 
 use core\event\course_module_updated;
 use cm_info;
+use core_availability\condition;
+use core_availability\info_module;
+use core_courseformat\output\local\content\cm\availability;
 use section_info;
 use stdClass;
 use course_modinfo;
@@ -909,13 +912,14 @@ class stateactions {
         $this->validate_cms($course, array_keys($cmids), __FUNCTION__);
 
         $modinfo = course_modinfo::instance($course);
+        $additionalcmids = $this->get_dependent_cmids($ids, $modinfo);
+        $cmids = $cmids + $additionalcmids;
 
         foreach (array_keys($cmids) as $cmid) {
-
             // Add this action to updates array.
             $updates->add_cm_put($cmid);
-
             $cm = $modinfo->get_cm($cmid);
+
             $sectionids[$cm->section] = true;
         }
 
@@ -1075,5 +1079,34 @@ class stateactions {
                 require_all_capabilities($capabilities, $modcontext);
             }
         }
+    }
+
+    /**
+     * Create a list of cmids that can depends on the original cmids
+     *
+     * Dependent means that any modification to the original cm, might have
+     * an impact on the other cms.
+     *
+     * @param array $cmids
+     * @param course_modinfo $modinfo
+     * @return array
+     */
+    protected function get_dependent_cmids(array $cmids, course_modinfo $modinfo) {
+        $dependentcmids = [];
+        foreach ($modinfo->get_cms() as $cm) {
+            try {
+                $ci = new info_module($cm);
+                $allconditions = $ci->get_availability_tree()->get_all_children(condition::class);
+                foreach ($allconditions as $condition) {
+                    $dependentcmid = $condition->get_cmid($modinfo->get_course(), $cm->id, $cm->section);
+                    if (in_array($dependentcmid, $cmids)) {
+                        $dependentcmids[$cm->id] = true;
+                    }
+                }
+            } catch (\coding_exception $e) {
+                continue;
+            }
+        }
+        return $dependentcmids;
     }
 }

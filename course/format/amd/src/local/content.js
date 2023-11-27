@@ -230,6 +230,7 @@ export default class Component extends BaseComponent {
             {watch: `cm.sectionid:updated`, handler: this._reloadCm},
             {watch: `cm.indent:updated`, handler: this._reloadCm},
             {watch: `cm.groupmode:updated`, handler: this._reloadCm},
+            {watch: `cm.availabilityinfo:updated`, handler: this._reloadCm},
             // Update section number and title.
             {watch: `section.number:updated`, handler: this._refreshSectionNumber},
             // Collapse and expand sections.
