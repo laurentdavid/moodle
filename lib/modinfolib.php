@@ -113,6 +113,12 @@ class course_modinfo {
     private $cms;
 
     /**
+     * Array from int (cm id) => cm_info object
+     * @var cm_info[]
+     */
+    private $disabledcms;
+
+    /**
      * Array from string (modname) => int (instance id) => cm_info object
      * @var cm_info[][]
      */
@@ -247,7 +253,10 @@ class course_modinfo {
      */
     public function get_cm($cmid) {
         if (empty($this->cms[$cmid])) {
-            throw new moodle_exception('invalidcoursemoduleid', 'error', '', $cmid);
+            if (empty($this->disabledcms[$cmid])) {
+                throw new moodle_exception('invalidcoursemoduleid', 'error', '', $cmid);
+            }
+            return $this->disabledcms[$cmid];
         }
         return $this->cms[$cmid];
     }
@@ -607,24 +616,11 @@ class course_modinfo {
         }
 
         // Loop through each piece of module data, constructing it
-        static $modexists = array();
         foreach ($coursemodinfo->modinfo as $mod) {
-            if (!isset($mod->name) || strval($mod->name) === '') {
-                // something is wrong here
+            $cm = $this->load_cm_info_from_data($mod);
+            if (!$cm) {
                 continue;
             }
-
-            // Skip modules which don't exist
-            if (!array_key_exists($mod->mod, $modexists)) {
-                $modexists[$mod->mod] = file_exists("$CFG->dirroot/mod/$mod->mod/lib.php");
-            }
-            if (!$modexists[$mod->mod]) {
-                continue;
-            }
-
-            // Construct info for this module
-            $cm = new cm_info($this, null, $mod, null);
-
             // Store module in instances and cms array
             if (!isset($this->instances[$cm->modname])) {
                 $this->instances[$cm->modname] = array();
@@ -637,6 +633,16 @@ class course_modinfo {
                 $this->sectionmodules[$cm->sectionnum] = [];
             }
             $this->sectionmodules[$cm->sectionnum][] = $cm->id;
+        }
+
+        // Load disabled modules info.
+        if (!empty($coursemodinfo->disabledmodinfo)) {
+            foreach ($coursemodinfo->disabledmodinfo as $mod) {
+                $cminfo = $this->load_cm_info_from_data($mod);
+                if ($cminfo) {
+                    $this->disabledcms[$cminfo->id] = $cminfo;
+                }
+            }
         }
 
         // Expand section objects
@@ -780,6 +786,7 @@ class course_modinfo {
         // Retrieve all information about activities and sections.
         $coursemodinfo = new stdClass();
         $coursemodinfo->modinfo = self::get_array_of_activities($course, $partialrebuild);
+        $coursemodinfo->disabledmodinfo = self::inner_get_array_of_activities($course, $partialrebuild, true);
         $coursemodinfo->sectioncache = self::build_course_section_cache($course, $partialrebuild);
         foreach (self::$cachedfields as $key) {
             $coursemodinfo->$key = $course->$key;
@@ -925,13 +932,40 @@ class course_modinfo {
      * @return array list of activities
      */
     public static function get_array_of_activities(stdClass $course, bool $usecache = false): array {
-        global $CFG, $DB;
+        return self::inner_get_array_of_activities($course, $usecache);
+    }
+
+    /**
+     * Internal implementation of get_array_of_activities.
+     *
+     * This one is not public facing because we also deal with possible non visible modules.
+     *
+     * @param stdClass $course
+     * @param bool $usecache
+     * @param bool $disabledonly If true, only return disabled modules, if false, return modules instance from modules
+     * that have not been disabled.
+     * @return array
+     * @throws dml_exception
+     * @throws moodle_exception
+     */
+    private static function inner_get_array_of_activities(stdClass $course, bool $usecache, bool $disabledonly = false): array {
+        global $DB, $CFG;
 
         if (empty($course)) {
             throw new moodle_exception('courseidnotfound');
         }
 
-        $rawmods = get_course_mods($course->id);
+        if ($disabledonly) {
+            $rawmods = $DB->get_records_sql(
+                "SELECT cm.*, m.name as modname
+                      FROM {modules} m, {course_modules} cm
+                     WHERE cm.course = ? AND cm.module = m.id AND m.visible = 0",
+                [$course->id]
+            );
+        } else {
+            $rawmods = get_course_mods($course->id);
+        }
+
         if (empty($rawmods)) {
             return [];
         }
@@ -942,7 +976,12 @@ class course_modinfo {
             $cachecoursemodinfo = cache::make('core', 'coursemodinfo');
             $coursemodinfo = $cachecoursemodinfo->get_versioned($course->id, $course->cacherev);
             if ($coursemodinfo !== false) {
-                $mods = $coursemodinfo->modinfo;
+                if ($disabledonly) {
+                    $mods = $coursemodinfo->disabledmodinfo ?? []; // If we have updated and not rebuilt the cache, this could lead
+                    // to a warning if not checked.
+                } else {
+                    $mods = $coursemodinfo->modinfo;
+                }
             }
         }
 
@@ -1113,6 +1152,31 @@ class course_modinfo {
         increment_revision_number('course', 'cacherev', 'id = :id', array('id' => $courseid));
         // Because this is a versioned cache, there is no need to actually delete the cache item,
         // only increase the required version number.
+    }
+
+    /**
+     * Load the course module information from the coursemodinfo object.
+     *
+     * @param stdClass $mod
+     * @return cm_info|null
+     */
+    private function load_cm_info_from_data(stdClass $mod): ?cm_info {
+        global $CFG;
+        $modexistcache = cache::make_from_params(cache_store::MODE_REQUEST, 'core', 'modinfomoduleexists');
+        // If the name is empty, something is wrong here, so exit early.
+        if (!isset($mod->name) || strval($mod->name) === '') {
+            return null;
+        }
+        // Register modules that don't exist (never or not anymore).
+        if (!$modexistcache->has($mod->mod)) {
+            $modexistcache->set($mod->mod, file_exists("$CFG->dirroot/mod/$mod->mod/lib.php"));
+        }
+        // Still nothing, so exit early.
+        if (!$modexistcache->get($mod->mod)) {
+            return null;
+        }
+        // Construct info for this module.
+        return new cm_info($this, null, $mod, null);
     }
 }
 
