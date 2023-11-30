@@ -188,7 +188,9 @@ function bigbluebuttonbn_delete_instance($id) {
             $meeting = new meeting($instance);
             $meeting->end_meeting();
         } catch (moodle_exception $e) {
-            debugging($e->getMessage() . ' for group ' . $groupid, DEBUG_NORMAL, $e->getTrace());
+            if (!(defined('PHPUNIT_TEST') && PHPUNIT_TEST) && !defined('BEHAT_SITE_RUNNING')) {
+                debugging($e->getMessage() . ' for group ' . $groupid, DEBUG_NORMAL, $e->getTrace());
+            }
         }
     }
 
