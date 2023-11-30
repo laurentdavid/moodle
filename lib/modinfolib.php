@@ -113,6 +113,12 @@ class course_modinfo {
     private $cms;
 
     /**
+     * Array from int (cm id) => cm_info object
+     * @var cm_info[]
+     */
+    private $disabledcms;
+
+    /**
      * Array from string (modname) => int (instance id) => cm_info object
      * @var cm_info[][]
      */
@@ -140,6 +146,7 @@ class course_modinfo {
         'instances' => 'get_instances',
         'groups' => 'get_groups_all',
     );
+
 
     /**
      * Magic method getter
@@ -247,7 +254,10 @@ class course_modinfo {
      */
     public function get_cm($cmid) {
         if (empty($this->cms[$cmid])) {
-            throw new moodle_exception('invalidcoursemoduleid', 'error', '', $cmid);
+            if (empty($this->disabledcms[$cmid])) {
+                throw new moodle_exception('invalidcoursemoduleid', 'error', '', $cmid);
+            }
+            return $this->disabledcms[$cmid];
         }
         return $this->cms[$cmid];
     }
@@ -639,6 +649,24 @@ class course_modinfo {
             $this->sectionmodules[$cm->sectionnum][] = $cm->id;
         }
 
+        // Now just construct a list of disabled CM. We do not add the to the sectionmodules.
+        static $modexists = [];
+        foreach ($coursemodinfo->disabledmodinfo as $mod) {
+            if (!isset($mod->name) || strval($mod->name) === '') {
+                continue;
+            }
+            // Skip modules which don't exist.
+            if (!array_key_exists($mod->mod, $modexists)) {
+                $modexists[$mod->mod] = file_exists("$CFG->dirroot/mod/$mod->mod/lib.php");
+            }
+            if (!$modexists[$mod->mod]) {
+                continue;
+            }
+            // Construct info for this module.
+            $cm = new cm_info($this, null, $mod, null);
+            $this->disabledcms[$cm->id] = $cm;
+        }
+
         // Expand section objects
         $this->sectioninfobynum = [];
         $this->sectioninfobyid = [];
@@ -780,6 +808,7 @@ class course_modinfo {
         // Retrieve all information about activities and sections.
         $coursemodinfo = new stdClass();
         $coursemodinfo->modinfo = self::get_array_of_activities($course, $partialrebuild);
+        $coursemodinfo->disabledmodinfo = self::get_array_of_disabled_activities($course, $partialrebuild);
         $coursemodinfo->sectioncache = self::build_course_section_cache($course, $partialrebuild);
         foreach (self::$cachedfields as $key) {
             $coursemodinfo->$key = $course->$key;
@@ -892,8 +921,6 @@ class course_modinfo {
      * @return array list of activities
      */
     public static function get_array_of_activities(stdClass $course, bool $usecache = false): array {
-        global $CFG, $DB;
-
         if (empty($course)) {
             throw new moodle_exception('courseidnotfound');
         }
@@ -912,7 +939,23 @@ class course_modinfo {
                 $mods = $coursemodinfo->modinfo;
             }
         }
+        return self::inner_get_array_of_activities($course, $rawmods, $mods);
+    }
 
+    /**
+     * Internal implementation of get_array_of_activities.
+     *
+     * This one is not public facing because we also deal with possible non visible modules.
+     * @param stdClass $course
+     * @param array $rawmods
+     * @param array|null $existingmods
+     * @return array
+     * @throws dml_exception
+     * @throws moodle_exception
+     */
+    private static function inner_get_array_of_activities(stdClass $course, array $rawmods, ?array $existingmods = []): array {
+        global $DB, $CFG;
+        $mods = $existingmods;
         $courseformat = course_get_format($course);
 
         if ($sections = $DB->get_records('course_sections', ['course' => $course->id],
@@ -1069,6 +1112,41 @@ class course_modinfo {
             }
         }
         return $mods;
+    }
+
+    /**
+     * For a given course, returns an array of disabled course activity objects
+     *
+     * @param stdClass $course Course object
+     * @param bool $usecache get activities from cache if modinfo exists when $usecache is true
+     * @return array list of activities
+     */
+    private static function get_array_of_disabled_activities(stdClass $course, bool $usecache = false) {
+        global $DB;
+        if (empty($course)) {
+            throw new moodle_exception('courseidnotfound');
+        }
+
+        $rawmods = $DB->get_records_sql(
+            "SELECT cm.*, m.name as modname
+                                   FROM {modules} m, {course_modules} cm
+                                  WHERE cm.course = ? AND cm.module = m.id AND m.visible = 0",
+            [$course->id]
+        );
+        if (empty($rawmods)) {
+            return [];
+        }
+
+        $mods = [];
+        if ($usecache) {
+            // Get existing cache.
+            $cachecoursemodinfo = cache::make('core', 'coursemodinfo');
+            $coursemodinfo = $cachecoursemodinfo->get_versioned($course->id, $course->cacherev);
+            if ($coursemodinfo !== false) {
+                $mods = $coursemodinfo->disabledmodinfo;
+            }
+        }
+        return self::inner_get_array_of_activities($course, $rawmods, $mods);
     }
 
     /**
