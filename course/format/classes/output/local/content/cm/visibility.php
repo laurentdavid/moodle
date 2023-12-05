@@ -189,11 +189,10 @@ class visibility implements named_templatable, renderable {
 
         $choice = new choicelist();
         if ($this->section->visible || $this->mod->has_view()) {
-            $label = $this->section->visible ? 'show' : 'stealth';
             $choice->add_option(
                 'show',
-                get_string("availability_{$label}", 'core_courseformat'),
-                $this->get_option_data($label, 'cmShow')
+                get_string("availability_show", 'core_courseformat'),
+                $this->get_option_data('show', 'cmShow')
             );
         }
         $choice->add_option(
