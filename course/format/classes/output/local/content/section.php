@@ -27,6 +27,7 @@ namespace core_courseformat\output\local\content;
 use context_course;
 use core\output\named_templatable;
 use core_courseformat\base as course_format;
+use core_courseformat\output\local\content\section\visibility;
 use core_courseformat\output\local\courseformat_named_templatable;
 use renderable;
 use renderer_base;
@@ -255,8 +256,6 @@ class section implements named_templatable, renderable {
     protected function add_visibility_data(stdClass &$data, renderer_base $output): bool {
         global $USER;
         $result = false;
-        $course = $this->format->get_course();
-        $context = context_course::instance($course->id);
         // Check if it is a stealth sections (orphaned).
         if ($this->isstealth) {
             $data->isstealth = true;
@@ -265,13 +264,14 @@ class section implements named_templatable, renderable {
         }
         if (!$this->section->visible) {
             $data->ishidden = true;
-            $data->notavailable = true;
+            $course = $this->format->get_course();
+            $context = context_course::instance($course->id);
             if (has_capability('moodle/course:viewhiddensections', $context, $USER)) {
-                $data->hiddenfromstudents = true;
-                $data->notavailable = false;
                 $result = true;
             }
         }
+        $visibilty = new visibility($this->format, $this->section);
+        $data->visibility = $visibilty->export_for_template($output);
         return $result;
     }
 
