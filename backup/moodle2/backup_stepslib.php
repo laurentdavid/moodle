@@ -3103,3 +3103,24 @@ class backup_xapistate_structure_step extends backup_structure_step {
         return $states;
     }
 }
+
+/**
+ * Structure step in charge of constructing the delegated_info.xml file for all the delegated sections found in a given context
+ */
+class backup_section_delegated_step extends backup_structure_step {
+    protected function define_structure() {
+        $delegatedsection = new backup_nested_element(
+            'section_delegated',
+            ['id'],
+            [
+                'activityid', 'component'
+            ]
+        );
+        // Attach mod plugin structure to $delegatedsection element, multiple allowed.
+        $this->add_plugin_structure('mod', $delegatedsection, true);
+
+        // TODO : Add all activities in the delegated section.
+
+        return $delegatedsection;
+    }
+}

@@ -378,6 +378,7 @@ $string['rootsettingfiles'] = 'Include files';
 $string['rootsettingcomments'] = 'Include comments';
 $string['rootsettingcalendarevents'] = 'Include calendar events';
 $string['rootsettingcontentbankcontent'] = 'Include content bank content';
+$string['rootsettingdelegatedsections'] = 'Include delegated sections';
 $string['rootsettinguserscompletion'] = 'Include user completion details';
 $string['rootsettingquestionbank'] = 'Include question bank';
 $string['rootsettinglegacyfiles'] = 'Include legacy course files';

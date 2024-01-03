@@ -111,6 +111,12 @@ class backup_root_task extends backup_task {
         $activities->set_ui(new backup_setting_ui_checkbox($activities, get_string('rootsettingactivities', 'backup')));
         $this->add_setting($activities);
 
+        // Define delegated sections.
+        $delegatedsections = new backup_logs_setting('delegatedsections', base_setting::IS_BOOLEAN, true);
+        $delegatedsections->set_ui(new backup_setting_ui_checkbox($delegatedsections, get_string('rootsettingdelegatedsections', 'backup')));
+        $this->add_setting($delegatedsections);
+        $activities->add_dependency($delegatedsections);
+
         // Define blocks
         $blocks = new backup_generic_setting('blocks', base_setting::IS_BOOLEAN, true);
         $blocks->set_ui(new backup_setting_ui_checkbox($blocks, get_string('rootsettingblocks', 'backup')));

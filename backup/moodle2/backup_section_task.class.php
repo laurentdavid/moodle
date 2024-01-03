@@ -25,6 +25,8 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core_courseformat\sectiondelegate;
+
 defined('MOODLE_INTERNAL') || die();
 
 /**
@@ -90,6 +92,15 @@ class backup_section_task extends backup_task {
         // Migrate the already exported inforef entries to final ones
         $this->add_step(new move_inforef_annotations_to_final('migrate_inforef'));
 
+        // Check for delegated sections.
+        if ($this->get_setting_value('delegatedsections')) {
+            $modinfo = get_fast_modinfo($this->get_courseid());
+            $sectioninfo = $modinfo->get_section_info_by_id($this->sectionid);
+            $delegatedsection = sectiondelegate::instance($sectioninfo);
+            if ($delegatedsection) {
+                $this->add_step(new backup_section_delegated_step('section_delegated', 'delegated_info.xml'));
+            }
+        }
         // At the end, mark it as built
         $this->built = true;
     }

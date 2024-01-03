@@ -22,6 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core_courseformat\sectiondelegate;
+
 /**
  * Non instantiable helper class providing DB support to the @backup_plan class
  *
@@ -101,6 +103,15 @@ abstract class backup_plan_dbops extends backup_dbops {
                 $module = array('id' => $module->id, 'modname' => $module->modname);
                 $modulesarr[] = (object)$module;
             }
+        }
+        // Check for delegated sections and remove the course module if any is a delegated section module.
+        $modinfo = get_fast_modinfo($courseid);
+        $sectioninfo = $modinfo->get_section_info_by_id($sectionid);
+        $delegatedsection = sectiondelegate::instance($sectioninfo);
+        if ($delegatedsection) {
+            $modulesarr = array_filter($modulesarr, function($module) use ($sectioninfo) {
+                return $sectioninfo->component !== $module->modname && $sectioninfo->itemid !== $module->id;
+            });
         }
         return $modulesarr;
     }
