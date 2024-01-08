@@ -46,4 +46,20 @@ class behat_courseformat extends behat_base {
             ]),
         ];
     }
+
+    /**
+     * Return the list of named selectors
+     *
+     * @return behat_component_named_selector[]
+     */
+    public static function get_exact_named_selectors(): array {
+        return [
+            new behat_component_named_selector('Activity icon',
+                [
+                './/div[contains(@class,"activity-icon")]//img[contains(@alt, %locator%)]/'
+                . 'ancestor::div[contains(@class,"activity-icon")]',
+                ]
+            ),
+        ];
+    }
 }

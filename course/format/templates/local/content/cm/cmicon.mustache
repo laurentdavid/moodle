@@ -33,14 +33,14 @@
 }}
 {{#url}}
     {{#uservisible}}
-        <a href="{{url}}"
-            class="activity-icon activityiconcontainer smaller {{purpose}} btn btn-link courseicon align-self-start mr-2"
-            {{#showtooltip}}data-toggle="tooltip" title="{{{pluginname}}}" data-placement="top"{{/showtooltip}}
+        <div
+                class="activity-icon activityiconcontainer smaller {{purpose}} courseicon align-self-start mr-2"
+                {{#showtooltip}}data-toggle="tooltip" title="{{{pluginname}}}" data-placement="top"{{/showtooltip}}
         >
             <img src="{{{icon}}}" class="activityicon {{iconclass}}"
                  alt="{{#cleanstr}} activityicon, moodle, {{{pluginname}}} {{/cleanstr}}"
             >
-        </a>
+        </div>
     {{/uservisible}}
     {{^uservisible}}
         <div class="activity-icon activityiconcontainer smaller {{purpose}} courseicon align-self-start mr-2">
