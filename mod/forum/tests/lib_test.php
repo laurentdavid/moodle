@@ -3005,8 +3005,6 @@ class lib_test extends \advanced_testcase {
         // Ad2 check.
         $this->assertEquals($alldiscussions[2]->id, $neighbours['next']->id);
 
-        // Temporary hack to workaround for MDL-52656.
-        $SESSION->currentgroup = null;
 
         // As viewer2 (group1). This user should see all of group1's posts and the all participants group.
         // The expected discussion order is (rightmost is highest priority):

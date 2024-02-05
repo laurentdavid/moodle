@@ -3,6 +3,8 @@ information provided here is intended especially for developers.
 
 === 4.4 ===
 
+* Remove $SESSION->currentgroup from the global scope. This was a legacy variable that was used to store the current group
+  for the log reports and forum. It is not used in forum anymore, so best is to remove it also from report/log and report/loglive as we do not need it.
 * New modinfo methods related to delegated sections (sections controlled by a component):
     - course_modinfo::get_listed_section_info_all to get only the listed course sections.
     - course_modinfo::has_delegated_sections to know if a course has delegated sections.

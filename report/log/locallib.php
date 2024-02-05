@@ -246,16 +246,11 @@ function report_log_print_mnet_selector_form($hostid, $course, $selecteduser=0, 
         }
 
         if ($selectedgroup === -1) {
-            if (isset($SESSION->currentgroup[$course->id])) {
-                $selectedgroup =  $SESSION->currentgroup[$course->id];
+            $selectedgroup = groups_get_all_groups($course->id, $USER->id);
+            if (is_array($selectedgroup)) {
+                $selectedgroup = array_shift(array_keys($selectedgroup));
             } else {
-                $selectedgroup = groups_get_all_groups($course->id, $USER->id);
-                if (is_array($selectedgroup)) {
-                    $selectedgroup = array_shift(array_keys($selectedgroup));
-                    $SESSION->currentgroup[$course->id] = $selectedgroup;
-                } else {
-                    $selectedgroup = 0;
-                }
+                $selectedgroup = 0;
             }
         }
 

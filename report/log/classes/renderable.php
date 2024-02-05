@@ -257,14 +257,8 @@ class report_log_renderable implements renderable {
         $selectedgroup = 0;
         // Setup for group handling.
         $groupmode = groups_get_course_groupmode($this->course);
-        if ($groupmode == SEPARATEGROUPS and !has_capability('moodle/site:accessallgroups', $context)) {
-            if (isset($SESSION->currentgroup[$this->course->id])) {
-                $selectedgroup = $SESSION->currentgroup[$this->course->id];
-            } else if ($this->groupid > 0) {
-                $SESSION->currentgroup[$this->course->id] = $this->groupid;
-                $selectedgroup = $this->groupid;
-            }
-        } else if ($groupmode) {
+        $canaccessallgroups = has_capability('moodle/site:accessallgroups', $context);
+        if ($groupmode && !($canaccessallgroups && empty($this->groupid))) {
             $selectedgroup = $this->groupid;
         }
         return $selectedgroup;
