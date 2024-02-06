@@ -1650,3 +1650,28 @@ function groups_get_activity_shared_group_members($cm, $userid = null) {
     }
     return groups_get_groups_members($groupsids);
 }
+
+/**
+ * Returns the users joins for visible groups for the current users in the specified course.
+ *
+ * @param int $courseid
+ * @return array
+ */
+function groups_get_members_in_my_group_sql(int $courseid): array {
+    global $USER;
+    $course = get_course($courseid);
+    $groupmode = groups_get_course_groupmode($course);
+    $context = context_course::instance($courseid);
+    $userid = 0;
+
+    $onlyaccessowngroups = $groupmode == SEPARATEGROUPS && !has_capability('moodle/site:accessallgroups', $context);
+    if ($onlyaccessowngroups) {
+        $userid = $USER->id;
+    }
+    $cgroups = groups_get_all_groups($courseid, $userid);
+    $cgroups = array_keys($cgroups);
+    if (!$onlyaccessowngroups || empty($cgroups)) {
+        $cgroups[] = USERSWITHOUTGROUP;
+    }
+    return groups_get_members_ids_sql($cgroups, $context);
+}

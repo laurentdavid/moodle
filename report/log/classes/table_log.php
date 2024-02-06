@@ -450,20 +450,7 @@ class report_log_table_log extends table_sql {
             } else {
                 // No group selected and we are not filtering by user, so we want all users that are visible to the current user.
                 // If we are in a course, then let's check what logs we can see.
-                $course = get_course($this->filterparams->courseid);
-                $groupmode = groups_get_course_groupmode($course);
-                $context = context_course::instance($this->filterparams->courseid);
-                $userid = 0;
-                if ($groupmode == SEPARATEGROUPS && !has_capability('moodle/site:accessallgroups', $context)) {
-                    $userid = $USER->id;
-                }
-                $cgroups = groups_get_all_groups($this->filterparams->courseid, $userid);
-                $cgroups = array_keys($cgroups);
-                if ($groupmode != SEPARATEGROUPS || has_capability('moodle/site:accessallgroups', $context)) {
-                    $cgroups[] = USERSWITHOUTGROUP;
-                }
-                // If that's the case, limit the users to be in the groups only, defined by the filter.
-                [$groupmembersql, $groupmemberparams] = groups_get_members_ids_sql($cgroups, $context);
+                [$groupmembersql, $groupmemberparams] = groups_get_members_in_my_group_sql($this->filterparams->courseid);
                 $joins[] = "userid IN ($groupmembersql)";
                 $params = array_merge($params, $groupmemberparams);
             }
