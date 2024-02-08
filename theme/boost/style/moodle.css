@@ -29170,6 +29170,10 @@ span.editinstructions .alert-link {
 .activity-item .activity-icon {
   grid-area: icon;
 }
+.activity-item .activity-icon[data-toggle=tooltip] {
+  z-index: 950;
+  position: relative;
+}
 .activity-item .activity-dates {
   grid-area: dates;
   font-size: 0.875em;

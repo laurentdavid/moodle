@@ -47,29 +47,32 @@
     }
 }}
 {{#url}}
-    {{! Icon }}
-    {{#activityicon}}
-        {{$ core_courseformat/local/content/cm/cmicon }}
-            {{> core_courseformat/local/content/cm/cmicon }}
-        {{/ core_courseformat/local/content/cm/cmicon }}
-    {{/activityicon}}
+    <div class="activity-name-area activity-instance d-flex flex-column mr-2 ">
+        <div class="activitytitle media position-relative align-self-start {{textclasses}} modtype_{{modname}}">
+            {{! Icon }}
+            {{#activityicon}}
+                {{$ core_courseformat/local/content/cm/cmicon }}
+                    {{> core_courseformat/local/content/cm/cmicon }}
+                {{/ core_courseformat/local/content/cm/cmicon }}
+            {{/activityicon}}
 
-    {{! Name & Badge}}
-    <div class="activity-name-area activity-instance d-flex flex-column mr-2">
-        <div class="activitytitle {{textclasses}} modtype_{{modname}} position-relative align-self-start">
-            <div class="activityname">
-                {{#activityname}}
-                    {{$ core/inplace_editable }}
-                        {{> core/inplace_editable }}
-                    {{/ core/inplace_editable }}
-                {{/activityname}}
-                {{#activitybadge}}
-                    {{$ core_courseformat/local/content/cm/activitybadge }}
-                        {{> core_courseformat/local/content/cm/activitybadge }}
-                    {{/ core_courseformat/local/content/cm/activitybadge }}
-                {{/activitybadge}}
+            {{! Name & Badge}}
+            <div class="activity-name-area activity-instance d-flex flex-column mr-2">
+                <div class="activitytitle {{textclasses}} modtype_{{modname}} position-relative align-self-start">
+                    <div class="activityname">
+                        {{#activityname}}
+                            {{$ core/inplace_editable }}
+                                {{> core/inplace_editable }}
+                            {{/ core/inplace_editable }}
+                        {{/activityname}}
+                        {{#activitybadge}}
+                            {{$ core_courseformat/local/content/cm/activitybadge }}
+                                {{> core_courseformat/local/content/cm/activitybadge }}
+                            {{/ core_courseformat/local/content/cm/activitybadge }}
+                        {{/activitybadge}}
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-
 {{/url}}

@@ -1490,6 +1490,10 @@ $activity-add-hover: theme-color-level('primary', -10) !default;
 
     .activity-icon {
         grid-area: icon;
+        &[data-toggle="tooltip"] {
+            z-index: $zindex-dropdown - 50;
+            position: relative;
+        }
     }
 
     .activity-dates {
