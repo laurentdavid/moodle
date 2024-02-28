@@ -112,6 +112,7 @@ class cmname implements named_templatable, renderable {
             'textclasses' => $displayoptions['textclasses'] ?? '',
             'activityicon' => $this->get_icon_data($output),
             'activityname' => $this->get_title_data($output),
+            'cmid' => $mod->id,
         ];
 
         return $data;

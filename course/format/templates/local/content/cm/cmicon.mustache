@@ -29,17 +29,19 @@
         "branded": 0,
         "modname": "resource",
         "pluginname": "File",
-        "showtooltip": 1
+        "showtooltip": 1,
+        "cmid": 1
     }
 }}
 {{#url}}
     {{#uservisible}}
         <a href="{{url}}"
+            aria-labelledby="activity-item-{{cmid}}"
             class="activity-icon activityiconcontainer smaller {{purpose}} {{#branded}}isbranded{{/branded}} btn btn-link courseicon align-self-start mr-2"
             {{#showtooltip}}data-toggle="tooltip" title="{{{pluginname}}}" data-placement="top"{{/showtooltip}}
         >
             <img src="{{{icon}}}" class="activityicon {{iconclass}}"
-                 alt="{{#cleanstr}} activityicon, moodle, {{{pluginname}}} {{/cleanstr}}"
+                 alt=""
             >
         </a>
     {{/uservisible}}
