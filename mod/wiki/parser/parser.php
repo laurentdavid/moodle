@@ -86,6 +86,11 @@ class wiki_parser_proxy {
     }
 
     private static function create_parser_instance($type) {
+        $type = clean_param($type, PARAM_PLUGIN);
+        $path = self::$basepath . "markups/$type.php";
+        if (!file_exists($path)) {
+            throw new moodle_exception('Cannot find parser type ' . $type, 'wiki');
+        }
         if (empty(self::$parsers[$type])) {
             include_once(self::$basepath . "markups/$type.php");
             $class = strtolower($type) . "_parser";
