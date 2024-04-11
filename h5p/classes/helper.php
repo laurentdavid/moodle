@@ -26,6 +26,7 @@ namespace core_h5p;
 
 use context_system;
 use core_h5p\local\library\autoloader;
+use core_user;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -182,13 +183,18 @@ class helper {
      * @return bool Returns true if the file can be deployed, false otherwise.
      */
     public static function can_deploy_package(\stored_file $file): bool {
-        if (null === $file->get_userid()) {
+        $userid = $file->get_userid();
+        if (null === $userid) {
             // If there is no userid, it is owned by the system.
             return true;
         }
 
         $context = \context::instance_by_id($file->get_contextid());
-        if (has_capability('moodle/h5p:deploy', $context, $file->get_userid())) {
+        $fileuser = core_user::get_user($userid);
+        if (empty($fileuser) || $fileuser->deleted) {
+            $userid = null;
+        }
+        if (has_capability('moodle/h5p:deploy', $context, $userid)) {
             return true;
         }
 
@@ -204,14 +210,18 @@ class helper {
      * @return bool Returns true if the content-type libraries can be created/updated, false otherwise.
      */
     public static function can_update_library(\stored_file $file): bool {
-        if (null === $file->get_userid()) {
+        $userid = $file->get_userid();
+        if (null === $userid) {
             // If there is no userid, it is owned by the system.
             return true;
         }
-
         // Check if the owner of the .h5p file has the capability to manage content-types.
         $context = \context::instance_by_id($file->get_contextid());
-        if (has_capability('moodle/h5p:updatelibraries', $context, $file->get_userid())) {
+        $fileuser = core_user::get_user($userid);
+        if (empty($fileuser) || $fileuser->deleted) {
+            $userid = null;
+        }
+        if (has_capability('moodle/h5p:updatelibraries', $context, $userid)) {
             return true;
         }
 

@@ -1023,7 +1023,7 @@ class behat_core_generator extends behat_generator_base {
      * @return void
      */
     protected function process_contentbank_content(array $data) {
-        global $CFG;
+        global $CFG, $USER;
 
         if (empty($data['contextlevel'])) {
             throw new Exception('contentbank_content requires the field contextlevel to be specified');
@@ -1038,6 +1038,10 @@ class behat_core_generator extends behat_generator_base {
         }
 
         $contenttypeclass = "\\".$data['contenttype']."\\contenttype";
+        $user = null;
+        if (!empty($data['userid'])) {
+            $user = core_user::get_user_by_username($data['userid']);
+        }
         if (class_exists($contenttypeclass)) {
             $context = $this->get_context($data['contextlevel'], $data['reference']);
             $contenttype = new $contenttypeclass($context);
@@ -1061,7 +1065,15 @@ class behat_core_generator extends behat_generator_base {
                     'filename' => $filename,
                     'filepath' => '/'
                 );
+                $globaluser = $USER;
+                if (!empty($user)) {
+                    // Ensure session is empty, as it may contain caches and user-specific info.
+                    \core\session\manager::init_empty_session();
+                    \core\session\manager::set_user($user);
+                    $USER = $user;
+                }
                 $fs->create_file_from_pathname($filerecord, $CFG->dirroot . $data['filepath']);
+                $USER = $globaluser;
             }
         } else {
             throw new Exception('The specified "' . $data['contenttype'] . '" contenttype does not exist');
