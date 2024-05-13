@@ -22966,6 +22966,15 @@ a.text-dark:hover, a.text-dark:focus {
 }
 
 /**
+ * Boostrap 5 bridge : To ease the transition from Bootstrap 4 to Bootstrap 5. This file should be removed
+ * once the theme and main plugins are fully migrated to Bootstrap 5.
+ * The difference between bs5-bridge.scss and bs5-bridge-pre.scss is that the former is included after the main
+ * moodle.scss definitions.
+ */
+/*
+ * __functions.scss
+ */
+/**
  * Moodle variables
  *
  * Variables written for Moodle specific components
@@ -32148,7 +32157,7 @@ body.path-question-type .fitem .col-form-label.sr-only:not(legend):not([for=id_c
 
 .que .formulation {
   color: #001a1e;
-  background-color: #e7f3f5;
+  background-color: #cfe7eb;
   border-color: #b8dce2;
   /* stylelint-disable-line max-line-length */
 }

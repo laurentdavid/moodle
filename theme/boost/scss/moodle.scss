@@ -4,6 +4,10 @@ $breadcrumb-divider-rtl: "◀" !default;
 // Specific overrides to make Bootstrap RTL.
 @import "moodle/bootstrap-rtl";
 
+// BS5 compatibility layer: so we can use BS5 mixins and variables in current
+// BS4 based theme.
+@import "moodle/bs5-bridge-pre";
+
 // Old Moodle stuff from base theme.
 // Massive, needs broken up.
 @import "moodle/variables";

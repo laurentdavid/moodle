@@ -1,0 +1,25 @@
+/**
+ * Boostrap 5 bridge : To ease the transition from Bootstrap 4 to Bootstrap 5. This file should be removed
+ * once the theme and main plugins are fully migrated to Bootstrap 5.
+ * The difference between bs5-bridge.scss and bs5-bridge-pre.scss is that the former is included after the main
+ * moodle.scss definitions.
+ */
+
+
+/*
+ * __functions.scss
+ */
+// Tint a color: mix a color with white
+@function tint-color($color, $weight) {
+    @return mix(white, $color, $weight);
+}
+
+// Shade a color: mix a color with black
+@function shade-color($color, $weight) {
+    @return mix(black, $color, $weight);
+}
+
+// Shade the color if the weight is positive, else tint it
+@function shift-color($color, $weight) {
+    @return if($weight > 0, shade-color($color, $weight), tint-color($color, -$weight));
+}
