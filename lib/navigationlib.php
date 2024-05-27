@@ -2284,7 +2284,8 @@ class global_navigation extends navigation_node {
 
         list($sections, $activities) = $this->generate_sections_and_activities($course);
 
-        $navigationsections = array();
+        $navigationsections = [];
+        $navigationsectionsnodes = [];
         foreach ($sections as $sectionid => $section) {
             $section = clone($section);
             if ($course->id == $SITE->id) {
@@ -2297,9 +2298,20 @@ class global_navigation extends navigation_node {
 
                 $sectionname = get_section_name($course, $section);
                 $url = course_get_url($course, $section->section, array('navigation' => true));
-
-                $sectionnode = $coursenode->add($sectionname, $url, navigation_node::TYPE_SECTION,
-                    null, $section->id, new pix_icon('i/section', ''));
+                if ($section->is_delegated()) {
+                    [$component, $plugin] = core_component::normalize_component($section->component);
+                    $cm = get_coursemodule_from_instance($plugin, $section->itemid);
+                    if (empty($navigationsectionsnodes[$cm->section])) {
+                        continue;
+                    }
+                    $sectionnode = $navigationsectionsnodes[$cm->section]->add(
+                        $sectionname, $url, navigation_node::TYPE_SECTION,
+                        null, $section->id, new pix_icon('i/section', '')
+                    );
+                } else {
+                    $sectionnode = $coursenode->add($sectionname, $url, navigation_node::TYPE_SECTION,
+                        null, $section->id, new pix_icon('i/section', ''));
+                }
                 $sectionnode->nodetype = navigation_node::NODETYPE_BRANCH;
                 $sectionnode->hidden = (!$section->visible || !$section->available);
                 $sectionnode->add_attribute('data-section-name-for', $section->id);
@@ -2307,6 +2319,7 @@ class global_navigation extends navigation_node {
                     $this->load_section_activities($sectionnode, $section->section, $activities);
                 }
                 $navigationsections[$sectionid] = $section;
+                $navigationsectionsnodes[$section->id] = $sectionnode;
             }
         }
         return $navigationsections;
@@ -3475,8 +3488,28 @@ class global_navigation_for_ajax extends global_navigation {
                 $coursenode = $this->add_course($course, false, self::COURSE_CURRENT);
                 $this->load_course_sections($course, $coursenode, null, $cm);
                 $activitynode = $coursenode->find($cm->id, self::TYPE_ACTIVITY);
-                if ($activitynode) {
-                    $modulenode = $this->load_activity($cm, $course, $activitynode);
+                if ($modinfo->has_delegated_sections()) {
+                    $sections = $modinfo->get_section_info_all();
+                    $delegatedsection = null;
+                    foreach($sections as $section) {
+                        if ($section->is_delegated()) {
+                            if ($section->itemid == $cm->instance && $section->component == 'mod_' . $cm->modname) {
+                                $delegatedsection = $section;
+                                break;
+                            }
+                        }
+                    }
+                    if ($delegatedsection) {
+                        $parentsectioninfo = $modinfo->get_section_info($cm->sectionnum);
+                        $parentsection = $coursenode->find($parentsectioninfo->id, self::TYPE_SECTION);
+                        $subsectionnode = $parentsection->find($cm->id, self::TYPE_ACTIVITY);
+                        list($sections, $activities) = $this->generate_sections_and_activities($course);
+                        $modulenode = $this->load_section_activities($subsectionnode, $delegatedsection->sectionnum, $activities);
+                    }
+                } else {
+                    if ($activitynode) {
+                        $modulenode = $this->load_activity($cm, $course, $activitynode);
+                    }
                 }
                 break;
             default:
