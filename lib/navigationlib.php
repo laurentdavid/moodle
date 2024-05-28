@@ -2238,29 +2238,7 @@ class global_navigation extends navigation_node {
                 continue;
             }
             foreach ($modinfo->sections[$section->section] as $cmid) {
-                $cm = $modinfo->cms[$cmid];
-                $activity = new stdClass;
-                $activity->id = $cm->id;
-                $activity->course = $course->id;
-                $activity->section = $section->section;
-                $activity->name = $cm->name;
-                $activity->icon = $cm->icon;
-                $activity->iconcomponent = $cm->iconcomponent;
-                $activity->hidden = (!$cm->visible);
-                $activity->modname = $cm->modname;
-                $activity->nodetype = navigation_node::NODETYPE_LEAF;
-                $activity->onclick = $cm->onclick;
-                $url = $cm->url;
-                if (!$url) {
-                    $activity->url = null;
-                    $activity->display = false;
-                } else {
-                    $activity->url = $url->out();
-                    $activity->display = $cm->is_visible_on_course_page() ? true : false;
-                    if (self::module_extends_navigation($cm->modname)) {
-                        $activity->nodetype = navigation_node::NODETYPE_BRANCH;
-                    }
-                }
+                $activity = $this->generate_activity($cmid, $section, $modinfo);
                 $activities[$cmid] = $activity;
                 if ($activity->display) {
                     $sections[$key]->hasactivites = true;
@@ -2269,6 +2247,42 @@ class global_navigation extends navigation_node {
         }
 
         return array($sections, $activities);
+    }
+
+    /**
+     * Generates an array activities for the given section.
+     *
+     * This method uses the cache to improve performance and avoid the get_fast_modinfo call
+     *
+     * @param int $cmid
+     * @param course_modinfo $modinfo
+     * @return object
+     */
+    protected function generate_activity(int $cmid, section_info $section, course_modinfo $modinfo): object {
+        $cm = $modinfo->cms[$cmid];
+        $activity = new stdClass;
+        $activity->id = $cm->id;
+        $activity->course = $modinfo->courseid;
+        $activity->section = $section->section;
+        $activity->name = $cm->name;
+        $activity->icon = $cm->icon;
+        $activity->iconcomponent = $cm->iconcomponent;
+        $activity->hidden = (!$cm->visible);
+        $activity->modname = $cm->modname;
+        $activity->nodetype = navigation_node::NODETYPE_LEAF;
+        $activity->onclick = $cm->onclick;
+        $url = $cm->url;
+        if (!$url) {
+            $activity->url = null;
+            $activity->display = false;
+        } else {
+            $activity->url = $url->out();
+            $activity->display = $cm->is_visible_on_course_page() ? true : false;
+            if (self::module_extends_navigation($cm->modname)) {
+                $activity->nodetype = navigation_node::NODETYPE_BRANCH;
+            }
+        }
+        return $activity;
     }
 
     /**
@@ -3503,8 +3517,13 @@ class global_navigation_for_ajax extends global_navigation {
                         $parentsectioninfo = $modinfo->get_section_info($cm->sectionnum);
                         $parentsection = $coursenode->find($parentsectioninfo->id, self::TYPE_SECTION);
                         $subsectionnode = $parentsection->find($cm->id, self::TYPE_ACTIVITY);
-                        list($sections, $activities) = $this->generate_sections_and_activities($course);
-                        $modulenode = $this->load_section_activities($subsectionnode, $delegatedsection->sectionnum, $activities);
+
+                        $activities = [];
+                        foreach ($modinfo->sections[$delegatedsection->section] as $cmid) {
+                            $activity = $this->generate_activity($cmid, $delegatedsection, $modinfo);
+                            $activities[$cmid] = $activity;
+                        }
+                        $this->load_section_activities($subsectionnode, $delegatedsection->sectionnum, $activities);
                     }
                 } else {
                     if ($activitynode) {
