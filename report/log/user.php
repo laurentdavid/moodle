@@ -125,7 +125,7 @@ if ($mode === 'today') {
 }
 
 $output = $PAGE->get_renderer('report_log');
-$reportlog = new report_log_renderable($logreader, $course, $user->id, 0, '', -1, -1, false, false, true, false, $PAGE->url,
+$reportlog = new report_log_renderable($logreader, $course, $user->id, 0, '', 0, -1, false, false, true, false, $PAGE->url,
         $timefrom, '', $page, $perpage, 'timecreated DESC');
 
 // Setup table if log reader is enabled.
