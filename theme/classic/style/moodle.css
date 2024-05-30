@@ -13898,12 +13898,13 @@ pre code {
   margin-left: -15px;
 }
 
-.no-gutters {
+.no-gutters, .g-0 {
   margin-right: 0;
   margin-left: 0;
 }
-.no-gutters > .col,
-.no-gutters > [class*=col-] {
+.no-gutters > .col, .g-0 > .col,
+.no-gutters > [class*=col-],
+.g-0 > [class*=col-] {
   padding-right: 0;
   padding-left: 0;
 }
@@ -38705,6 +38706,9 @@ body.behat-site .path-course-view li.activity form.togglecompletion::before,
   max-width: none; /* The width is 0 so ensure we don't end up with a relative max-width */
 }
 
+/* Bootstrap 5 bridge classes */
+/* These classes are used to bridge the gap between Bootstrap 4 and Bootstrap 5. */
+/* This file should be removed as part of MDL-75669. */
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
