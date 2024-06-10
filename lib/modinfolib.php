@@ -253,6 +253,26 @@ class course_modinfo {
      */
     public function get_cm($cmid) {
         if (empty($this->cms[$cmid])) {
+            throw new moodle_exception('invalidcoursemoduleid', 'error', '', $cmid);
+        }
+        return $this->cms[$cmid];
+    }
+
+    /**
+     * @return cm_info[] Array from course-module instance to cm_info object within this course including disabled modules.
+     */
+    public function get_cms_all() {
+        return array_merge($this->cms, $this->disabledcms);
+    }
+
+    /**
+     * Obtains a single course-module object (for a course-module that is on this course).
+     * @param int $cmid Course-module ID
+     * @return cm_info Information about that course-module
+     * @throws moodle_exception If the course-module does not exist
+     */
+    public function get_cm_all($cmid) {
+        if (empty($this->cms[$cmid])) {
             if (empty($this->disabledcms[$cmid])) {
                 throw new moodle_exception('invalidcoursemoduleid', 'error', '', $cmid);
             }
