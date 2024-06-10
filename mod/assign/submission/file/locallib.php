@@ -504,7 +504,7 @@ class assign_submission_file extends assign_submission_plugin {
         global $DB;
         // Will throw exception on failure.
         $DB->delete_records('assignsubmission_file',
-                            array('assignment'=>$this->assignment->get_instance()->id));
+                            array('assignment'=>$this->assignment->get_instance_id()));
 
         return true;
     }

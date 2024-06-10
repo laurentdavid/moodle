@@ -570,7 +570,7 @@ class assign_submission_onlinetext extends assign_submission_plugin {
     public function delete_instance() {
         global $DB;
         $DB->delete_records('assignsubmission_onlinetext',
-                            array('assignment'=>$this->assignment->get_instance()->id));
+                            array('assignment'=>$this->assignment->get_instance_id()));
 
         return true;
     }

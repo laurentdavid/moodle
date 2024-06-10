@@ -834,7 +834,7 @@ class assign {
                                $this->get_course()->id,
                                'mod',
                                'assign',
-                               $this->get_instance()->id,
+                               $this->get_instance_id(),
                                0,
                                null,
                                array('deleted'=>1));
@@ -872,11 +872,11 @@ class assign {
         $this->delete_all_overrides();
 
         // Delete_records will throw an exception if it fails - so no need for error checking here.
-        $DB->delete_records('assign_submission', array('assignment' => $this->get_instance()->id));
-        $DB->delete_records('assign_grades', array('assignment' => $this->get_instance()->id));
-        $DB->delete_records('assign_plugin_config', array('assignment' => $this->get_instance()->id));
-        $DB->delete_records('assign_user_flags', array('assignment' => $this->get_instance()->id));
-        $DB->delete_records('assign_user_mapping', array('assignment' => $this->get_instance()->id));
+        $DB->delete_records('assign_submission', array('assignment' => $this->get_instance_id()));
+        $DB->delete_records('assign_grades', array('assignment' => $this->get_instance_id()));
+        $DB->delete_records('assign_plugin_config', array('assignment' => $this->get_instance_id()));
+        $DB->delete_records('assign_user_flags', array('assignment' => $this->get_instance_id()));
+        $DB->delete_records('assign_user_mapping', array('assignment' => $this->get_instance_id()));
 
         // Delete items from the gradebook.
         if (! $this->delete_grades()) {
@@ -885,7 +885,7 @@ class assign {
 
         // Delete the instance.
         // We must delete the module record after we delete the grade item.
-        $DB->delete_records('assign', array('id'=>$this->get_instance()->id));
+        $DB->delete_records('assign', array('id'=>$this->get_instance_id()));
 
         return $result;
     }
@@ -957,7 +957,7 @@ class assign {
     public function delete_all_overrides() {
         global $DB;
 
-        $overrides = $DB->get_records('assign_overrides', array('assignid' => $this->get_instance()->id), 'id');
+        $overrides = $DB->get_records('assign_overrides', array('assignid' => $this->get_instance_id()), 'id');
         foreach ($overrides as $override) {
             $this->delete_override($override->id);
         }
@@ -1807,6 +1807,21 @@ class assign {
         // Calculate properties which vary per user.
         $this->userinstances[$userid] = $this->calculate_properties($this->instance, $userid);
         return $this->userinstances[$userid];
+    }
+
+    /**
+     * Get current instance id or null if context is not set. Return the instance id even if module is
+     * disabled.
+     * @return int
+     * @throws moodle_exception if context is not set.
+     */
+    public function get_instance_id(): int {
+        if (!empty($this->context)) {
+            $modinfo = get_fast_modinfo($this->context->get_course_context()->instanceid);
+            $cminfo = $modinfo->get_cm_all($this->context->instanceid);
+            return $cminfo->instance;
+        }
+        throw new moodle_exception('invalidcontext');
     }
 
     /**
