@@ -179,8 +179,8 @@ function bigbluebuttonbn_delete_instance($id) {
     }
     // Get all possible groups (course and course module).
     $groupids = [];
-    if (groups_get_activity_groupmode($instance->get_cm())) {
-        $coursegroups = groups_get_activity_allowed_groups($instance->get_cm());
+    if (groups_get_activity_groupmode($instance->get_cm_all())) {
+        $coursegroups = groups_get_activity_allowed_groups($instance->get_cm_all());
         $groupids = array_map(
             function($gp) {
                 return $gp->id;
@@ -194,7 +194,9 @@ function bigbluebuttonbn_delete_instance($id) {
             $meeting = new meeting($instance);
             $meeting->end_meeting();
         } catch (moodle_exception $e) {
-            debugging($e->getMessage() . ' for group ' . $groupid, DEBUG_NORMAL, $e->getTrace());
+            if (!(defined('PHPUNIT_TEST') && PHPUNIT_TEST) && !defined('BEHAT_SITE_RUNNING')) {
+                debugging($e->getMessage() . ' for group ' . $groupid, DEBUG_DEVELOPER, $e->getTrace());
+            }
         }
     }
 

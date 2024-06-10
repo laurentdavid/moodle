@@ -432,6 +432,7 @@ EOF;
     /**
      * Get the cm_info object for the instance.
      *
+     * @param bool $evendisabled get module even if it is disabled. This
      * @return cm_info
      */
     public function get_cm(): cm_info {
@@ -444,6 +445,20 @@ EOF;
         return $this->cm;
     }
 
+    /**
+     * Get the cm_info object for the instance, even if it is disabled.
+     *
+     * @return cm_info
+     */
+    public function get_cm_all(): cm_info {
+        if ($this->cm === null) {
+            // We do a sort of late binding here as if we call get_cm on a disabled module or in a call stack where
+            // get_cm was already called, we will get an exception or infinite loop.
+            $modinfo = get_fast_modinfo($this->course);
+            $this->cm = $modinfo->get_cm_all($this->cmid);
+        }
+        return $this->cm;
+    }
     /**
      * Get the id of the course module.
      *
