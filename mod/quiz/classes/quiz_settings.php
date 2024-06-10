@@ -135,6 +135,20 @@ class quiz_settings {
     }
 
     /**
+     * Static function to create a new quiz settings object from a cmid, for a specific user.
+     *
+     * @param cm_info $cm the course module information.
+     * @param int|null $userid the userid (optional). If passed, relevant overrides are applied.
+     * @return quiz_settings the new quiz settings object.
+     */
+    public static function create_for_cm(cm_info $cm, int $userid = null): self {
+        $course = get_course($cm->course);
+        $quiz = access_manager::load_quiz_and_settings($cm->instance);
+
+        return self::create_helper($quiz, $cm, $course, $userid);
+    }
+
+    /**
      * Create a {@see quiz_attempt} for an attempt at this quiz.
      *
      * @param stdClass $attemptdata row from the quiz_attempts table.

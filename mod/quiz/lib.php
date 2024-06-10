@@ -193,8 +193,11 @@ function quiz_delete_instance($id) {
     quiz_delete_all_attempts($quiz);
 
     // Delete all overrides, and for performance do not log or check permissions.
+    $modinfo = get_fast_modinfo($quiz->course);
     $cm = get_coursemodule_from_instance('quiz', $quiz->id);
-    $quizobj = quiz_settings::create_for_cmid($cm->id);
+    $cminfo = $modinfo->get_cm_all($cm->id);
+
+    $quizobj = quiz_settings::create_for_cm($cminfo);
     $quizobj->get_override_manager()->delete_all_overrides(shouldlog: false);
 
     quiz_delete_references($quiz->id);
