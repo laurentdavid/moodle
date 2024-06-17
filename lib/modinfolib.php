@@ -2584,7 +2584,6 @@ class cm_info implements IteratorAggregate {
             $this->uservisible = false;
             return null;
         }
-
         // If the user cannot access the activity set the uservisible flag to false.
         // Additional checks are required to determine whether the activity is entirely hidden or just greyed out.
         if ((!$this->visible && !has_capability('moodle/course:viewhiddenactivities', $this->get_context(), $userid)) ||
@@ -2640,9 +2639,21 @@ class cm_info implements IteratorAggregate {
             // Capability does not exist, no one is prevented from seeing the activity.
             return false;
         }
+        $cmrestriction = !has_capability($capability, $this->get_context(), $userid);
 
+        $sectioninfo = $this->get_section_info();
+        if ($sectioninfo->is_delegated()) {
+            $modname = \core_component::normalize_component($sectioninfo->component)[1];
+            [$course, $sectioncm] = get_course_and_cm_from_instance(
+                $sectioninfo->itemid,
+                $modname,
+                $sectioninfo->course,
+            );
+            $sectioncontext = $sectioncm->get_context();
+            $cmrestriction = $cmrestriction || !has_capability('mod' . $modname . ':view', $sectioncontext, $userid);
+        }
         // You are blocked if you don't have the capability.
-        return !has_capability($capability, $this->get_context(), $userid);
+        return $cmrestriction;
     }
 
     /**
@@ -3480,6 +3491,14 @@ class section_info implements IteratorAggregate {
             return $this->_uservisible;
         }
         $this->_uservisible = true;
+        if ($this->is_delegated()) {
+            [$course, $sectioncm] = get_course_and_cm_from_instance(
+                $this->itemid,
+                \core_component::normalize_component($this->component)[1],
+                $this->course,
+            );
+            $this->_uservisible = $sectioncm->uservisible;
+        }
         if (!$this->_visible || !$this->get_available()) {
             $coursecontext = context_course::instance($this->get_course());
             if (!$this->_visible && !has_capability('moodle/course:viewhiddensections', $coursecontext, $userid) ||
