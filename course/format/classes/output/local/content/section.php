@@ -245,7 +245,6 @@ class section implements named_templatable, renderable {
     protected function add_availability_data(stdClass &$data, renderer_base $output): bool {
         $availability = new $this->availabilityclass($this->format, $this->section);
         $data->availability = $availability->export_for_template($output);
-        $data->restrictionlock = !empty($this->section->availableinfo);
         $data->hasavailability = $availability->has_availability($output);
         return true;
     }
