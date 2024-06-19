@@ -240,6 +240,7 @@ class availability implements named_templatable, renderable {
         if (!empty($info->items)) {
             $excerpttext = $info->header . ' ' . $info->items[0]->header;
             $data['excerpt'] = info::format_info($excerpttext, $course);
+            $data['isexpanded'] = $this->format->show_editor();
         }
 
         return (object) $data;

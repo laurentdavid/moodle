@@ -25,14 +25,15 @@
         "expandedcontent": "Hello...<br>Is it me you're looking for? I can see it in your eyes",
         "extraclasses": "p-3",
         "collapsedextraclasses": "bg-secondary",
-        "expandedextraclasses": "bg-secondary"
+        "expandedextraclasses": "bg-secondary",
+        "isexpanded": false
     }
 }}
-<div class="showmore-container collapsed {{$extraclasses}}{{extraclasses}}{{/extraclasses}}" data-region="showmore">
+<div class="showmore-container {{^isexpanded}}collapsed{{/isexpanded}} {{$extraclasses}}{{extraclasses}}{{/extraclasses}}" data-region="showmore">
     <button
         type="button"
         class="btn btn-sm btn-link p-0 {{$buttonextraclasses}}{{buttonextraclasses}}{{/buttonextraclasses}}"
-        aria-expanded="false"
+        {{^isexpanded}}aria-expanded="false"{{/isexpanded}}{{#isexpanded}}aria-expanded="true"{{/isexpanded}}
         data-action="toggle-content"
     >
         <span class="collapsed-content"> {{#str}} showmore, core {{/str}} {{#pix}} t/expandedchevron, core {{/pix}} </span>
