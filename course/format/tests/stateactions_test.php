@@ -1390,6 +1390,144 @@ class stateactions_test extends \advanced_testcase {
     }
 
     /**
+     * Test course module move and subsection move.
+     *
+     * @covers ::cm_move
+     * @dataProvider cm_move_provider
+     * @param string[] $cmtomove the sections to move
+     * @param string $targetmodule the target module reference (section deduced from this)
+     * @param string[] $expectedcoursetree expected course tree
+     * @param string|null $expectedexception if it will expect an exception.
+     */
+    public function test_cm_move(
+        array $cmtomove,
+        string $targetsection,
+        array $expectedcoursetree,
+        ?string $expectedexception = null
+    ): void {
+        $this->resetAfterTest();
+        $course = $this->create_course('topics', 4, []);
+
+        $manager = \core_plugin_manager::resolve_plugininfo_class('mod');
+        $manager::enable_plugin('subsection', 1);
+        $subsection5 =
+            $this->getDataGenerator()->create_module(
+                'subsection', ['course' => $course, 'section' => 1, 'name' => 'Subsection']
+            );
+        $subsection6 =
+            $this->getDataGenerator()->create_module(
+                'subsection', ['course' => $course, 'section' => 1, 'name' => 'Subsection']
+            );
+        $modinfo = get_fast_modinfo($course);
+        $subsectioninfo = $modinfo->get_section_info_by_component('mod_subsection', $subsection5->id);
+
+        $references = $this->course_references($course);
+        // Add some activities to the course. One visible and one hidden in both sections 1 and 2.
+        $references["cm0"] = $this->create_activity($course->id, 'assign', 1);
+        $references["cm1"] = $this->create_activity($course->id, 'page', 2);
+        $references["cm2"] = $this->create_activity($course->id, 'forum', $subsectioninfo->sectionnum);
+        $references["subsection5"] = intval($subsection5->cmid);
+        $references["subsection6"] = intval($subsection6->cmid);
+        $user = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($user->id, $course->id, 'editingteacher');
+        $this->setUser($user);
+
+        // Initialise stateupdates.
+        $courseformat = course_get_format($course->id);
+        $updates = new stateupdates($courseformat);
+
+        if ($expectedexception) {
+            $this->expectExceptionMessage($expectedexception);
+        }
+        // Execute the method.
+        $actions = new stateactions();
+        $actions->cm_move(
+            $updates,
+            $course,
+            $this->translate_references($references, $cmtomove),
+            $references[$targetsection]
+        );
+
+        $coursetree = [];
+        $modinfo = get_fast_modinfo($course); // Get refreshed version.
+
+        $allsections = $modinfo->get_listed_section_info_all();
+        $cmidstoref = array_flip($references);
+        foreach ($allsections as $sectioninfo) {
+            $sectionkey = 'section' . $sectioninfo->sectionnum;
+            $coursetree[$sectionkey] = [];
+            if (!empty(trim($sectioninfo->sequence))) {
+                $cmids = explode(",", $sectioninfo->sequence);
+                foreach ($cmids as $cmid) {
+                    $cm = $modinfo->get_cm($cmid);
+                    $delegatedsection = $cm->get_delegated_section_info();
+                    if (!$delegatedsection) {
+                        $coursetree[$sectionkey][] = $cmidstoref[$cmid];
+                    } else {
+                        if (!empty(trim($delegatedsection->sequence))) {
+                            $delegatedcmids = explode(",", $delegatedsection->sequence);
+                            $delegatedsectionkey = 'section' . $delegatedsection->sectionnum;
+                            $coursetree[$sectionkey][$delegatedsectionkey] = [];
+                            foreach ($delegatedcmids as $dcmid) {
+                                $coursetree[$sectionkey][$delegatedsectionkey][] = $cmidstoref[$dcmid];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        $this->assertEquals($expectedcoursetree, $coursetree);
+    }
+
+    /**
+     * Provider for test_section_move.
+     *
+     *
+     * The original coursetree looks like this:
+     * 'coursetree' => [
+     *    'section0' => ['cm0'],
+     *    'section1' => ['section5' => ['cm2']],
+     *    'section2' => ['cm1'],
+     *    'section3' => [],
+     *    'section4' => [],
+     * ],
+     *
+     * @return array the testing scenarios
+     */
+    public static function cm_move_provider(): array {
+        return [
+            'Move module into section2' => [
+                'cmtomove' => ['cm0'],
+                'targetsection' => 'section2',
+                'coursetree' => [
+                    'section0' => [],
+                    'section1' => ['section5' => ['cm2']],
+                    'section2' => ['cm1', 'cm0'],
+                    'section3' => [],
+                    'section4' => [],
+                ],
+            ],
+            'Move subsection into another subsection' => [
+                'cmtomove' => ['subsection5'],
+                'targetsection' => 'section6',
+                'coursetree' => [],
+                'exception' => 'error/subsectionmoveerror',
+            ],
+            'Move module into subsection' => [
+                'cmtomove' => ['cm1'],
+                'targetsection' => 'section5',
+                'coursetree' => [
+                    'section0' => ['cm0'],
+                    'section1' => ['section5' => ['cm2', 'cm1']],
+                    'section2' => [],
+                    'section3' => [],
+                    'section4' => [],
+                ],
+            ],
+        ];
+    }
+
+    /**
      * Test for section_move_after capability checks.
      *
      * @covers ::section_move_after
