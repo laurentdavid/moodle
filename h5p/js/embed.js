@@ -211,29 +211,38 @@ document.onreadystatechange = async() => {
     H5PEmbedCommunicator.on('resize', function() {
         H5P.trigger(instance, 'resize');
     });
-
-    H5P.on(instance, 'resize', function() {
-        if (H5P.isFullscreen) {
-            return; // Skip iframe resize.
-        }
-
-        // Use a delay to make sure iframe is resized to the correct size.
-        clearTimeout(resizeDelay);
-        resizeDelay = setTimeout(function() {
-            // Only resize if the iframe can be resized.
-            if (parentIsFriendly) {
-                H5PEmbedCommunicator.send('prepareResize',
-                    {
-                        scrollHeight: iFrame.contentDocument.body.scrollHeight,
-                        clientHeight: iFrame.contentDocument.body.clientHeight
-                    }
-                );
-            } else {
-                H5PEmbedCommunicator.send('hello');
-            }
-        }, 0);
+    /* eslint-disable promise/avoid-new */
+    const pendingPromise = new Promise((resolve) => {
+        require(['core/pending'], (Pending) => {
+            // Resolve the Promise with Repository to allow any queued calls to be executed.
+            resolve(Pending);
+        });
     });
+    pendingPromise.then((Pending) => {
+        var pending = new Pending('core/modal_factory:create');
+        H5P.on(instance, 'resize', function () {
+            if (H5P.isFullscreen) {
+                return; // Skip iframe resize.
+            }
 
+            // Use a delay to make sure iframe is resized to the correct size.
+            clearTimeout(resizeDelay);
+            resizeDelay = setTimeout(function () {
+                // Only resize if the iframe can be resized.
+                if (parentIsFriendly) {
+                    H5PEmbedCommunicator.send('prepareResize',
+                        {
+                            scrollHeight: iFrame.contentDocument.body.scrollHeight,
+                            clientHeight: iFrame.contentDocument.body.clientHeight
+                        }
+                    );
+                } else {
+                    H5PEmbedCommunicator.send('hello');
+                }
+                pending.resolve();
+            }, 150);
+        });
+    });
     // Get emitted xAPI data.
     H5P.externalDispatcher.on('xAPI', function(event) {
         statementPosted = false;
