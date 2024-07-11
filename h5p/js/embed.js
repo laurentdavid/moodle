@@ -231,7 +231,7 @@ document.onreadystatechange = async() => {
             } else {
                 H5PEmbedCommunicator.send('hello');
             }
-        }, 0);
+        }, 150);
     });
 
     // Get emitted xAPI data.
