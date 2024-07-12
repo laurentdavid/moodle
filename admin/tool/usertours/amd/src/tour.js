@@ -1602,26 +1602,28 @@ const Tour = class {
                         });
                     }
                 }
-
+                let targetPosition = this.calculatePosition(targetNode);
+                const topPosition = targetPosition === "fixed" ? targetNode.position().top + drawertop : targetNode.offset().top;
+                const leftPosition = targetPosition === "fixed" ? targetNode.position().left : targetNode.offset().left;
                 background.css({
                     width: targetNode.outerWidth() + buffer + buffer,
                     height: targetNode.outerHeight() + buffer + buffer,
-                    left: targetNode.offset().left - buffer,
-                    top: targetNode.offset().top + drawertop - buffer,
+                    left: leftPosition - buffer,
+                    top: topPosition + drawertop - buffer,
                     backgroundColor: this.calculateInherittedBackgroundColor(colorNode),
                 });
 
-                if (targetNode.offset().left < buffer) {
+                if (leftPosition < buffer) {
                     background.css({
-                        width: targetNode.outerWidth() + targetNode.offset().left + buffer,
-                        left: targetNode.offset().left,
+                        width: targetNode.outerWidth() + leftPosition + buffer,
+                        left: leftPosition,
                     });
                 }
 
-                if ((targetNode.offset().top + drawertop) < buffer) {
+                if ((topPosition + drawertop) < buffer) {
                     background.css({
-                        height: targetNode.outerHeight() + targetNode.offset().top + buffer,
-                        top: targetNode.offset().top,
+                        height: targetNode.outerHeight() + topPosition + buffer,
+                        top: topPosition,
                     });
                 }
 
@@ -1630,7 +1632,6 @@ const Tour = class {
                     background.css('borderRadius', targetRadius);
                 }
 
-                let targetPosition = this.calculatePosition(targetNode);
                 if (targetPosition === 'absolute') {
                     background.css('position', 'fixed');
                 }
@@ -1761,7 +1762,7 @@ const Tour = class {
         elem = $(elem);
         while (elem.length && elem[0] !== document) {
             let position = elem.css('position');
-            if (position !== 'static') {
+            if (position !== 'static' && position !== 'relative') {
                 return position;
             }
             elem = elem.parent();
