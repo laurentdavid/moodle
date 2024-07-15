@@ -227,7 +227,7 @@ class controlmenu implements named_templatable, renderable {
                     // Legacy move up and down links for non component-based formats.
                     $url = clone($baseurl);
                     if ($section->section > 1) { // Add a arrow to move section up.
-                        $url->param('sectionid', $section->id);
+                        $url->param('section', $section->section);
                         $url->param('move', -1);
                         $strmoveup = get_string('moveup');
                         $controls['moveup'] = [
@@ -241,7 +241,7 @@ class controlmenu implements named_templatable, renderable {
 
                     $url = clone($baseurl);
                     if ($section->section < $numsections) { // Add a arrow to move section down.
-                        $url->param('sectionid', $section->id);
+                        $url->param('section', $section->section);
                         $url->param('move', 1);
                         $strmovedown = get_string('movedown');
                         $controls['movedown'] = [
