@@ -214,6 +214,7 @@ class icon_system_fontawesome extends icon_system_font {
             'core:i/dashboard' => 'fa-tachometer',
             'core:i/categoryevent' => 'fa-cubes',
             'core:i/chartbar' => 'fa-chart-bar',
+            'core:i/circleinfo' => 'fa-circle-info',
             'core:i/course' => 'fa-graduation-cap',
             'core:i/courseevent' => 'fa-graduation-cap',
             'core:i/cloudupload' => 'fa-cloud-upload',
