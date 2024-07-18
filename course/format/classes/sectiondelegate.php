@@ -133,4 +133,18 @@ abstract class sectiondelegate {
     public function get_parent_section(): ?section_info {
         return null;
     }
+
+    /**
+     * Section record has been updated.
+     *
+     * This method uses a record instead of a section_info object because
+     * section updates can be done in batch and the course_info may not be yet updated.
+     *
+     * This method does not need to recalculate the section_info object.
+     *
+     * @param \stdClass $sectionrecord: the new section data
+     */
+    public function section_updated(object $sectionrecord): void {
+        // By default, do nothing.
+    }
 }
