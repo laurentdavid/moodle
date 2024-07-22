@@ -1094,6 +1094,8 @@ const Tour = class {
         if (!tourStartEvent.defaultPrevented) {
             this.gotoStep(startAt);
             this.tourRunning = true;
+            this.originalConfiguration.bodyOverflow = document.body.style.overflow;
+            document.body.style.overflow = 'hidden';
             this.dispatchEvent(eventTypes.tourStarted, {startAt});
         }
 
@@ -1139,6 +1141,7 @@ const Tour = class {
         this.hide(true);
 
         this.tourRunning = false;
+        document.body.style.overflow = this.originalConfiguration.bodyOverflow ?? 'auto';
         this.dispatchEvent(eventTypes.tourEnded);
 
         return this;
