@@ -1605,11 +1605,13 @@ const Tour = class {
                 let targetPosition = this.calculatePosition(targetNode);
                 const topPosition = targetPosition === "fixed" ? targetNode.position().top + drawertop : targetNode.offset().top;
                 const leftPosition = targetPosition === "fixed" ? targetNode.position().left : targetNode.offset().left;
+                const paddingX = parseInt(targetNode.css('paddingLeft'), 10);
+                const paddingY = parseInt(targetNode.css('paddingTop'), 10);
                 background.css({
                     width: targetNode.outerWidth() + buffer + buffer,
                     height: targetNode.outerHeight() + buffer + buffer,
-                    left: leftPosition - buffer,
-                    top: topPosition + drawertop - buffer,
+                    left: leftPosition - buffer - paddingX,
+                    top: topPosition + drawertop - buffer - paddingY,
                     backgroundColor: this.calculateInherittedBackgroundColor(colorNode),
                 });
 
