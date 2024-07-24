@@ -169,6 +169,16 @@ abstract class sectiondelegatemodule extends sectiondelegate {
         $updates->add_cm_put($cm->id);
     }
 
+    /**
+     * Section record has been updated.
+     *
+     * This method uses a record instead of a section_info object because
+     * section updates can be done in batch and the course_info may not be yet updated.
+     *
+     * This method does not need to recalculate the section_info object.
+     *
+     * @param object $sectionrecord: the new section data
+     */
     public function section_updated(object $sectionrecord): void {
         global $DB;
 

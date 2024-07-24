@@ -142,7 +142,7 @@ abstract class sectiondelegate {
      *
      * This method does not need to recalculate the section_info object.
      *
-     * @param \stdClass $sectionrecord: the new section data
+     * @param object $sectionrecord: the new section data
      */
     public function section_updated(object $sectionrecord): void {
         // By default, do nothing.
