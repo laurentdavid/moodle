@@ -1847,4 +1847,258 @@ class modinfolib_test extends advanced_testcase {
         $delegated = $modinfo->get_cm($otheractivity->cmid)->get_delegated_section_info();
         $this->assertNull($delegated);
     }
+
+    /**
+     * Test get_uservisible method when the section is delegated.
+     *
+     * @covers \section_info::get_uservisible
+     * @dataProvider data_provider_get_uservisible_delegate
+     * @param string $role The role to assign to the user.
+     * @param bool $parentvisible The visibility of the parent section.
+     * @param bool $delegatedvisible The visibility of the delegated section.
+     * @param bool $expected The expected visibility of the delegated section.
+     * @return void
+     */
+    public function test_get_uservisible_delegate(
+        string $role,
+        bool $parentvisible,
+        bool $delegatedvisible,
+        bool $expected,
+    ): void {
+        $this->resetAfterTest();
+
+        $manager = \core_plugin_manager::resolve_plugininfo_class('mod');
+        $manager::enable_plugin('subsection', 1);
+
+        $course = $this->getDataGenerator()->create_course(['numsections' => 1]);
+        $subsection = $this->getDataGenerator()->create_module('subsection', ['course' => $course], ['section' => 1]);
+
+        $student = $this->getDataGenerator()->create_and_enrol($course, $role);
+
+        $modinfo = get_fast_modinfo($course);
+
+        formatactions::section($course)->update(
+            $modinfo->get_section_info(1),
+            ['visible' => $parentvisible]
+        );
+
+        formatactions::cm($course)->set_visibility(
+            $subsection->cmid,
+            $delegatedvisible,
+        );
+
+        $this->setUser($student);
+        $modinfo = get_fast_modinfo($course);
+
+        $delegatedsection = $modinfo->get_cm($subsection->cmid)->get_delegated_section_info();
+
+        // The get_uservisible is a magic getter.
+        $this->assertEquals($expected, $delegatedsection->uservisible);
+    }
+
+    /**
+     * Data provider for test_get_uservisible_delegate.
+     *
+     * @return array
+     */
+    public static function data_provider_get_uservisible_delegate(): array {
+        return [
+            [
+            'role' => 'student',
+            'parentavailable' => true,
+            'delegatedavailable' => true,
+            'expectedavailable' => true,
+            'expecteduservisible' => true,
+            ],
+            [
+            'role' => 'student',
+            'parentavailable' => true,
+            'delegatedavailable' => false,
+            'expectedavailable' => false,
+            'expecteduservisible' => false,
+            ],
+            [
+            'role' => 'student',
+            'parentavailable' => false,
+            'delegatedavailable' => true,
+            'expectedavailable' => false,
+            'expecteduservisible' => false,
+            ],
+            [
+            'role' => 'student',
+            'parentavailable' => false,
+            'delegatedavailable' => false,
+            'expectedavailable' => false,
+            'expecteduservisible' => false,
+            ],
+            [
+            'role' => 'editingteacher',
+            'parentavailable' => true,
+            'delegatedavailable' => true,
+            'expectedavailable' => true,
+            'expecteduservisible' => true,
+            ],
+            [
+            'role' => 'editingteacher',
+            'parentavailable' => true,
+            'delegatedavailable' => false,
+            'expectedavailable' => true,
+            'expecteduservisible' => true,
+            ],
+            [
+            'role' => 'editingteacher',
+            'parentavailable' => false,
+            'delegatedavailable' => true,
+            'expectedavailable' => true,
+            'expecteduservisible' => true,
+            ],
+            [
+            'role' => 'editingteacher',
+            'parentavailable' => false,
+            'delegatedavailable' => false,
+            'expectedavailable' => true,
+            'expecteduservisible' => true,
+            ],
+        ];
+    }
+
+    /**
+     * Test get_available method when the section is delegated.
+     *
+     * @covers \section_info::get_available
+     * @covers \section_info::get_uservisible
+     * @dataProvider data_provider_get_available_delegated
+     * @param string $role The role to assign to the user.
+     * @param bool $parentavailable The parent section is available.
+     * @param bool $delegatedavailable The delegated section is available..
+     * @param bool $expectedavailable The expected availability of the delegated section.
+     * @param bool $expecteduservisible The expected uservisibility of the delegated section.
+     * @return void
+     */
+    public function test_get_available_delegated(
+        string $role,
+        bool $parentavailable,
+        bool $delegatedavailable,
+        bool $expectedavailable,
+        bool $expecteduservisible,
+    ): void {
+        $this->resetAfterTest();
+
+        // The element will be available tomorrow.
+        $availability = json_encode(
+            (object) [
+                'op' => '&',
+                'showc' => [true],
+                'c' => [
+                    [
+                        'type' => 'date',
+                        'd' => '>=',
+                        't' => time() + DAYSECS,
+                    ],
+                ],
+            ]
+        );
+
+        $manager = \core_plugin_manager::resolve_plugininfo_class('mod');
+        $manager::enable_plugin('subsection', 1);
+
+        $course = $this->getDataGenerator()->create_course(['numsections' => 1]);
+
+        $cmparams = ['section' => 1];
+        if (!$delegatedavailable) {
+            $cmparams['availability'] = $availability;
+        }
+
+        $subsection = $this->getDataGenerator()->create_module(
+            'subsection',
+            ['course' => $course],
+            $cmparams
+        );
+
+        $student = $this->getDataGenerator()->create_and_enrol($course, $role);
+
+        $modinfo = get_fast_modinfo($course);
+
+        if (!$parentavailable) {
+            formatactions::section($course)->update(
+                $modinfo->get_section_info(1),
+                ['availability' => $availability]
+            );
+        }
+
+        $this->setUser($student);
+        $modinfo = get_fast_modinfo($course);
+
+        $delegatedsection = $modinfo->get_cm($subsection->cmid)->get_delegated_section_info();
+
+        // All section_info getters are magic methods.
+        $this->assertEquals($expectedavailable, $delegatedsection->available);
+        $this->assertEquals($expecteduservisible, $delegatedsection->uservisible);
+    }
+
+    /**
+     * Data provider for test_get_available_delegated.
+     *
+     * @return array
+     */
+    public static function data_provider_get_available_delegated(): array {
+        return [
+            [
+            'role' => 'student',
+            'parentavailable' => true,
+            'delegatedavailable' => true,
+            'expectedavailable' => true,
+            'expecteduservisible' => true,
+            ],
+            [
+            'role' => 'student',
+            'parentavailable' => true,
+            'delegatedavailable' => false,
+            'expectedavailable' => false,
+            'expecteduservisible' => false,
+            ],
+            [
+            'role' => 'student',
+            'parentavailable' => false,
+            'delegatedavailable' => true,
+            'expectedavailable' => false,
+            'expecteduservisible' => false,
+            ],
+            [
+            'role' => 'student',
+            'parentavailable' => false,
+            'delegatedavailable' => false,
+            'expectedavailable' => false,
+            'expecteduservisible' => false,
+            ],
+            [
+            'role' => 'editingteacher',
+            'parentavailable' => true,
+            'delegatedavailable' => true,
+            'expectedavailable' => true,
+            'expecteduservisible' => true,
+            ],
+            [
+            'role' => 'editingteacher',
+            'parentavailable' => true,
+            'delegatedavailable' => false,
+            'expectedavailable' => false,
+            'expecteduservisible' => true,
+            ],
+            [
+            'role' => 'editingteacher',
+            'parentavailable' => false,
+            'delegatedavailable' => true,
+            'expectedavailable' => false,
+            'expecteduservisible' => true,
+            ],
+            [
+            'role' => 'editingteacher',
+            'parentavailable' => false,
+            'delegatedavailable' => false,
+            'expectedavailable' => false,
+            'expecteduservisible' => true,
+            ],
+        ];
+    }
 }
