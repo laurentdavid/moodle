@@ -19,6 +19,7 @@ namespace core_courseformat\local;
 
 use core_courseformat\sectiondelegatemodule;
 use course_modinfo;
+
 /**
  * Course module course format actions.
  *
@@ -41,7 +42,7 @@ class cmactions extends baseactions {
             bool $rebuildcache = true
     ): bool {
 
-        if (!$delegatedclass = sectiondelegatemodule::has_delegate_class('mod_' . $cm->modname)) {
+        if (!sectiondelegatemodule::has_delegate_class('mod_' . $cm->modname)) {
             return false;
         }
 
@@ -174,13 +175,13 @@ class cmactions extends baseactions {
             ]
         );
 
+        $fields = ['visible' => $visible, 'visibleold' => $visible];
+        $this->update_delegated($cm, $fields, false);
+
         if ($rebuildcache) {
             \course_modinfo::purge_course_module_cache($cm->course, $cm->id);
             rebuild_course_cache($cm->course, false, true);
         }
-
-        $fields = ['visible' => $visible, 'visibleold' => $visible];
-        $this->update_delegated($cm, $fields, $rebuildcache);
 
         if ($cm->visible == $visible) {
             // There is nothing else to change.
