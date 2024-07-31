@@ -1852,18 +1852,20 @@ class modinfolib_test extends advanced_testcase {
      * Test get_uservisible method when the section is delegated.
      *
      * @covers \section_info::get_uservisible
-     * @dataProvider data_provider_get_uservisible_delegate
+     * @dataProvider data_provider_get_available_visible_delegated
      * @param string $role The role to assign to the user.
      * @param bool $parentvisible The visibility of the parent section.
      * @param bool $delegatedvisible The visibility of the delegated section.
-     * @param bool $expected The expected visibility of the delegated section.
+     * @param bool $expectedavailable The expected availability of the delegated section.
+     * @param bool $expecteduservisible The expected uservisibility of the delegated section.
      * @return void
      */
     public function test_get_uservisible_delegate(
         string $role,
         bool $parentvisible,
         bool $delegatedvisible,
-        bool $expected,
+        bool $expectedavailable,
+        bool $expecteduservisible,
     ): void {
         $this->resetAfterTest();
 
@@ -1893,73 +1895,7 @@ class modinfolib_test extends advanced_testcase {
         $delegatedsection = $modinfo->get_cm($subsection->cmid)->get_delegated_section_info();
 
         // The get_uservisible is a magic getter.
-        $this->assertEquals($expected, $delegatedsection->uservisible);
-    }
-
-    /**
-     * Data provider for test_get_uservisible_delegate.
-     *
-     * @return array
-     */
-    public static function data_provider_get_uservisible_delegate(): array {
-        return [
-            [
-            'role' => 'student',
-            'parentavailable' => true,
-            'delegatedavailable' => true,
-            'expectedavailable' => true,
-            'expecteduservisible' => true,
-            ],
-            [
-            'role' => 'student',
-            'parentavailable' => true,
-            'delegatedavailable' => false,
-            'expectedavailable' => false,
-            'expecteduservisible' => false,
-            ],
-            [
-            'role' => 'student',
-            'parentavailable' => false,
-            'delegatedavailable' => true,
-            'expectedavailable' => false,
-            'expecteduservisible' => false,
-            ],
-            [
-            'role' => 'student',
-            'parentavailable' => false,
-            'delegatedavailable' => false,
-            'expectedavailable' => false,
-            'expecteduservisible' => false,
-            ],
-            [
-            'role' => 'editingteacher',
-            'parentavailable' => true,
-            'delegatedavailable' => true,
-            'expectedavailable' => true,
-            'expecteduservisible' => true,
-            ],
-            [
-            'role' => 'editingteacher',
-            'parentavailable' => true,
-            'delegatedavailable' => false,
-            'expectedavailable' => true,
-            'expecteduservisible' => true,
-            ],
-            [
-            'role' => 'editingteacher',
-            'parentavailable' => false,
-            'delegatedavailable' => true,
-            'expectedavailable' => true,
-            'expecteduservisible' => true,
-            ],
-            [
-            'role' => 'editingteacher',
-            'parentavailable' => false,
-            'delegatedavailable' => false,
-            'expectedavailable' => true,
-            'expecteduservisible' => true,
-            ],
-        ];
+        $this->assertEquals($expecteduservisible, $delegatedsection->uservisible);
     }
 
     /**
@@ -1967,7 +1903,7 @@ class modinfolib_test extends advanced_testcase {
      *
      * @covers \section_info::get_available
      * @covers \section_info::get_uservisible
-     * @dataProvider data_provider_get_available_delegated
+     * @dataProvider data_provider_get_available_visible_delegated
      * @param string $role The role to assign to the user.
      * @param bool $parentavailable The parent section is available.
      * @param bool $delegatedavailable The delegated section is available..
@@ -2037,11 +1973,11 @@ class modinfolib_test extends advanced_testcase {
     }
 
     /**
-     * Data provider for test_get_available_delegated.
+     * Data provider for test_get_available_delegated and test_get_uservisible_delegate.
      *
      * @return array
      */
-    public static function data_provider_get_available_delegated(): array {
+    public static function data_provider_get_available_visible_delegated(): array {
         return [
             [
             'role' => 'student',
