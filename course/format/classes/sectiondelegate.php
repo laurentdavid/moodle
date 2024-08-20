@@ -59,7 +59,11 @@ abstract class sectiondelegate {
         if ($classname === null) {
             return null;
         }
-        return new $classname($sectioninfo);
+        try {
+            return new $classname($sectioninfo);
+        } catch (\moodle_exception $e) {
+            return null;
+        }
     }
 
     /**
