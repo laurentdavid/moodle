@@ -20,6 +20,7 @@ use Exception;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use mod_bigbluebuttonbn\local\config;
+use mod_bigbluebuttonbn\extension;
 
 /**
  * The broker routines
@@ -30,34 +31,31 @@ use mod_bigbluebuttonbn\local\config;
  * @author    Jesus Federico  (jesus [at] blindsidenetworks [dt] com)
  */
 class broker {
-
-    /** @var array List of required params */
-    protected $requiredparams = [
-        'recording_ready' => [
-            'bigbluebuttonbn' => 'The BigBlueButtonBN instance ID must be specified.',
-            'signed_parameters' => 'A JWT encoded string must be included as [signed_parameters].'
-        ],
-        'meeting_events' => [
-            'bigbluebuttonbn' => 'The BigBlueButtonBN instance ID must be specified.'
-        ],
-    ];
-
     /**
      * Validate the supplied list of parameters, providing feedback about any missing or incorrect values.
      *
      * @param array $params
      * @return null|string
      */
-    public function validate_parameters(array $params): ?string {
-        if (!isset($params['action']) || empty($params['action']) ) {
-            return 'Parameter ['.$params['action'].'] was not included';
+    public static function validate_parameters(array $params): ?string {
+        $requiredparams = [
+            'recording_ready' => [
+                'bigbluebuttonbn' => 'The BigBlueButtonBN instance ID must be specified.',
+                'signed_parameters' => 'A JWT encoded string must be included as [signed_parameters].',
+            ],
+            'meeting_events' => [
+                'bigbluebuttonbn' => 'The BigBlueButtonBN instance ID must be specified.',
+            ],
+        ];
+        if (!isset($params['action']) || empty($params['action'])) {
+            return 'Parameter [' . $params['action'] . '] was not included';
         }
 
         $action = strtolower($params['action']);
-        if (!array_key_exists($action, $this->requiredparams)) {
+        if (!array_key_exists($action, $requiredparams)) {
             return "Action {$params['action']} can not be performed.";
         }
-        return $this->validate_parameters_message($params, $this->requiredparams[$action]);
+        return self::validate_parameters_message($params, $requiredparams[$action]);
     }
 
     /**
@@ -157,11 +155,19 @@ class broker {
             // Convert JSON string to a JSON object.
             $jsonobj = json_decode($jsonstr);
             $headermsg = meeting::meeting_events($instance, $jsonobj);
-            header($headermsg);
+
+            // Hooks for extensions.
+            $extensions = extension::broker_meeting_events_addons_instances($instance, $jsonstr);
+            foreach ($extensions as $extension) {
+                $extension->process_action();
+            }
         } catch (Exception $e) {
             $msg = 'Caught exception: ' . $e->getMessage();
-            header('HTTP/1.0 400 Bad Request. ' . $msg);
+            debugging($msg, DEBUG_DEVELOPER);
+            $headermsg = 'HTTP/1.0 400 Bad Request. ' . $msg;
         }
+
+        header($headermsg);
     }
 
 

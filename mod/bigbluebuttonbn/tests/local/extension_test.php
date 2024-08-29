@@ -20,6 +20,7 @@ use backup_controller;
 use mod_bigbluebuttonbn\completion\custom_completion;
 use mod_bigbluebuttonbn\extension;
 use mod_bigbluebuttonbn\instance;
+use mod_bigbluebuttonbn\local\extension\broker_meeting_events_addons;
 use mod_bigbluebuttonbn\local\extension\mod_instance_helper;
 use mod_bigbluebuttonbn\meeting;
 use mod_bigbluebuttonbn\test\subplugins_test_helper_trait;
@@ -368,6 +369,57 @@ class extension_test extends \advanced_testcase {
             ],
         ];
     }
+
+    /**
+     * Test broker meeting_events with and without addons.
+     * @return void
+     * @covers \mod_bigbluebuttonbn\local\extension\broker_meeting_events_addons
+     */
+    public function test_broker_meeting_events_addons(): void {
+        $this->resetAfterTest();
+        global $DB;
+        // Enable plugin.
+        $this->enable_plugins(true);
+        $this->initialise_mock_server();
+        list($bbactivitycontext, $bbactivitycm, $bbactivity) = $this->create_instance(
+            $this->get_course());
+        $plugingenerator = $this->getDataGenerator()->get_plugin_generator('mod_bigbluebuttonbn');
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+
+        // Now create a couple of events.
+        $instance = instance::get_from_instanceid($bbactivity->id);
+        set_config('bigbluebuttonbn_meetingevents_enabled', true);
+        $meeting = $plugingenerator->create_meeting([
+            'instanceid' => $instance->get_instance_id(),
+            'groupid' => $instance->get_group_id(),
+            'participants' => json_encode([$user->id]),
+        ]);
+
+        $events = [
+            (object) ['name' => 'talks'],
+            (object) ['name' => 'raisehand'],
+            (object) ['name' => 'raisehand'],
+        ];
+        foreach ($events as $edesc) {
+            $plugingenerator->add_meeting_event($user, $instance, $edesc->name, $edesc->data ?? '');
+        }
+        $result = $plugingenerator->send_all_events($instance);
+        $this->assertNotEmpty($result->data);
+        $resultstring = json_encode($result->data);
+        $data = json_decode($resultstring);
+
+        meeting::meeting_events($instance, $data);
+        $extensions = extension::broker_meeting_events_addons_instances($instance, json_encode($data));
+        foreach ($extensions as $extension) {
+            $extension->process_action();
+        }
+        $addondata = $DB->get_field('bbbext_simple', 'meetingevents', ['bigbluebuttonbnid' => $bbactivity->id]);
+        $addondata = json_decode($addondata);
+        // Check that the data is received.
+        $this->assertEquals(json_encode($addondata), $resultstring);
+    }
+
 
     /**
      * Data provider for testing get_class_implementing
