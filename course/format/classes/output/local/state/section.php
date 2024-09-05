@@ -89,6 +89,7 @@ class section implements renderable {
             'contentcollapsed' => $contentcollapsed,
             'hasrestrictions' => $this->get_has_restrictions(),
             'bulkeditable' => $this->is_bulk_editable(),
+            'hascms' => false,
         ];
 
         if (empty($modinfo->sections[$section->section])) {
@@ -101,7 +102,7 @@ class section implements renderable {
                 $data->cmlist[] = $mod->id;
             }
         }
-
+        $data->hascms = !empty($data->cmlist);
         return $data;
     }
 

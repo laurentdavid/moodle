@@ -49,6 +49,7 @@ export default class Component extends DndSection {
             RESTRICTIONS: 'restrictions',
             PAGEITEM: 'pageitem',
             OVERLAYBORDERS: 'overlay-preview-borders',
+            SECTIONEMPTY: 'section-empty',
         };
 
         // We need our id to watch specific events.
@@ -132,6 +133,7 @@ export default class Component extends DndSection {
         this.element.classList.toggle(this.classes.SECTIONCURRENT, element.current);
         this.element.classList.toggle(this.classes.DRAGGING, element.dragging ?? false);
         this.element.classList.toggle(this.classes.LOCKED, element.locked ?? false);
+        sectionItem.classList.toggle(this.classes.SECTIONEMPTY, element.cmlist?.length === 0);
         this.locked = element.locked;
         // Update title.
         this.getElement(this.selectors.SECTION_TITLE).innerHTML = element.title;
