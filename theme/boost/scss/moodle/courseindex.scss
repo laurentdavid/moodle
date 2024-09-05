@@ -151,6 +151,19 @@ $courseindex-item-current: $primary !default;
             line-height: $line-height-base;
             display: none;
         }
+        .section-empty {
+            .courseindex-chevron {
+                display: none; // Hide when empty sections.
+            }
+            .courseindex-item-content {
+                display: none; // Hide empty sections.
+            }
+            .courseindex-link:before {
+                content: '';
+                display: inline-block;
+                width: 1.25rem; // Take as much space as the chevron.
+            }
+        }
 
         &.current {
             border-left: solid 3px $courseindex-item-current;

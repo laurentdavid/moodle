@@ -52,7 +52,8 @@
                 "visible": 0,
                 "isactive": 1
             }
-        ]
+        ],
+        "hascms": 1
     }
 }}
 <div
@@ -67,6 +68,7 @@
     <div class="courseindex-item d-flex
             {{^visible}}dimmed{{/visible}}
             {{#hasrestrictions}}restrictions{{/hasrestrictions}}
+            {{^hascms}}section-empty{{/hascms}}
             courseindex-section-title"
         id="courseindexsection{{number}}"
         data-for="section_item"

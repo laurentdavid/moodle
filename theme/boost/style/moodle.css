@@ -38289,6 +38289,17 @@ div.editor_atto_toolbar button .icon {
   line-height: 1.5;
   display: none;
 }
+.courseindex .courseindex-section .section-empty .courseindex-chevron {
+  display: none;
+}
+.courseindex .courseindex-section .section-empty .courseindex-item-content {
+  display: none;
+}
+.courseindex .courseindex-section .section-empty .courseindex-link:before {
+  content: "";
+  display: inline-block;
+  width: 1.25rem;
+}
 .courseindex .courseindex-section.current {
   border-left: solid 3px #0f6cbf;
 }
