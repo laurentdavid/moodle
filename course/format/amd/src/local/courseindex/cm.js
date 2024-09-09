@@ -46,6 +46,7 @@ export default class Component extends DndCmItem {
         this.selectors = {
             CM_NAME: `[data-for='cm_name']`,
             CM_COMPLETION: `[data-for='cm_completion']`,
+            CM_LINK: '.courseindex-link'
         };
         // Default classes to toggle on refresh.
         this.classes = {
@@ -107,6 +108,13 @@ export default class Component extends DndCmItem {
                 'click',
                 this._activityAnchor,
             );
+        }
+        // Work on the cm link itself, for case like subsection and or elements that are not present in the page.
+        const indexURL = this._getCmIndexURL();
+        if (indexURL) {
+            const link = this.getElement(this.selectors.CM_LINK);
+            indexURL.hash = cm.anchor;
+            link.setAttribute('href', indexURL.href);
         }
     }
 
@@ -187,9 +195,8 @@ export default class Component extends DndCmItem {
     /**
      * The activity anchor event.
      *
-     * @param {Event} event
      */
-    _activityAnchor(event) {
+    _activityAnchor() {
         const cm = this.reactive.get('cm', this.id);
         // If the user cannot access the element but the element is present in the page
         // the new url should be an anchor link.
@@ -203,16 +210,47 @@ export default class Component extends DndCmItem {
                 this.reactive.dispatch('setPageItem', 'cm', cm.id);
                 pendingAnchor.resolve();
             }, 50);
-            return;
         }
+    }
+
+    /**
+     * Get the course index or section URL.
+     *
+     * @return {URL|null} the course index or section URL.
+     * @private
+     */
+    _getCmIndexURL() {
+        const cm = this.reactive.get('cm', this.id);
         // If the element is not present in the page we need to go to the specific section.
         const course = this.reactive.get('course');
-        const section = this.reactive.get('section', cm.sectionid);
-        if (!section) {
-            return;
+        let section = this.reactive.get('section', cm.sectionid);
+        // Delegated sections should go to their own section Page.
+        if (cm.hasdelegatedsection) {
+            section = this.reactive.get('section', cm.delegatesectionid);
+            return new URL(section.sectionurl);
         }
-        const url = `${course.baseurl}&section=${section.number}#${cm.anchor}`;
-        event.preventDefault();
-        window.location = url;
+        const currentURL = new URL(window.location.href);
+        // Case for which the cm has no URL. This might happen with labels or other elements that
+        // FEATURE_NO_VIEW_LINK.
+        if (!cm.url) {
+            // We will look for the module in the course index that has go the same ID as the anchor.
+            const elementInPage = document.getElementById(cm.anchor);
+            if (!elementInPage) {
+                // We are not in the course Index, so we should jump to the other section page.
+                if (!currentURL.pathname.includes(course.baseurl)) {
+                    const sectionURL = new URL(section.sectionurl);
+                    sectionURL.hash = cm.anchor;
+                    return sectionURL;
+                } else {
+                    // This is a situation where we are in the course page and the element is not present.
+                    // We should stay where we are.
+                    return null;
+                }
+            }
+            currentURL.hash = cm.anchor;
+            return currentURL;
+        }
+        return null;
     }
+
 }
