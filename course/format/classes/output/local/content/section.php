@@ -337,7 +337,11 @@ class section implements named_templatable, renderable {
 
         $data->iscoursedisplaymultipage = ($format->get_course_display() == COURSE_DISPLAY_MULTIPAGE);
 
-        if ($data->num === 0 && !$data->iscoursedisplaymultipage) {
+        if (
+            ($data->num === 0 || $data->id == $format->get_sectionid()) &&
+            !$data->iscoursedisplaymultipage &&
+            empty($section->component)
+        ) {
             $data->collapsemenu = true;
         }
 
