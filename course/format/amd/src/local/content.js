@@ -311,13 +311,23 @@ export default class Component extends BaseComponent {
         if (!target) {
             return;
         }
+
+        // Find collapsible sections.
+        let sectionIsCollapsible = {};
+        const togglerDoms = this.element.querySelectorAll(this.selectors.SECTION_ITEM + " " + this.selectors.COLLAPSE);
+        for (let togglerDom of togglerDoms) {
+            sectionIsCollapsible[togglerDom.closest(this.selectors.SECTION).dataset.id] = true;
+        }
+
         // Check if we have all sections collapsed/expanded.
         let allcollapsed = true;
         let allexpanded = true;
         state.section.forEach(
             section => {
-                allcollapsed = allcollapsed && section.contentcollapsed;
-                allexpanded = allexpanded && !section.contentcollapsed;
+                if (sectionIsCollapsible[section.id]) {
+                    allcollapsed = allcollapsed && section.contentcollapsed;
+                    allexpanded = allexpanded && !section.contentcollapsed;
+                }
             }
         );
         if (allcollapsed) {
@@ -445,9 +455,10 @@ export default class Component extends BaseComponent {
      * Refresh a section cm list.
      *
      * @param {Object} param
+     * @param {Object} param.state the full state object.
      * @param {Object} param.element details the update details.
      */
-    _refreshSectionCmlist({element}) {
+    _refreshSectionCmlist({state, element}) {
         const cmlist = element.cmlist ?? [];
         const section = this.getElement(this.selectors.SECTION, element.id);
         const listparent = section?.querySelector(this.selectors.SECTION_CMLIST);
@@ -456,6 +467,7 @@ export default class Component extends BaseComponent {
         if (listparent) {
             this._fixOrder(listparent, cmlist, this.selectors.CM, this.dettachedCms, createCm);
         }
+        this._refreshAllSectionsToggler(state);
     }
 
     /**
@@ -476,6 +488,7 @@ export default class Component extends BaseComponent {
         if (listparent) {
             this._fixOrder(listparent, sectionlist, this.selectors.SECTION, this.dettachedSections, createSection);
         }
+        this._refreshAllSectionsToggler(state);
     }
 
     /**
