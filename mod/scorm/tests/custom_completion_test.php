@@ -137,6 +137,9 @@ final class custom_completion_test extends advanced_testcase {
             'Completion score required, user score meets requirement' => [
                 'completionscorerequired', 80, [$completionscorepass], 0, COMPLETION_COMPLETE, null
             ],
+            'Completion score required, but user has not yet completed the attempt' => [
+                'completionscorerequired', 80, [$completionincomplete], 1, COMPLETION_INCOMPLETE, null
+            ],
             'Completion of all scos required, user has not completed, can make another attempt' => [
                 'completionstatusallscos', 1, [$completionincomplete, $completioncompleted], 3, COMPLETION_INCOMPLETE, null
             ],
@@ -210,22 +213,20 @@ final class custom_completion_test extends advanced_testcase {
         }
 
         // Anything not complete will check if attempts have been exhausted, mock the DB calls for that check.
-        if ($status != COMPLETION_COMPLETE) {
-            $mockscorm = (object) [
-                'id' => 1,
-                'version' => SCORM_13,
-                'grademethod' => GRADESCOES,
-                'maxattempt' => $maxattempts,
-            ];
+        $mockscorm = (object) [
+            'id' => 1,
+            'version' => SCORM_13,
+            'grademethod' => GRADESCOES,
+            'maxattempt' => $maxattempts,
+        ];
 
-            $DB->expects($this->atMost(1))
-                ->method('get_record')
-                ->willReturn($mockscorm);
+        $DB->expects($this->atMost(1))
+            ->method('get_record')
+            ->willReturn($mockscorm);
 
-            $DB->expects($this->atMost(1))
-                ->method('count_records_sql')
-                ->willReturn(count($uservalue));
-        }
+        $DB->expects($this->atMost(1))
+            ->method('count_records_sql')
+            ->willReturn(count($uservalue));
 
         $customcompletion = new custom_completion($mockcminfo, 2);
 

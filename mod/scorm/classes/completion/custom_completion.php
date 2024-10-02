@@ -54,7 +54,7 @@ class custom_completion extends activity_custom_completion {
                         JOIN {scorm_element} e ON e.id = v.elementid
                        WHERE a.scormid = ?
                          AND a.userid = ?";
-
+        $checkmaxattempts = true;
         switch ($rule) {
             case 'completionstatusrequired':
                 $status = COMPLETION_INCOMPLETE;
@@ -98,6 +98,13 @@ class custom_completion extends activity_custom_completion {
 
                 // Check if any track meets or exceeds the minimum score required.
                 foreach ($tracks as $track) {
+                    if (!is_number($track->value)) {
+                        if ($track->value === 'incomplete') {
+                            $checkmaxattempts = false; // There is at least one incomplete attempt so we cannot state
+                            // if we have reached or not the max attempt.
+                        }
+                        continue;
+                    }
                     if (strlen($track->value) && (floatval($track->value) >= $requiredscore)) {
                         $status = COMPLETION_COMPLETE;
 
@@ -149,7 +156,7 @@ class custom_completion extends activity_custom_completion {
         }
 
         // If not yet meeting the requirement and no attempts remain to complete it, mark it as failed.
-        if ($status === COMPLETION_INCOMPLETE) {
+        if ($checkmaxattempts && $status === COMPLETION_INCOMPLETE) {
             $scorm = $DB->get_record('scorm', ['id' => $this->cm->instance]);
             $attemptcount = scorm_get_attempt_count($this->userid, $scorm);
 
