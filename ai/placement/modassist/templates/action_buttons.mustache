@@ -1,0 +1,60 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template aiplacement_modassist/action_buttons
+
+    Template to display summarise button for the course assist.
+
+    Context variables required for this template:
+    * none
+
+    Example context (json):
+    {
+        "actions": [
+            {
+                "action": "glossary-add-entry",
+                "title": "summarise",
+                "tooltip": "summarise_tooltips, aiplacement_courseassist",
+                "component": "mod_glossary"
+            }
+        ]
+    }
+}}
+<div class="mod-ai-assist-controls">
+    {{#actions}}
+        <button class="btn btn-outline-secondary"
+                aria-controls="ai-drawer"
+                type="button"
+                data-action="mod-ai-assist-run"
+                data-action-description="{{description}}"
+                data-action-subtype="{{action}}"
+                data-component="{{component}}"
+                data-cmid="{{cmid}}"
+                data-toggle="tooltip"
+                data-html="true"
+                title="{{description}}"
+        >
+            <span class="mod-ai-assist-sparkles-icon">
+                {{#pix}} sparkles, aiplacement_courseassist {{/pix}}
+            </span>
+            <span class="mod-ai-assist-sparkles-icon white">
+                {{#pix}} sparkles-white, aiplacement_courseassist {{/pix}}
+            </span>
+            {{title}}
+        </button>
+    {{/actions}}
+</div>

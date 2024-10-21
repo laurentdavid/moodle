@@ -1,0 +1,28 @@
+.mod-ai-assist-controls button.btn.btn-outline-secondary {
+    color: unset;
+}
+
+.mod-ai-assist-controls button.btn.btn-outline-secondary span.mod-ai-assist-sparkles-icon {
+    display: inline-block;
+}
+
+.mod-ai-assist-controls button.btn.btn-outline-secondary span.mod-ai-assist-sparkles-icon.white {
+    display: none;
+}
+
+.mod-ai-assist-controls button.btn.btn-outline-secondary:not([disabled]):hover {
+    color: #fff;
+}
+
+.mod-ai-assist-controls button.btn.btn-outline-secondary:not([disabled]):hover span.mod-ai-assist-sparkles-icon {
+    display: none;
+}
+
+.mod-ai-assist-controls button.btn.btn-outline-secondary:not([disabled]):hover span.mod-ai-assist-sparkles-icon.white {
+    display: inline-block;
+}
+
+.mod-ai-assist-controls button img.icon {
+    width: auto;
+    vertical-align: sub;
+}
