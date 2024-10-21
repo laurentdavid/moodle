@@ -16,8 +16,8 @@
 
 namespace mod_glossary\output;
 
-use moodle_url;
 use context_module;
+use moodle_url;
 use renderable;
 use renderer_base;
 use single_button;
@@ -75,8 +75,8 @@ class standard_action_bar implements renderable, templatable {
      * @throws \coding_exception
      */
     public function __construct(object $cm, object $module, object $displayformat, string $mode, string $hook,
-            string $sortkey, string $sortorder, int $offset, int $pagelimit, int $fullsearch,
-            string $tab, string $defaulttab) {
+        string $sortkey, string $sortorder, int $offset, int $pagelimit, int $fullsearch,
+        string $tab, string $defaulttab) {
         $this->cm = $cm;
         $this->module = $module;
         $this->displayformat = $displayformat;
@@ -105,10 +105,29 @@ class standard_action_bar implements renderable, templatable {
     public function export_for_template(renderer_base $output) {
         return [
             'addnewbutton' => $this->create_add_button($output),
+            'aimodassistinfo' => \aiplacement_modassist\output\assist_ui::get_action_buttons(
+                context_module::instance($this->cm->id)
+            ),
             'searchbox' => $this->create_search_box(),
             'tools' => $this->get_additional_tools($output),
             'tabjumps' => $this->generate_tab_jumps($output)
         ];
+    }
+
+    /**
+     * Render the add entry button
+     *
+     * @param renderer_base $output
+     * @return \stdClass|null
+     */
+    private function create_add_button(renderer_base $output): ?\stdClass {
+        if (!has_capability('mod/glossary:write', $this->context)) {
+            return null;
+        }
+        $btn = new single_button(new moodle_url('/mod/glossary/edit.php', ['cmid' => $this->cm->id]),
+            get_string('addsingleentry', 'glossary'), 'post', single_button::BUTTON_PRIMARY);
+
+        return $btn->export_for_template($output);
     }
 
     /**
@@ -150,22 +169,6 @@ class standard_action_bar implements renderable, templatable {
     }
 
     /**
-     * Render the add entry button
-     *
-     * @param renderer_base $output
-     * @return \stdClass|null
-     */
-    private function create_add_button(renderer_base $output): ?\stdClass {
-        if (!has_capability('mod/glossary:write', $this->context)) {
-            return null;
-        }
-        $btn = new single_button(new moodle_url('/mod/glossary/edit.php', ['cmid' => $this->cm->id]),
-            get_string('addsingleentry', 'glossary'), 'post', single_button::BUTTON_PRIMARY);
-
-        return $btn->export_for_template($output);
-    }
-
-    /**
      * Render the additional tools required by the glossary
      *
      * @param renderer_base $output
@@ -195,12 +198,12 @@ class standard_action_bar implements renderable, templatable {
 
         if (has_capability('mod/glossary:manageentries', $this->context) or $this->module->allowprintview) {
             $params = array(
-                'id'        => $this->cm->id,
-                'mode'      => $this->mode,
-                'hook'      => $this->hook,
-                'sortkey'   => $this->sortkey,
+                'id' => $this->cm->id,
+                'mode' => $this->mode,
+                'hook' => $this->hook,
+                'sortkey' => $this->sortkey,
                 'sortorder' => $this->sortorder,
-                'offset'    => $this->offset,
+                'offset' => $this->offset,
                 'pagelimit' => $this->pagelimit
             );
             $printurl = new moodle_url('/mod/glossary/print.php', $params);
@@ -209,8 +212,8 @@ class standard_action_bar implements renderable, templatable {
         }
 
         if (!empty($CFG->enablerssfeeds) && !empty($CFG->glossary_enablerssfeeds)
-                && $this->module->rsstype && $this->module->rssarticles
-                && has_capability('mod/glossary:view', $this->context)) {
+            && $this->module->rsstype && $this->module->rssarticles
+            && has_capability('mod/glossary:view', $this->context)) {
             require_once("$CFG->libdir/rsslib.php");
             $string = get_string('rssfeed', 'glossary');
             $url = new moodle_url(rss_get_url($this->context->id, $USER->id, 'mod_glossary', $this->cm->instance));
