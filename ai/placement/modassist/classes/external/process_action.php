@@ -20,6 +20,7 @@ use aiplacement_modassist\utils;
 use core_external\external_api;
 use core_external\external_function_parameters;
 use core_external\external_value;
+use core_external\restricted_context_exception;
 
 /**
  * External API to call summarise text action for this placement.
@@ -28,7 +29,62 @@ use core_external\external_value;
  * @copyright  2024 Laurent David <laurent.david@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class summarise_text extends external_api {
+class process_action extends external_api {
+
+    /**
+     * Summarise text from the AI placement.
+     *
+     * @param int $contextid The context ID.
+     * @param string $action The action for the module.
+     * @param string $data
+     * @return array The generated content.
+     * @throws \moodle_exception
+     * @since Moodle 4.5
+     */
+    public static function execute(
+        int $contextid,
+        string $action,
+        string $data
+    ): array {
+        global $USER;
+        // Parameter validation.
+        [
+            'contextid' => $contextid,
+            'action' => $action,
+            'data' => $data,
+        ] = self::validate_parameters(self::execute_parameters(), [
+            'contextid' => $contextid,
+            'action' => $action,
+            'data' => $data,
+        ]);
+        // Context validation and permission check.
+        // Get the context from the passed in ID.
+        $context = \context::instance_by_id($contextid);
+
+        // Check the user has permission to use the AI service.
+        self::validate_context($context);
+        if (!utils::is_mod_assist_available($context)) {
+            throw new \moodle_exception('nomodassist', 'aiplacement_modassist');
+        }
+        $modinfo = utils::get_info_for_module($context);
+        if (empty($modinfo)) {
+            throw new \moodle_exception('nomodassist', 'aiplacement_modassist');
+        }
+        $decoded = json_decode($data);
+        if ($decoded === null) {
+            throw new \moodle_exception('invaliddata', 'aiplacement_modassist');
+        }
+        $response = $modinfo->process_action($context, $action, $decoded);
+        // Return the response.
+        return [
+            'success' => $response->get_success(),
+            'generatedcontent' => $response->get_response_data()['generatedcontent'] ?? '',
+            'finishreason' => $response->get_response_data()['finishreason'] ?? '',
+            'errorcode' => $response->get_errorcode(),
+            'error' => $response->get_errormessage(),
+            'timecreated' => $response->get_timecreated(),
+        ];
+    }
 
     /**
      * Summarise text parameters.
@@ -43,65 +99,17 @@ class summarise_text extends external_api {
                 'The context ID',
                 VALUE_REQUIRED,
             ),
-            'prompttext' => new external_value(
+            'action' => new external_value(
+                PARAM_ALPHANUMEXT,
+                'Action for the module',
+                VALUE_REQUIRED,
+            ),
+            'data' => new external_value(
                 PARAM_RAW,
-                'The prompt text for the AI service',
+                'The data encoded as a json array',
                 VALUE_REQUIRED,
             ),
         ]);
-    }
-
-    /**
-     * Summarise text from the AI placement.
-     *
-     * @param int $contextid The context ID.
-     * @param string $prompttext The data encoded as a json array.
-     * @return array The generated content.
-     * @since Moodle 4.5
-     */
-    public static function execute(
-        int $contextid,
-        string $prompttext
-    ): array {
-        global $USER;
-        // Parameter validation.
-        [
-            'contextid' => $contextid,
-            'prompttext' => $prompttext,
-        ] = self::validate_parameters(self::execute_parameters(), [
-            'contextid' => $contextid,
-            'prompttext' => $prompttext,
-        ]);
-        // Context validation and permission check.
-        // Get the context from the passed in ID.
-        $context = \context::instance_by_id($contextid);
-
-        // Check the user has permission to use the AI service.
-        self::validate_context($context);
-        if (!utils::is_mod_assist_available($context)) {
-            throw new \moodle_exception('nomodassist', 'aiplacement_modassist');
-        }
-
-        // Prepare the action.
-        $action = new \core_ai\aiactions\summarise_text(
-            contextid: $contextid,
-            userid: $USER->id,
-            prompttext: $prompttext,
-        );
-
-        // Send the action to the AI manager.
-        $manager = new \core_ai\manager();
-        $response = $manager->process_action($action);
-        // Return the response.
-        return [
-            'success' => $response->get_success(),
-            'generatedcontent' => $response->get_response_data()['generatedcontent'] ?? '',
-            'finishreason' => $response->get_response_data()['finishreason'] ?? '',
-            'errorcode' => $response->get_errorcode(),
-            'error' => $response->get_errormessage(),
-            'timecreated' => $response->get_timecreated(),
-            'prompttext' => $prompttext,
-        ];
     }
 
     /**
@@ -120,11 +128,6 @@ class summarise_text extends external_api {
             'timecreated' => new external_value(
                 PARAM_INT,
                 'The time the request was created',
-                VALUE_REQUIRED,
-            ),
-            'prompttext' => new external_value(
-                PARAM_RAW,
-                'The prompt text for the AI service',
                 VALUE_REQUIRED,
             ),
             'generatedcontent' => new external_value(

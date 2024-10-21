@@ -28,7 +28,7 @@ export default {
         MAIN_REGION: '[role="main"]',
     },
     ACTIONS: {
-        RESULT: '[data-action="ai-assist-result"]',
+        RUN: '[data-action="mod-ai-assist-run"]',
         RETRY: '[data-action="ai-assist-retry"]',
         DECLINE: '[data-action="ai-assist-policy-decline"]',
         ACCEPT: '.ai-policy-block [data-action="accept"]',

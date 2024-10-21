@@ -16,6 +16,13 @@
 
 namespace aiplacement_modassist;
 
+use context_module;
+use core_ai\aiactions\responses\response_base;
+
+defined('MOODLE_INTERNAL') || die();
+global $CFG;
+require_once($CFG->libdir . '/formslib.php');
+
 /**
  * Class mod_assist_info.
  *
@@ -31,6 +38,7 @@ abstract class mod_assist_info {
      */
     public function __construct(protected \context $context) {
     }
+
     /**
      * Get the list of actions that are available for this placement.
      *
@@ -41,4 +49,23 @@ abstract class mod_assist_info {
             \core_ai\aiactions\generate_text::class,
         ];
     }
+
+    /**
+     * Get the list of actions that are available for this placement.
+     *
+     * @param \MoodleQuickForm $form
+     * @param string $action
+     * @return void
+     */
+    public abstract function add_action_form_definitions(\MoodleQuickForm $mform, string $action): void;
+
+    /**
+     * Process action
+     *
+     * @param context_module $context
+     * @param string $action
+     * @param object $actiondata
+     * @return response_base|null response from the action
+     */
+    public abstract function process_action(context_module $context, string $action, object $actiondata): ?response_base;
 }

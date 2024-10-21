@@ -31,6 +31,8 @@ import AIHelper from 'core_ai/helper';
 import DrawerEvents from 'core/drawer_events';
 import {subscribe} from 'core/pubsub';
 import * as MessageDrawerHelper from 'core_message/message_drawer_helper';
+import ModalForm from 'core_form/modalform';
+import {getString} from 'core/str';
 
 const AIModAssist = class {
 
@@ -46,6 +48,12 @@ const AIModAssist = class {
     contextId;
 
     /**
+     * The current action
+     * @type {String}
+     */
+    currentAction;
+
+    /**
      * Constructor.
      * @param {Integer} userId The user ID.
      * @param {Integer} contextId The context ID.
@@ -57,7 +65,7 @@ const AIModAssist = class {
         this.aiDrawerElement = document.querySelector(Selectors.ELEMENTS.AIDRAWER);
         this.aiDrawerBodyElement = document.querySelector(Selectors.ELEMENTS.AIDRAWER_BODY);
         this.pageElement = document.querySelector(Selectors.ELEMENTS.PAGE);
-
+        this.currentAction = null;
         this.registerEventListeners();
     }
 
@@ -65,10 +73,13 @@ const AIModAssist = class {
      * Register event listeners.
      */
     registerEventListeners() {
-        document.addEventListener('click', async(e) => {
-            const summariseAction = e.target.closest(Selectors.ACTIONS.RESULT);
-            if (summariseAction) {
-                e.preventDefault();
+        const actionButtons = document.querySelectorAll(Selectors.ACTIONS.RUN);
+        if (!actionButtons) {
+            return;
+        }
+        actionButtons.forEach((element) => {
+            element.addEventListener('click', async (event) => {
+                event.preventDefault();
                 this.toggleAIDrawer();
                 const isPolicyAccepted = await this.isPolicyAccepted();
                 if (!isPolicyAccepted) {
@@ -76,9 +87,35 @@ const AIModAssist = class {
                     this.displayPolicy();
                     return;
                 }
-                // Display summary.
-                this.displayResult();
-            }
+                const modalForm = new ModalForm({
+                    modalConfig: {
+                        title: getString('action', 'aiplacement_modassist'),
+                    },
+                    formClass: 'aiplacement_modassist\\form\\mod_assist_action_form',
+                    args: {
+                        userid: this.userId,
+                        action: element.dataset.actionSubtype,
+                        component: element.dataset.component,
+                        cmid: element.dataset.cmid
+                    },
+                    saveButtonText: getString('continue'),
+                });
+
+                modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, event => {
+                    if (event.detail.result) {
+                        // Notify the user that the action was successful.
+                        this.currentAction = element.dataset.actionSubtype;
+                        this.runAction(event.detail.actiondata);
+                    } else {
+                        this.currentAction = null;
+                        Notification.addNotification({
+                            type: 'error',
+                            message: event.detail.errors.join('<br>')
+                        });
+                    }
+                });
+                modalForm.show();
+            });
         });
 
         // Close AI drawer if message drawer is shown.
@@ -99,7 +136,7 @@ const AIModAssist = class {
             acceptAction.addEventListener('click', (e) => {
                 e.preventDefault();
                 this.acceptPolicy().then(() => {
-                    return this.displayResult();
+                    return this.runAction();
                 }).catch(Notification.exception);
             });
         }
@@ -120,7 +157,7 @@ const AIModAssist = class {
             retryAction.addEventListener('click', (e) => {
                 e.preventDefault();
                 this.aiDrawerBodyElement.dataset.hasdata = '0';
-                this.displayResult();
+                this.runAction();
             });
         }
     }
@@ -134,7 +171,7 @@ const AIModAssist = class {
             regenerateAction.addEventListener('click', (e) => {
                 e.preventDefault();
                 this.aiDrawerBodyElement.dataset.hasdata = '0';
-                this.displayResult();
+                this.runAction();
             });
         }
     }
@@ -182,7 +219,7 @@ const AIModAssist = class {
             this.addPadding();
         }
         // Disable the summary button.
-        this.disableSummaryButton();
+        this.disableActionButton();
     }
 
     /**
@@ -195,7 +232,7 @@ const AIModAssist = class {
             this.removePadding();
         }
         // Enable the summary button.
-        this.enableSummaryButton();
+        this.enableActionButton();
     }
 
     /**
@@ -226,10 +263,13 @@ const AIModAssist = class {
     }
 
     /**
-     * Disable the summary button.
+     * Disable the relevant button.
      */
-    disableSummaryButton() {
-        const summaryButton = document.querySelector(Selectors.ACTIONS.RESULT);
+    disableActionButton() {
+        if (!this.currentAction) {
+            return;
+        }
+        const summaryButton = document.querySelector(Selectors.ACTIONS.RUN + '[data-action-subtype="' + this.currentAction + '"]');
         if (summaryButton) {
             summaryButton.setAttribute('disabled', 1);
         }
@@ -238,8 +278,11 @@ const AIModAssist = class {
     /**
      * Enable the summary button and focus on it.
      */
-    enableSummaryButton() {
-        const summaryButton = document.querySelector(Selectors.ACTIONS.RESULT);
+    enableActionButton() {
+        if (!this.currentAction) {
+            return;
+        }
+        const summaryButton = document.querySelector(Selectors.ACTIONS.RUN + '[data-action-subtype="' + this.currentAction + '"]');
         if (summaryButton) {
             summaryButton.removeAttribute('disabled');
             summaryButton.focus();
@@ -294,18 +337,20 @@ const AIModAssist = class {
 
     /**
      * Display the summary.
+     * @param {Object} data The data used to run the query.
      */
-    async displayResult() {
+    async runAction(data) {
         if (!this.hasGeneratedContent()) {
             // Display loading spinner.
             this.displayLoading();
             // Clear the drawer content to prevent sending some unnecessary content.
             this.aiDrawerBodyElement.innerHTML = '';
             const request = {
-                methodname: 'aiplacement_modassist_summarise_text',
+                methodname: 'aiplacement_modassist_process_action',
                 args: {
                     contextid: this.contextId,
-                    prompttext: this.getTextContent(),
+                    action: this.currentAction,
+                    data: JSON.stringify(data)
                 }
             };
             try {

@@ -29,6 +29,7 @@
                 'action': 'glossary-add-entry',
                 'title': 'summarise',
                 'tooltip': 'summarise_tooltips, aiplacement_courseassist'
+                'component': 'mod_glossary'
             }
          ]
         }
@@ -39,7 +40,10 @@
         <button class="btn btn-outline-secondary"
                 aria-controls="ai-drawer"
                 type="button"
-                data-action="{{action}}"
+                data-action="mod-ai-assist-run"
+                data-action-subtype="{{action}}"
+                data-component="{{component}}"
+                data-cmid="{{cmid}}"
                 data-toggle="tooltip"
                 data-html="true"
                 title="{{tooltip}}"

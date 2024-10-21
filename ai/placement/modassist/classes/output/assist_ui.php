@@ -93,6 +93,9 @@ class assist_ui {
         if (!self::preflight_checks()) {
             return;
         }
+        if ($PAGE->context->contextlevel != CONTEXT_MODULE) {
+            return;
+        }
         $assistactionclass = utils::get_class_for_module($PAGE->context, 'assist_action');
         if (!$assistactionclass) {
             return;
@@ -100,7 +103,8 @@ class assist_ui {
         $assistbuttons = new $assistactionclass($USER->id, $PAGE->context);
         $params = [
             'userid' => $USER->id,
-            'contextid' => $PAGE->context->id,
+            'cmid' => $PAGE->cm->id,
+            'component' => $PAGE->cm->modname,
         ];
 
         $params = array_merge($params, $assistbuttons->export_for_template($OUTPUT));

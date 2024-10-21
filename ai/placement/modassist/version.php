@@ -25,6 +25,6 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'aiplacement_modassist';
-$plugin->version = 2024101703;
+$plugin->version = 2024101704;
 $plugin->requires = 2024100100;
 $plugin->maturity = MATURITY_STABLE;

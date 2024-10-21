@@ -25,11 +25,10 @@
 defined('MOODLE_INTERNAL') || die();
 
 $functions = [
-    'aiplacement_modassist_summarise_text' => [
-        'classname' => 'aiplacement_modassist\external\summarise_text',
-        'description' => 'Summarise text for the Course Assistance Placement',
+    'aiplacement_modassist_process_action' => [
+        'classname' => 'aiplacement_modassist\external\process_action',
+        'description' => 'Process action from a ModAction Assistance Placement',
         'type' => 'write',
         'ajax' => true,
-        'services' => [MOODLE_OFFICIAL_MOBILE_SERVICE],
     ],
 ];
