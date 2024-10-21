@@ -28,6 +28,15 @@ $string['addcategory'] = 'Add category';
 $string['addentry'] = 'Add a new entry';
 $string['addsingleentry'] = 'Add entry';
 $string['addingcomment'] = 'Add a comment';
+$string['aiaction:addentries'] = 'Add entries';
+$string['aiaction:addentries:description'] = 'Add entries to the glossary';
+$string['aiaction:addentries:instructions'] = 'You should provide a set of new entries to the glossary on the specified topic.
+The format of the entries should be as follows (csv): "term";"definition". Each entry should be separated by a new line.
+You should ignore existing entries.';
+$string['aiaction:addentries:itemcount'] = 'Number of entries';
+$string['aiaction:addentries:success'] = '{$a} entries have been added successfully';
+$string['aiaction:addentries:topic'] = 'Topic of the entries';
+$string['aiaction:addentries:topic_helper'] = 'Write a simple description of the topic the entries should be about...';
 $string['alias'] = 'Keyword';
 $string['aliases'] = 'Keyword(s)';
 $string['aliases_help'] = 'Each glossary entry can have an associated list of keywords (or aliases). If the entry is auto-linked, then any keywords will also be auto-linked.
@@ -342,3 +351,4 @@ $string['youarenottheauthor'] = 'You are not the author of this comment, so you 
 
 // Deprecated since 4.5.
 $string['tagsdeleted'] = 'Glossary tags have been deleted';
+
