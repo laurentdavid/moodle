@@ -772,7 +772,13 @@ function include_modulelib($modulename) {
     if (file_exists($modlib)) {
         include_once($modlib);
     } else {
-        throw new moodle_exception('modulemissingcode', '', '', $modlib);
+        $moddir = core_component::get_component_directory("mod_$modulename"); // Check if the module exists.
+        $modlib = "$moddir/lib.php";
+        if (file_exists($modlib)) {
+            include_once($modlib);
+        } else {
+            throw new moodle_exception('modulemissingcode', '', '', $modlib);
+        }
     }
 }
 
