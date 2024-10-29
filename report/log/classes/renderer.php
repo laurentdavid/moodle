@@ -96,27 +96,32 @@ class report_log_renderer extends plugin_renderer_base {
         $selectedcourseid = empty($reportlog->course) ? 0 : $reportlog->course->id;
 
         // Add course selector.
+        if (empty($reportlog->currentcmid)) {
         $sitecontext = context_system::instance();
         $courses = $reportlog->get_course_list();
-        if (!empty($courses) && $reportlog->showcourses) {
-            echo html_writer::label(get_string('selectacourse'), 'menuid', false, array('class' => 'accesshide'));
-            echo html_writer::select($courses, "id", $selectedcourseid, null, ['class' => 'mr-2 mb-2']);
-        } else {
-            $courses = array();
-            $courses[$selectedcourseid] = get_course_display_name_for_list($reportlog->course) . (($selectedcourseid == SITEID) ?
-                ' (' . get_string('site') . ') ' : '');
-            echo html_writer::label(get_string('selectacourse'), 'menuid', false, array('class' => 'accesshide'));
-            echo html_writer::select($courses, "id", $selectedcourseid, false, ['class' => 'mr-2 mb-2']);
-            // Check if user is admin and this came because of limitation on number of courses to show in dropdown.
-            if (has_capability('report/log:view', $sitecontext)) {
-                $a = new stdClass();
-                $a->url = new moodle_url('/report/log/index.php', array('chooselog' => 0,
-                    'group' => $reportlog->get_selected_group(), 'user' => $reportlog->userid,
-                    'id' => $selectedcourseid, 'date' => $reportlog->date, 'modid' => $reportlog->modid,
-                    'showcourses' => 1, 'showusers' => $reportlog->showusers));
-                $a->url = $a->url->out(false);
-                print_string('logtoomanycourses', 'moodle', $a);
+            if (!empty($courses) && $reportlog->showcourses) {
+                echo html_writer::label(get_string('selectacourse'), 'menuid', false, array('class' => 'accesshide'));
+                echo html_writer::select($courses, "id", $selectedcourseid, null, ['class' => 'me-2 mb-2']);
+            } else {
+                $courses = array();
+                $courses[$selectedcourseid] =
+                    get_course_display_name_for_list($reportlog->course) . (($selectedcourseid == SITEID) ?
+                        ' (' . get_string('site') . ') ' : '');
+                echo html_writer::label(get_string('selectacourse'), 'menuid', false, array('class' => 'accesshide'));
+                echo html_writer::select($courses, "id", $selectedcourseid, false, ['class' => 'me-2 mb-2']);
+                // Check if user is admin and this came because of limitation on number of courses to show in dropdown.
+                if (has_capability('report/log:view', $sitecontext)) {
+                    $a = new stdClass();
+                    $a->url = new moodle_url('/report/log/index.php', array('chooselog' => 0,
+                        'group' => $reportlog->get_selected_group(), 'user' => $reportlog->userid,
+                        'id' => $selectedcourseid, 'date' => $reportlog->date, 'modid' => $reportlog->modid,
+                        'showcourses' => 1, 'showusers' => $reportlog->showusers));
+                    $a->url = $a->url->out(false);
+                    print_string('logtoomanycourses', 'moodle', $a);
+                }
             }
+        } else {
+            echo html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'id', 'value' => $selectedcourseid));
         }
 
         // Add group selector.
@@ -161,10 +166,10 @@ class report_log_renderer extends plugin_renderer_base {
             ['class' => 'mr-2 mb-2']);
 
         // Add activity selector.
-        $activities = $reportlog->get_activities_list();
+        [$activities, $disabled] = $reportlog->get_activities_list();
         echo html_writer::label(get_string('activities'), 'menumodid', false, array('class' => 'accesshide'));
         echo html_writer::select($activities, "modid", $reportlog->modid, get_string("allactivities"),
-            ['class' => 'mr-2 mb-2']);
+            ['class' => 'me-2 mb-2'], $disabled);
 
         // Add actions selector.
         echo html_writer::label(get_string('actions'), 'menumodaction', false, array('class' => 'accesshide'));
