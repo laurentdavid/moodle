@@ -253,6 +253,7 @@ abstract class base {
      */
     public static function session_cache_reset(stdClass $course): string {
         $statecache = cache::make('core', 'courseeditorstate');
+        \cache_helper::invalidate_by_event('changesincoursestate', [$course->id]);
         $newkey = $course->cacherev . '_' . time();
         $statecache->set($course->id, $newkey);
         return $newkey;
