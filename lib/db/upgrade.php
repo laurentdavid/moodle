@@ -1236,5 +1236,14 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2024111500.04);
     }
 
+    // Moodle 5.0 Upgrade.
+    // Remove survey.
+    if ($oldversion < 2024112200.01) {
+        if (!file_exists($CFG->dirroot . "/mod/survey/version.php")) {
+            uninstall_plugin('mod', 'survey');
+        }
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2024112200.01);
+    }
     return true;
 }
