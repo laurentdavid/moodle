@@ -199,26 +199,10 @@ export default class Component extends BaseComponent {
         const target = event.target.closest(this.selectors.TOGGLEALL);
         const isAllCollapsed = target.classList.contains(this.classes.COLLAPSED);
 
-        // Find collapsible sections.
-        let sectionIsCollapsible = {};
-        const togglerDoms = this.element.querySelectorAll(this.selectors.SECTION_ITEM + " " + this.selectors.COLLAPSE);
-        for (let togglerDom of togglerDoms) {
-            sectionIsCollapsible[togglerDom.closest(this.selectors.SECTION).dataset.id] = true;
-        }
-
-        // Filter section list by collapsibility.
         const course = this.reactive.get('course');
-        let sectionCollapsibleList = [];
-        for (let section of course.sectionlist ?? []) {
-            if (sectionIsCollapsible[section]) {
-                sectionCollapsibleList.push(section);
-            }
-        }
-
-        // Toggle sections' collapse states.
         this.reactive.dispatch(
             'sectionContentCollapsed',
-            sectionCollapsibleList,
+            course.sectionlist ?? [],
             !isAllCollapsed
         );
     }
@@ -329,23 +313,24 @@ export default class Component extends BaseComponent {
         }
 
         // Find collapsible sections.
-        let sectionIsCollapsible = {};
         const togglerDoms = this.element.querySelectorAll(this.selectors.SECTION_ITEM + " " + this.selectors.COLLAPSE);
-        for (let togglerDom of togglerDoms) {
-            sectionIsCollapsible[togglerDom.closest(this.selectors.SECTION).dataset.id] = true;
-        }
-
         // Check if we have all sections collapsed/expanded.
+        let sectionIsCollapsible = {};
         let allcollapsed = true;
         let allexpanded = true;
-        state.section.forEach(
-            section => {
-                if (sectionIsCollapsible[section.id]) {
-                    allcollapsed = allcollapsed && section.contentcollapsed;
-                    allexpanded = allexpanded && !section.contentcollapsed;
-                }
+        state.section.forEach(section => {
+            // Check if the section is collapsible.
+            const isCollapsible = Array.from(togglerDoms).some(
+                togglerDom => togglerDom.closest(this.selectors.SECTION)?.dataset.id === section.id
+            );
+            sectionIsCollapsible[section.id] = isCollapsible;
+
+            // Update collapsed/expanded state for collapsible sections.
+            if (isCollapsible) {
+                allcollapsed = allcollapsed && section.contentcollapsed;
+                allexpanded = allexpanded && !section.contentcollapsed;
             }
-        );
+        });
         if (allcollapsed) {
             target.classList.add(this.classes.COLLAPSED);
             target.setAttribute('aria-expanded', false);
