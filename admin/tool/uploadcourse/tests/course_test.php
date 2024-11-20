@@ -352,6 +352,30 @@ class course_test extends \advanced_testcase {
             $DB->count_records('course_sections', ['course' => $courseid]));
     }
 
+    /**
+     * Test that the course is created with the correct relativedatesmode.
+     *
+     * @return void
+     * @covers \tool_uploadcourse_course::prepare
+     */
+    public function test_create_with_relativedatesmode(): void {
+        global $DB;
+        $this->initialise_test();
+        set_config('enablecourserelativedates', 1);
+        $updatemode = tool_uploadcourse_processor::UPDATE_NOTHING;
+
+        // Add new course, make sure default number of sections is created.
+        $mode = tool_uploadcourse_processor::MODE_CREATE_NEW;
+        $data = ['shortname' => 'newcourse1', 'fullname' => 'New course1', 'format' => 'topics', 'category' => 1,
+            'relativedatesmode' => 1];
+        $co = new tool_uploadcourse_course($mode, $updatemode, $data);
+        $this->assertTrue($co->prepare());
+        $co->proceed();
+        $course = $DB->get_record('course', ['shortname' => 'newcourse1']);
+        $this->assertNotEmpty($course);
+        $this->assertEquals('1', $course->relativedatesmode);
+    }
+
     public function test_delete(): void {
         global $DB;
         $this->initialise_test();
