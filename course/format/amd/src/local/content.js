@@ -72,6 +72,7 @@ export default class Component extends BaseComponent {
             ACTIVITY: `activity`,
             STATEDREADY: `stateready`,
             SECTION: `section`,
+            HIDDEN: 'd-none'
         };
         // Array to save dettached elements during element resorting.
         this.dettachedCms = {};
@@ -198,22 +199,15 @@ export default class Component extends BaseComponent {
 
         const target = event.target.closest(this.selectors.TOGGLEALL);
         const isAllCollapsed = target.classList.contains(this.classes.COLLAPSED);
-
-        // Find collapsible sections.
-        let sectionIsCollapsible = {};
-        const togglerDoms = this.element.querySelectorAll(this.selectors.SECTION_ITEM + " " + this.selectors.COLLAPSE);
-        for (let togglerDom of togglerDoms) {
-            sectionIsCollapsible[togglerDom.closest(this.selectors.SECTION).dataset.id] = true;
-        }
-
-        // Filter section list by collapsibility.
         const course = this.reactive.get('course');
-        const sectionCollapsibleList = (course.sectionlist ?? []).filter(section => sectionIsCollapsible[section]);
-
-        // Toggle sections' collapse states.
+        // Sections that are visible on this page and have a collapse button.
+        const visibleSections = course.sectionlist.filter((sectionId) => {
+            const sectionElement = this.getElement(this.selectors.SECTION, sectionId);
+            return sectionElement && sectionElement.querySelector(this.selectors.COLLAPSE);
+        });
         this.reactive.dispatch(
             'sectionContentCollapsed',
-            sectionCollapsibleList,
+            visibleSections ?? [],
             !isAllCollapsed
         );
     }
@@ -341,22 +335,16 @@ export default class Component extends BaseComponent {
                 }
             }
         );
-
-        // Refresh all-sections toggler.
-        if (allexpanded && allcollapsed) {
-            // No collapsible sections.
-            target.style.visibility = "hidden";
-        } else {
-            if (allcollapsed) {
-                target.classList.add(this.classes.COLLAPSED);
-                target.setAttribute('aria-expanded', false);
-            }
-            if (allexpanded) {
-                target.classList.remove(this.classes.COLLAPSED);
-                target.setAttribute('aria-expanded', true);
-            }
-            target.style.visibility = "visible";
+        if (allcollapsed) {
+            target.classList.add(this.classes.COLLAPSED);
+            target.setAttribute('aria-expanded', false);
         }
+        if (allexpanded) {
+            target.classList.remove(this.classes.COLLAPSED);
+            target.setAttribute('aria-expanded', true);
+        }
+        // This will hide the collapsible button if there are no sections to collapse.
+        target.classList.toggle(this.classes.HIDDEN, !togglerDoms.length);
     }
 
     /**

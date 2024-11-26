@@ -336,14 +336,12 @@ class section implements named_templatable, renderable {
         $format = $this->format;
 
         $data->iscoursedisplaymultipage = ($format->get_course_display() == COURSE_DISPLAY_MULTIPAGE);
+        $hascollapsemenu = !$data->iscoursedisplaymultipage; // We are not in multipage mode.
+        $hascollapsemenu = $hascollapsemenu &&
+            ($data->num === 0 || $data->id == $format->get_sectionid()); // We are on a section page or general page.
+        $hascollapsemenu = $hascollapsemenu && !$section->is_delegated(); // The delegated sections have no toggler.
 
-        if (
-            ($data->num === 0 || $data->id == $format->get_sectionid()) &&
-            !$data->iscoursedisplaymultipage &&
-            empty($section->component)
-        ) {
-            $data->collapsemenu = true;
-        }
+        $data->collapsemenu = $hascollapsemenu;
 
         $data->contentcollapsed = $this->is_section_collapsed();
 
