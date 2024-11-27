@@ -22,7 +22,7 @@
  * @since 4.0
  */
 
-import 'theme_boost/popover';
+import Popover from 'theme_boost/bootstrap/popover';
 import jQuery from 'jquery';
 import * as CalendarSelectors from 'core_calendar/selectors';
 
@@ -36,12 +36,10 @@ const isPopoverAvailable = (dateContainer) => {
 };
 
 const isPopoverConfigured = new Map();
-
 const showPopover = target => {
     const dateContainer = target.closest(CalendarSelectors.elements.dateContainer);
     if (!isPopoverConfigured.has(dateContainer)) {
-        const dateEle = jQuery(target);
-        dateEle.popover({
+        const config = {
             trigger: 'manual',
             placement: 'top',
             html: true,
@@ -56,13 +54,14 @@ const showPopover = target => {
                 return content.html();
             },
             'animation': false,
-        });
+        };
+        new Popover(target, config);
 
         isPopoverConfigured.set(dateContainer, true);
     }
 
     if (isPopoverAvailable(dateContainer)) {
-        jQuery(target).popover('show');
+        Popover.getInstance(target).show();
         target.addEventListener('mouseleave', hidePopover);
         target.addEventListener('focusout', hidePopover);
         // Set up the hide function to the click event type.
@@ -85,9 +84,9 @@ const hidePopover = e => {
 
         let removeListener = true;
         if (!isTargetActive && !isTargetHover) {
-            jQuery(target).popover('hide');
+            Popover.getOrCreateInstance(target).hide();
         } else if (isTargetClicked) {
-            jQuery(document.activeElement).popover('hide');
+            Popover.getOrCreateInstance(document.activeElement).hide();
         } else {
             removeListener = false;
         }

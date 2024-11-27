@@ -107,9 +107,11 @@ const registerViewSelector = function(root, timelineViewRoot) {
 
     // Listen for when the user changes tab so that we can show the first set of courses
     // and load their events when they request the sort by courses view for the first time.
-    viewSelector.on('shown shown.bs.tab', function(e) {
-        View.shown(timelineViewRoot);
-        $(e.target).removeClass('active');
+    viewSelector[0].querySelectorAll('[data-bs-toggle="tab"]').forEach((tab) => {
+        tab.addEventListener('shown.bs.tab', (e) => {
+            View.shown(timelineViewRoot);
+            $(e.target).removeClass('active');
+        });
     });
 
 
