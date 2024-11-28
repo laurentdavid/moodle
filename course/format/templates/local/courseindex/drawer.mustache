@@ -25,13 +25,13 @@
     Example context (json):
     {}
 }}
-<nav id="courseindex" class="courseindex">
+<nav id="courseindex" class="courseindex" data-uniqid="{{uniqid}}">
     <div id="courseindex-content">
         {{> core_courseformat/local/courseindex/placeholders }}
     </div>
 </nav>
 {{#js}}
 require(['core_courseformat/local/courseindex/drawer'], function(component) {
-    component.init('courseindex');
+    component.init('.courseindex[data-uniqid="{{uniqid}}"]');
 });
 {{/js}}
