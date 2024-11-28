@@ -1,0 +1,7 @@
+issueNumber: MDL-83339
+notes:
+  core_courseformat:
+    - message: >-
+        Deprecate the use of element ID selectors in favor of class and data-xx
+        selectors for Reactive component initialisation.
+      type: deprecated

@@ -25,6 +25,7 @@
 }}
 <button
     id="bulk-enable-{{uniqid}}"
+    data-uniqid="{{uniqid}}"
     class="bulkEnable btn text-primary text-nowrap"
     data-for="enableBulk" data-coursename="{{coursename}}"
     {{#sectiontitle}} data-sectiontitle="{{.}}" {{/sectiontitle}}
@@ -34,6 +35,6 @@
 </button>
 {{#js}}
 require(['core_courseformat/local/content/bulkedittoggler'], function(component) {
-    component.init('#bulk-enable-{{uniqid}}');
+    component.init('.bulkEnable[data-uniqid="{{uniqid}}"]');
 });
 {{/js}}

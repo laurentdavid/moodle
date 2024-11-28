@@ -29,7 +29,7 @@
         "settingsurl": "#"
     }
 }}
-<div class="course-content" id="courseformat-frontpage-main-topic">
+<div class="course-content" id="courseformat-frontpage-main-topic" data-uniqid="{{uniqid}}">
     {{#showsettings}}
     <div class="mb-2">
         <a href="{{{settingsurl}}}" title="{{#str}} edit {{/str}}" aria-label="{{#str}} edit {{/str}}">
@@ -49,7 +49,7 @@
 {{! The home page should be as fast as possible, we only load the editor when needed.}}
 {{#editing}}
 require(['core_courseformat/local/content'], function(component) {
-    component.init('courseformat-frontpage-main-topic', {});
+    component.init('.course-content[data-uniqid="{{uniqid}}"]', {});
 });
 {{/editing}}
 {{/js}}
