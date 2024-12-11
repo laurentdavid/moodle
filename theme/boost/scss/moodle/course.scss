@@ -91,14 +91,52 @@ $divider-hover-color: $primary !default;
     }
 }
 
-// Max sections reached alert.
-.max-section-alert {
-    border-top: $divider-width dashed $border-color;
-    font-size: $font-size-sm;
-    font-weight: normal;
-    color: $gray-600;
+.max-section-reached-items {
+    display: none;
 }
 
+body.max-section-reached {
+    // Max sections reached alert.
+    .max-section-alert {
+        border-top: $divider-width dashed $border-color;
+        font-size: $font-size-sm;
+        font-weight: normal;
+        color: $gray-600;
+    }
+
+    .changenumsections .add-section,
+    .changenumsections .add-content {
+        display: none;
+    }
+    .course-content .divider hr .changenumsections {
+        border-top: $divider-width dashed $divider-color;
+    }
+
+    &:has(.btn.add-content:hover) hr .changenumsections {
+        border-color: $gray-200;
+    }
+
+    .btn.add-content .changenumsections {
+        color: $gray-500;
+        background-color: $gray-200;
+        outline: none;
+        box-shadow: none;
+
+        &:hover,
+        &:focus {
+            color: $gray-500;
+            background-color: $gray-200;
+            outline: none;
+            box-shadow: none;
+        }
+
+        pointer-events: auto; // Restore pointer events for the disabled button so we can see the tooltip.
+    }
+
+    .max-section-reached-items {
+        display: none;
+    }
+}
 /* Sections */
 
 .course-section {
@@ -515,9 +553,6 @@ $divider-hover-color: $primary !default;
         width: 100%;
         margin: map-get($spacers, 2) map-get($spacers, 1);
         border-top: $divider-width dashed $divider-color;
-        .changenumsections.disabled & {
-            border-top: $divider-width dashed $divider-color;
-        }
     }
     .divider-content {
         opacity: 0;
@@ -557,9 +592,6 @@ $divider-hover-color: $primary !default;
     &:has(.btn.add-content:hover) {
         hr {
             border-color: $divider-hover-color;
-            .changenumsections.disabled & {
-                border-color: $gray-200;
-            }
         }
     }
 }
@@ -596,20 +628,6 @@ $divider-hover-color: $primary !default;
         width: 14px;
         height: 14px;
         font-size: 14px;
-    }
-    .changenumsections.disabled & {
-        color: $gray-500;
-        background-color: $gray-200;
-        outline: none;
-        box-shadow: none;
-        &:hover,
-        &:focus {
-            color: $gray-500;
-            background-color: $gray-200;
-            outline: none;
-            box-shadow: none;
-        }
-        pointer-events: auto; // Restore pointer events for the disabled button so we can see the tooltip.
     }
 }
 
