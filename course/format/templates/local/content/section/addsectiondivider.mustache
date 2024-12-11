@@ -38,17 +38,30 @@
     {{< core_courseformat/local/content/divider}}
         {{$extraclasses}}always-hidden mt-2{{/extraclasses}}
         {{$content}}
-            <a href="{{{url}}}"
-               class="btn add-content section-modchooser section-modchooser-link d-flex justify-content-center align-items-center p-1 icon-no-margin
-                    {{^canaddsection}}disabled{{/canaddsection}}"
-                data-add-sections="{{title}}"
-                data-new-sections="{{newsection}}"
-                data-action="addSection"
-                {{#insertafter}} data-id="{{id}}" {{/insertafter}}
-                title="{{#canaddsection}}{{title}}{{/canaddsection}}{{^canaddsection}}{{#str}}sectionaddmax, core_courseformat{{/str}}{{/canaddsection}}"
-            >
-                {{#pix}} t/add, core {{/pix}}
-            </a>
+            <div class="d-flex d-flex justify-content-center align-items-center">
+                <a href="{{{url}}}"
+                   class="btn add-content section-modchooser section-modchooser-link p-1 icon-no-margin"
+                   data-add-sections="{{title}}"
+                   data-new-sections="{{newsection}}"
+                   data-action="addSection"
+                    {{#insertafter}} data-id="{{id}}" {{/insertafter}}
+                   title="{{title}}"
+                >
+                    {{#pix}} t/add, core {{/pix}}
+                </a>
+                <div
+                        data-region="max-sections-warning"
+                        class="align-items-center" tabindex="0"
+                        data-toggle="tooltip"
+                        title="{{#str}}sectionaddmax, core_courseformat{{/str}}">
+                    <button
+                            class="btn btn-link p-1 icon-no-margin"
+                            title="{{#str}}sectionaddmax, core_courseformat{{/str}}"
+
+                    >{{#pix}} t/add, core {{/pix}}
+                    </button>
+                </div>
+            </div>
         {{/content}}
     {{/ core_courseformat/local/content/divider}}
     {{/addsections}}
