@@ -1286,7 +1286,7 @@ $string['maximumshort'] = 'Max';
 $string['maximumupload'] = 'Maximum upload size';
 $string['maximumupload_help'] = 'The maximum file size allowed for student uploads to the course. Additionally, you can further restrict the maximum upload size for each activity.';
 $string['maxnumberweeks'] = 'Maximum number of sections';
-$string['maxnumberweeks_desc'] = 'The maximum value in the number of sections drop-down menu (applies to certain course formats only).';
+$string['maxnumberweeks_desc'] = 'The maximum value in the number of sections (and subsections if enabled) drop-down menu (applies to certain course formats only).';
 $string['maxnumcoursesincombo'] = 'Browse <a href="{$a->link}">{$a->numberofcourses} courses</a>.';
 $string['maxsize'] = 'Max size: {$a}';
 $string['maxsizeandareasize'] = 'Maximum size for new files: {$a->size}, overall limit: {$a->areasize}';
