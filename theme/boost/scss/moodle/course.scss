@@ -91,12 +91,37 @@ $divider-hover-color: $primary !default;
     }
 }
 
+[data-region="max-sections-warning"] {
+    display: none;
+    color: $gray-600;
+
+    button {
+        &:hover,
+        &:focus {
+            color: $gray-200;
+            outline: none;
+            box-shadow: none;
+        }
+    }
+}
 // Max sections reached alert.
-.max-section-alert {
+.changenumsections .max-section-alert {
     border-top: $divider-width dashed $border-color;
     font-size: $font-size-sm;
     font-weight: normal;
-    color: $gray-600;
+}
+body.max-sections-reached {
+    .changenumsections > .add-section,
+    .changenumsections .add-content {
+        display: none;
+        border: none;
+    }
+    #course-addsection a {
+        display: none;
+    }
+    [data-region="max-sections-warning"] {
+        display: block;
+    }
 }
 
 /* Sections */
@@ -515,9 +540,6 @@ $divider-hover-color: $primary !default;
         width: 100%;
         margin: map-get($spacers, 2) map-get($spacers, 1);
         border-top: $divider-width dashed $divider-color;
-        .changenumsections.disabled & {
-            border-top: $divider-width dashed $divider-color;
-        }
     }
     .divider-content {
         opacity: 0;
@@ -557,9 +579,6 @@ $divider-hover-color: $primary !default;
     &:has(.btn.add-content:hover) {
         hr {
             border-color: $divider-hover-color;
-            .changenumsections.disabled & {
-                border-color: $gray-200;
-            }
         }
     }
 }
@@ -596,20 +615,6 @@ $divider-hover-color: $primary !default;
         width: 14px;
         height: 14px;
         font-size: 14px;
-    }
-    .changenumsections.disabled & {
-        color: $gray-500;
-        background-color: $gray-200;
-        outline: none;
-        box-shadow: none;
-        &:hover,
-        &:focus {
-            color: $gray-500;
-            background-color: $gray-200;
-            outline: none;
-            box-shadow: none;
-        }
-        pointer-events: auto; // Restore pointer events for the disabled button so we can see the tooltip.
     }
 }
 

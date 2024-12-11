@@ -46,6 +46,7 @@ export default class extends DndSection {
             HIDESECTION: `[data-action="sectionHide"]`,
             ACTIONTEXT: `.menu-action-text`,
             ICON: `.icon`,
+            ADDSECTIONREGIONLINK: `a[data-region='section-addsection']`,
         };
         // Most classes will be loaded later by DndCmItem.
         this.classes = {
@@ -54,6 +55,7 @@ export default class extends DndSection {
             HIDE: 'd-none',
             HIDDEN: 'hidden',
             CURRENT: 'current',
+            DISABLED: `disabled`,
         };
 
         // We need our id to watch specific events.
@@ -109,6 +111,7 @@ export default class extends DndSection {
     getWatchers() {
         return [
             {watch: `section[${this.id}]:updated`, handler: this._refreshSection},
+            {watch: `course.sectionlist:updated`, handler: this._refreshAddActivityButton},
         ];
     }
 
@@ -243,5 +246,22 @@ export default class extends DndSection {
      */
     _getActionMenu(selector) {
         return document.querySelector(`${this.selectors.ACTIONMENU}[data-sectionid='${this.id}'] ${selector}`);
+    }
+
+    /**
+     * Check the Add activity or resource button and disable some options if needed.
+     *
+     * @param {Object} detail the update details.
+     * @param {Object} detail.state the state object.
+     */
+    _refreshAddActivityButton({state}) {
+        const canAddSection = state.course.numsections < state.course.maxsections;
+        const addSectionLinks = this.getElements(this.selectors.ADDSECTIONREGIONLINK);
+        if (!addSectionLinks) {
+            return;
+        }
+        addSectionLinks.forEach((element) => {
+            element.classList.toggle(this.classes.DISABLED, !canAddSection);
+        });
     }
 }
