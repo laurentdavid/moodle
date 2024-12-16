@@ -75,7 +75,7 @@ class addsection implements named_templatable, renderable {
         $maxsections = $format->get_max_sections();
 
         // Component based formats handle add section button in the frontend.
-        $show = ($lastsection < $maxsections) || $format->supports_components();
+        $show = !$format->is_max_sections_reached() || $format->supports_components();
 
         $supportsnumsections = array_key_exists('numsections', $options);
         if ($supportsnumsections) {

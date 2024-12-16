@@ -65,6 +65,11 @@ function subsection_supports($feature) {
 function subsection_add_instance($moduleinstance, $mform = null) {
     global $DB;
 
+    // Check if we can still add a section.
+    $format = course_get_format($moduleinstance->course);
+    if ($format->is_max_sections_reached()) {
+        throw new \moodle_exception('maxsectionslimit', 'moodle', '', $format->get_max_sections());
+    }
     $moduleinstance->timecreated = time();
 
     $id = $DB->insert_record('subsection', $moduleinstance);

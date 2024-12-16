@@ -28,13 +28,17 @@ use section_info;
  */
 class permission {
     /**
-     * Whether given user can add a subsection in a section
+     * Whether given user can add a subsection in a section.
+     *
+     * Here we check if we can add a subsection in a section and the delegated section is enabled.
+     * It means that this will only check things that are not supposed to change except through a new page load.
+     * Typically checking that we reach max_sections is not done here.
      *
      * @param section_info $section the course section
      * @param int|null $userid User ID to check, or the current user if omitted
      * @return bool
      */
-    public static function can_add_subsection(section_info $section, ?int $userid = null): bool {
+    public static function is_subsection_addinstance_enabled(section_info $section, ?int $userid = null): bool {
         // Until MDL-82349 is resolved, we need to skip the site course.
         if ($section->modinfo->get_course()->format == 'site') {
             return false;
@@ -49,12 +53,24 @@ class permission {
             return false;
         }
         $format = course_get_format($section->course);
-        if ($format->get_last_section_number() >= $format->get_max_sections()) {
-            return false;
-        }
         if (!$format->supports_components()) {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Whether given user can add a subsection in a section.
+     *
+     * @param section_info $section
+     * @param int|null $userid
+     * @return bool
+     */
+    public static function can_add_subsection(section_info $section, ?int $userid = null): bool {
+        if (!self::is_subsection_addinstance_enabled($section, $userid)) {
+            return false;
+        }
+        $format = course_get_format($section->course);
+        return !$format->is_max_sections_reached();
     }
 }

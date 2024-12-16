@@ -68,13 +68,16 @@ final class create_module_test extends \externallib_advanced_testcase {
         $this->setAdminUser();
 
         // Execute course action.
-        $results = json_decode(create_module::execute((int)$course->id, $modname, (int)$targetsection->id, (int)$activity->id));
+        $results = json_decode(create_module::execute(
+            (int)$course->id, $modname, (int)$targetsection->sectionnum, (int)$activity->id)
+        );
 
         // Check result.
         $cmupdate = $this->find_update_by_fieldname($results, 'put', 'cm', get_string('quickcreatename', 'mod_' . $modname));
         $this->assertNotEmpty($cmupdate);
         $this->assertEquals($modname, $cmupdate->fields->module);
-        $this->assertEquals($targetsection->id, $cmupdate->fields->sectionnumber);
+        $this->assertEquals($targetsection->sectionnum, $cmupdate->fields->sectionnumber);
+        $this->assertEquals($targetsection->id, $cmupdate->fields->sectionid);
     }
 
     /**
