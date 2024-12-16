@@ -188,7 +188,7 @@ export default class extends BaseComponent {
      */
     _checkSectionlist({state}) {
         // Disable "add section" actions if the course max sections has been exceeded.
-        this._setAddSectionLocked(state.course.sectionlist.length >= state.course.maxsections);
+        this._setAddSectionLocked(state.course.numsections >= state.course.maxsections);
     }
 
     /**

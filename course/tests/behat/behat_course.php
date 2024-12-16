@@ -63,6 +63,10 @@ class behat_course extends behat_base {
                 'initials bar',
                 [".//*[contains(concat(' ', @class, ' '), ' initialbar ')]//span[contains(., %locator%)]/parent::div"]
             ),
+            new behat_component_named_selector(
+                'Add content dropdown action',
+                ["//*[contains(@class, 'dropdown-menu')][contains(@class, 'show')]//*[contains(., %locator%)]"]
+            ),
         ];
     }
 
@@ -2157,9 +2161,17 @@ class behat_course extends behat_base {
      * @Given /^I open the activity chooser$/
      */
     public function i_open_the_activity_chooser() {
-        $this->execute('behat_general::i_click_on',
-            array('//button[@data-action="open-chooser"]', 'xpath_element'));
-
+        // Click on the "Add content" button.
+        $this->execute(
+            'behat_general::i_click_on',
+            ['//button[@title="Add content"]', 'xpath_element']
+        );
+        // Then click on the activity or resource link.
+        $this->execute(
+            'behat_general::i_click_on',
+            ['//*[contains(@class, "dropdown-menu")][contains(@class, "show")]//*[contains(.,"Activity or resource")]',
+                'xpath_element']
+        );
         $node = $this->get_selected_node('xpath_element', '//div[@data-region="modules"]');
         $this->ensure_node_is_visible($node);
     }
