@@ -428,6 +428,15 @@ abstract class base {
     }
 
     /**
+     * Method used to check if we have reached the max section.
+     *
+     * @return bool
+     */
+    public function is_max_sections_reached(): bool {
+        return $this->get_last_section_number() >= $this->get_max_sections();
+    }
+
+    /**
      * Returns true if the course has a front page.
      *
      * This function is called to determine if the course has a view page, whether or not
