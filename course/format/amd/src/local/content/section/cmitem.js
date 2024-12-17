@@ -41,12 +41,14 @@ export default class extends DndCmItem {
             CARD: `[data-region='activity-card']`,
             DRAGICON: `.editing_move`,
             INPLACEEDITABLE: `[data-itemtype="activityname"] > [data-inplaceeditablelink]`,
+            ADDSECTIONREGIONLINK: `a[data-region='section-addsection']`,
         };
         // Most classes will be loaded later by DndCmItem.
         this.classes = {
             LOCKED: 'editinprogress',
             HIDE: 'd-none',
             SELECTED: 'selected',
+            DISABLED: `disabled`,
         };
         // We need our id to watch specific events.
         this.id = this.element.dataset.id;
@@ -72,6 +74,7 @@ export default class extends DndCmItem {
             {watch: `cm[${this.id}]:deleted`, handler: this.unregister},
             {watch: `cm[${this.id}]:updated`, handler: this._refreshCm},
             {watch: `bulk:updated`, handler: this._refreshBulk},
+            {watch: `course.sectionlist:updated`, handler: this._refreshAddActivityButton},
         ];
     }
 
@@ -180,5 +183,16 @@ export default class extends DndCmItem {
             return false;
         }
         return bulk.selection.includes(this.id);
+    }
+    /**
+     * Check the Add activity or resource button and disable some options if needed.
+     *
+     * @param {Object} detail the update details.
+     * @param {Object} detail.state the state object.
+     */
+    _refreshAddActivityButton({state}) {
+        const canAddSection = state.course.numsections < state.course.maxsections;
+        const addSectionLink = this.getElement(this.selectors.ADDSECTIONREGIONLINK);
+        addSectionLink.classList.toggle(this.classes.DISABLED, !canAddSection);
     }
 }

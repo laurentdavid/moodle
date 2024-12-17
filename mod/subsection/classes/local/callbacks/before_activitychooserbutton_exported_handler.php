@@ -39,16 +39,16 @@ class before_activitychooserbutton_exported_handler {
     public static function callback(before_activitychooserbutton_exported $hook): void {
         /** @var section_info $section */
         $section = $hook->get_section();
-
-        if (!permission::can_add_subsection($section)) {
+        if (!permission::is_subsection_addinstance_enabled($section)) {
             return;
         }
-
+        $format = course_get_format($section->course);
         $attributes = [
-            'class' => 'dropdown-item',
+            'class' => 'dropdown-item' . ($format->is_max_sections_reached() ? ' disabled' : ''),
             'data-action' => 'addModule',
             'data-modname' => 'subsection',
             'data-sectionnum' => $section->sectionnum,
+            'data-region' => 'section-addsection',
         ];
         if ($hook->get_cm()) {
             $attributes['data-beforemod'] = $hook->get_cm()->id;

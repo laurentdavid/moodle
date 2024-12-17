@@ -63,6 +63,10 @@ class behat_course extends behat_base {
                 'initials bar',
                 [".//*[contains(concat(' ', @class, ' '), ' initialbar ')]//span[contains(., %locator%)]/parent::div"]
             ),
+            new behat_component_named_selector(
+                'Add content dropdown action',
+                ["//*[contains(@class, 'dropdown-menu')][contains(@class, 'show')]//*[contains(., %locator%)]"]
+            ),
         ];
     }
 
@@ -84,6 +88,29 @@ class behat_course extends behat_base {
                 ".//*[contains(concat(' ', @class, ' '), ' modchooser ')][contains(concat(' ', @class, ' '), ' modal-dialog ')]"
             ),
         ];
+    }
+
+    /**
+     * Click on the first add content dropdown action.
+     *
+     *  Examples:
+     *    Given I click on add content dropdown action
+     *    Given I click on add content dropdown action in the ".my-wrapper" "css_element"
+     *
+     * @Given /^I click on add content dropdown action(?: in the "([^"]+)" "([^"]+)")?$/
+     * @param string|null $element The element to click on.
+     * @param string|null $selectortype The type of selector to use.
+     */
+    public function i_click_on_add_content_dropdown_action(?string $element = null, ?string $selectortype = 'css_element') {
+        $buttonxpath = ["//*[@data-action='open-addingcontent']", "xpath_element"];
+        if ($element) {
+            $this->execute('behat_general::i_click_on_in_the', [$element, $selectortype, ...$buttonxpath]);
+        } else {
+            $this->execute(
+                'behat_general::i_click_on',
+                $buttonxpath
+            );
+        }
     }
 
     /**

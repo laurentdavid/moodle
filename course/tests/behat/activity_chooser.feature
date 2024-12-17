@@ -49,7 +49,7 @@ Feature: Display and choose from the available activities in course
     # Confirm show summary also works for weekly format course
     And I am on "C2" course homepage with editing mode on
     And I click on "Add content" "button" in the "13 January - 19 January" "section"
-    And I click on "Activity or resource" "button" in the "13 January - 19 January" "section"
+    And I click on "Activity or resource" "core_course > Add content dropdown action"
     And I click on "Information about the Assignment activity" "button" in the "Add an activity or resource" "dialogue"
     And I should see "Assignment" in the "help" "core_course > Activity chooser screen"
     And I should see "The assignment activity module enables a teacher to communicate tasks, collect work and provide grades and feedback."
@@ -67,7 +67,7 @@ Feature: Display and choose from the available activities in course
     # Confirm hide summary also works for weekly format course
     And I am on "C2" course homepage with editing mode on
     And I click on "Add content" "button" in the "13 January - 19 January" "section"
-    And I click on "Activity or resource" "button" in the "13 January - 19 January" "section"
+    And I click on "Activity or resource" "core_course > Add content dropdown action"
     And I click on "Information about the Assignment activity" "button" in the "Add an activity or resource" "dialogue"
     And I click on "Back" "button" in the "help" "core_course > Activity chooser screen"
     And "modules" "core_course > Activity chooser screen" should be visible
@@ -107,7 +107,7 @@ Feature: Display and choose from the available activities in course
     And I should see "Starred" in the "Add an activity or resource" "dialogue"
     And I click on "Close" "button" in the "Add an activity or resource" "dialogue"
     And I click on "Add content" "button" in the "New section" "section"
-    And I click on "Activity or resource" "button" in the "New section" "section"
+    And I click on "Activity or resource" "core_course > Add content dropdown action"
     And I click on "Starred" "link" in the "Add an activity or resource" "dialogue"
     Then I should see "Forum" in the "favourites" "core_course > Activity chooser tab"
 
@@ -279,7 +279,7 @@ Feature: Display and choose from the available activities in course
   Scenario: Teacher can navigate through activity chooser in Weekly format course
     Given I am on "C2" course homepage with editing mode on
     And I click on "Add content" "button" in the "13 January - 19 January" "section"
-    When I click on "Activity or resource" "button" in the "13 January - 19 January" "section"
+    When I click on "Activity or resource" "core_course > Add content dropdown action"
     Then I should see "All" in the "Add an activity or resource" "dialogue"
     And I press the tab key
     And I press the tab key
@@ -313,7 +313,7 @@ Feature: Display and choose from the available activities in course
     # Confirm the same behaviour for weekly format course
     And I am on "C2" course homepage with editing mode on
     And I click on "Add content" "button" in the "13 January - 19 January" "section"
-    And I click on "Activity or resource" "button" in the "13 January - 19 January" "section"
+    And I click on "Activity or resource" "core_course > Add content dropdown action"
     And I should see "All" in the "Add an activity or resource" "dialogue"
     And I click on "Information about the Assignment activity" "button" in the "Add an activity or resource" "dialogue"
     # Confirm more help link exists
