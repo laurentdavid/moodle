@@ -85,6 +85,7 @@ export default class extends BaseComponent {
             COURSEADDSECTION: `#course-addsection`,
             MAXSECTIONSWARNING: `[data-region='max-sections-warning']`,
             ADDSECTIONREGION: `[data-region='section-addsection']`,
+            ADDSECTIONREGIONLINK: `a[data-region='section-addsection']`,
             BODY: `body`,
         };
         // Component css classes.
@@ -768,6 +769,9 @@ export default class extends BaseComponent {
         // Set the full addSection Visible if it was not.
         const addSection = document.querySelector(this.selectors.COURSEADDSECTION);
         addSection.classList.remove(this.classes.DISPLAYNONE);
+        document.querySelectorAll(this.selectors.ADDSECTIONREGIONLINK).forEach((element) => {
+            element.classList.toggle(this.classes.DISABLED, locked);
+        });
     }
 
     /**
