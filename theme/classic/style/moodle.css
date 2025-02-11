@@ -28696,6 +28696,10 @@ body.behat-site .action-menu .dropdown-subpanel-content.show {
   outline: 0;
 }
 
+a i.icon {
+  color: #1d2125;
+}
+
 .icon {
   max-width: 30px;
   max-height: 24px;
