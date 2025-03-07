@@ -324,7 +324,7 @@ export default class Component extends BaseComponent {
 
         // Find collapsible sections.
         let sectionIsCollapsible = {};
-        const togglerDoms = this.element.querySelectorAll(this.selectors.SECTION_ITEM + " " + this.selectors.COLLAPSE);
+        const togglerDoms = this.element.querySelectorAll(this.selectors.COLLAPSE);
         for (let togglerDom of togglerDoms) {
             sectionIsCollapsible[togglerDom.closest(this.selectors.SECTION).dataset.id] = true;
         }
