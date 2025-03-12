@@ -1284,22 +1284,11 @@ function groups_get_members_join($groupids, $useridcolumn, ?context $context = n
 
     // Handle cases where we need to include/exclude users not in any groups.
     if (($nogroupskey = array_search(USERSWITHOUTGROUP, $groupids)) !== false) {
-        $visibilityjoin = '';
-        $visibilitywhere = '';
-
-        if (!$viewhidden) {
-            $visibilityjoin = 'JOIN {user} u ON u.id = m.userid';
-            [$visibilitywhere, $visibilityparams] = \core_group\visibility::sql_member_visibility_where('g', 'm');
-            $param = array_merge($param, $visibilityparams);
-            $visibilitywhere = 'WHERE ' . $visibilitywhere;
-        }
-        // Get members without any group, or only in groups we cannot see membership of.
+        // Get members without any group, disregarding visibility for now.
         $joins[] = "LEFT JOIN (
                      SELECT g.courseid, m.groupid, m.userid
                        FROM {groups_members} m
                        JOIN {groups} g ON g.id = m.groupid
-                       {$visibilityjoin}
-                       {$visibilitywhere}
                   ) {$prefix}gm ON ({$prefix}gm.userid = {$useridcolumn} AND {$prefix}gm.courseid = :{$prefix}gcourseid)";
 
         // Join type 'None' when filtering by 'no groups' means match users in at least one group.
@@ -1361,14 +1350,7 @@ function groups_get_members_join($groupids, $useridcolumn, ?context $context = n
                                  ON ({$prefix}gm2.userid = {$useridcolumn} AND {$prefix}gm2.groupid {$groupssql})";
                 $param = array_merge($param, $groupsparams);
 
-                // Members of any of the specified groups only.
-                if (empty($where)) {
-                    $where = "{$prefix}gm2.userid IS NOT NULL";
-                } else {
-                    // Members of any of the specified groups or no groups.
-                    $where = "({$where} OR {$prefix}gm2.userid IS NOT NULL)";
-                }
-
+                $hiddenwhere = '';
                 if (!$viewhidden) {
                     $joins[] = "LEFT JOIN {groups} {$prefix}g2 ON {$prefix}gm2.groupid = {$prefix}g2.id";
                     [$visibilitywhere, $visibilityparams] = \core_group\visibility::sql_member_visibility_where(
@@ -1377,9 +1359,19 @@ function groups_get_members_join($groupids, $useridcolumn, ?context $context = n
                         $ualias,
                         $prefix . 'param_'
                     );
-                    $where .= ' AND ' . $visibilitywhere;
+                    $hiddenwhere .= ' AND ' . $visibilitywhere;
                     $param = array_merge($param, $visibilityparams);
                 }
+
+                // Members of any of the specified groups only.
+                if (empty($where)) {
+                    $where = "{$prefix}gm2.userid IS NOT NULL {$hiddenwhere}";
+                } else {
+                    // Members of any of the specified groups or no groups.
+                    $where = "({$where} OR {$prefix}gm2.userid IS NOT NULL {$hiddenwhere})";
+                }
+
+
 
                 break;
 

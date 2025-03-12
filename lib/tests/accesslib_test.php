@@ -3077,6 +3077,51 @@ final class accesslib_test extends advanced_testcase {
         $this->assertEquals(1, count_enrolled_users($coursecontext, '', $groupids));
     }
 
+    /**
+     * Test that enrolled users returns only users in groups that they are allowed or no groups when
+     * mode is VISIBLGROUPS.
+     *
+     * @covers ::get_enrolled_users
+     * @covers ::get_enrolled_sql
+     * @covers ::get_enrolled_with_capabilities_join
+     * @covers ::get_enrolled_join
+     * @covers ::get_with_capability_join
+     * @covers ::groups_get_members_join
+     * @covers ::get_suspended_userids
+     */
+    public function test_get_enrolled_sql_userswithhiddengroups_nogroups(): void {
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course(['groupmode' => VISIBLEGROUPS]);
+        $coursecontext = context_course::instance($course->id);
+        $user1 = $this->getDataGenerator()->create_user();
+        $user2 = $this->getDataGenerator()->create_user();
+        $user3 = $this->getDataGenerator()->create_user(); // User without group.
+
+        $this->getDataGenerator()->enrol_user($user1->id, $course->id);
+        $this->getDataGenerator()->enrol_user($user2->id, $course->id);
+        $this->getDataGenerator()->enrol_user($user3->id, $course->id);
+
+        $group1 = $this->getDataGenerator()->create_group([
+            'courseid' => $course->id,
+            'visibility' => GROUPS_VISIBILITY_ALL,
+        ]);
+        groups_add_member($group1, $user1);
+        $group2 = $this->getDataGenerator()->create_group([
+            'courseid' => $course->id,
+            'visibility' => GROUPS_VISIBILITY_MEMBERS,
+        ]);
+        groups_add_member($group2, $user2);
+        $groupids = [$group1->id, $group2->id, USERSWITHOUTGROUP];
+        // User 1 can only see members of Group 1.
+        $this->setUser($user1);
+        $user1groupusers = get_enrolled_users($coursecontext, '', $groupids);
+        $this->assertArrayHasKey($user1->id, $user1groupusers); // User should see himself.
+        $this->assertArrayHasKey($user3->id, $user1groupusers); // User should see the user not in a group.
+        $this->assertCount(2, $user1groupusers); // We should also see user3.
+        $this->assertEquals(2, count_enrolled_users($coursecontext, '', $groupids));
+    }
+
     public static function get_enrolled_sql_provider(): array {
         return array(
             array(
