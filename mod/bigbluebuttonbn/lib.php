@@ -140,11 +140,6 @@ function bigbluebuttonbn_update_instance($bigbluebuttonbn) {
             \mod_bigbluebuttonbn\plugin::generate_guest_meeting_credentials();
     }
 
-    // Conditionally force grade type to none if the activity is recording only.
-    if ($bigbluebuttonbn->type == instance::TYPE_RECORDING_ONLY) {
-        $bigbluebuttonbn->grade = GRADE_TYPE_NONE;
-    }
-
     // Update a record.
     $DB->update_record('bigbluebuttonbn', $bigbluebuttonbn);
 
