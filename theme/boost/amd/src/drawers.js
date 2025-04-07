@@ -30,6 +30,7 @@ import Pending from 'core/pending';
 import {setUserPreference} from 'core_user/repository';
 // The jQuery module is only used for interacting with Boostrap 4. It can we removed when MDL-71979 is integrated.
 import jQuery from 'jquery';
+import * as FocusLock from 'core/local/aria/focuslock';
 
 let backdropPromise = null;
 
@@ -460,7 +461,9 @@ export default class Drawers {
                 pageWrapper.style.overflow = 'hidden';
                 return backdrop;
             })
-            .catch();
+            .catch(() => {
+                return;
+            });
         }
 
         // Show close button and header content once the drawer is fully opened.
@@ -475,6 +478,11 @@ export default class Drawers {
             if (focusOnCloseButton) {
                 closeButton.focus();
             }
+            // On small devices, the drawer must have a trap focus once the focus is inside
+            // to prevent the user from focussing on covered elements.
+            if (isSmall()) {
+                FocusLock.trapFocus(this.drawerNode);
+            }
             pendingPromise.resolve();
         }, 300);
 
@@ -488,7 +496,7 @@ export default class Drawers {
      * @param {boolean} [args.focusOnOpenButton=true] Whether to alter page focus when opening the drawer
      * @param {boolean} [args.updatePreferences=true] Whether to update the user prewference
      */
-    closeDrawer({focusOnOpenButton = true, updatePreferences = true} = {}) {
+        closeDrawer({focusOnOpenButton = true, updatePreferences = true} = {}) {
 
         const pendingPromise = new Pending('theme_boost/drawers:close');
 
@@ -531,8 +539,13 @@ export default class Drawers {
             }
             return backdrop;
         })
-        .catch();
+        .catch(() => {
+                return;
+        });
 
+        if (isSmall()) {
+            FocusLock.trapFocus(this.drawerNode);
+        }
         // Move focus to the open drawer (or toggler) button once the drawer is hidden.
         let openButton = getDrawerOpenButton(this.drawerNode.id);
         if (openButton) {
