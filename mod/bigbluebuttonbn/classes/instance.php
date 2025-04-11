@@ -1131,14 +1131,23 @@ EOF;
     }
 
     /**
+     * Get the URL used to view a page as a user.
+     *
+     * @param null|string $page
+     * @param array $params
+     * @return moodle_url
+     */
+    public function get_page_url($page, $params = []): moodle_url {
+        return new moodle_url("/mod/bigbluebuttonbn/$page.php", $params);
+    }
+
+    /**
      * Get the URL used to view the instance as a user.
      *
      * @return moodle_url
      */
     public function get_view_url(): moodle_url {
-        return new moodle_url('/mod/bigbluebuttonbn/view.php', [
-            'id' => $this->get_cm()->id,
-        ]);
+        return $this->get_page_url('view', ['id' => $this->get_cm()->id]);
     }
 
     /**
@@ -1147,11 +1156,10 @@ EOF;
      * @return moodle_url
      */
     public function get_logout_url(): moodle_url {
-        return new moodle_url('/mod/bigbluebuttonbn/bbb_view.php', [
+        return $this->get_page_url('bbb_view', [
             'action' => 'logout',
             'id' => $this->get_cm()->id,
-            'courseid' => $this->get_cm()->course // Used to find the course if ever the activity is deleted
-            // while the meeting is running.
+            'courseid' => $this->get_cm()->course, // Used to find the course if ever the activity is deleted.
         ]);
     }
 
@@ -1161,9 +1169,9 @@ EOF;
      * @return moodle_url
      */
     public function get_record_ready_url(): moodle_url {
-        return new moodle_url('/mod/bigbluebuttonbn/bbb_broker.php', [
+        return $this->get_page_url('bbb_broker', [
             'action' => 'recording_ready',
-            'bigbluebuttonbn' => $this->instancedata->id,
+            'bigbluebuttonbn' => $this->get_instance_id(),
         ]);
     }
 
@@ -1173,9 +1181,9 @@ EOF;
      * @return moodle_url
      */
     public function get_meeting_event_notification_url(): moodle_url {
-        return new moodle_url('/mod/bigbluebuttonbn/bbb_broker.php', [
+        return $this->get_page_url('bbb_broker', [
             'action' => 'meeting_events',
-            'bigbluebuttonbn' => $this->instancedata->id,
+            'bigbluebuttonbn' => $this->get_instance_id(),
         ]);
     }
 
@@ -1185,21 +1193,10 @@ EOF;
      * @return moodle_url
      */
     public function get_join_url(): moodle_url {
-        return new moodle_url('/mod/bigbluebuttonbn/bbb_view.php', [
+        return $this->get_page_url('bbb_view', [
             'action' => 'join',
             'id' => $this->get_cm()->id,
-            'bn' => $this->instancedata->id,
-        ]);
-    }
-
-    /**
-     * Get the URL used for the import page.
-     *
-     * @return moodle_url
-     */
-    public function get_import_url(): moodle_url {
-        return new moodle_url('/mod/bigbluebuttonbn/import_view.php', [
-            'destbn' => $this->instancedata->id,
+            'bn' => $this->get_instance_id(),
         ]);
     }
 
@@ -1305,7 +1302,7 @@ EOF;
             $this->generate_guest_credentials();
             $guestlinkuid = $this->get_instance_var('guestlinkuid');
         }
-        return new moodle_url('/mod/bigbluebuttonbn/guest.php', ['uid' => $guestlinkuid]);
+        return $this->get_page_url('guest', ['uid' => $guestlinkuid]);
     }
 
     /**

@@ -83,6 +83,8 @@ class recording_row_playback implements renderable, templatable {
                         'class' => 'btn btn-sm btn-default',
                         'data-action' => 'play',
                         'data-target' => $playback['type'],
+                        'target' => '_blank',
+                        'rel' => 'noopener noreferrer',
                     ];
                     $actionlink = new \action_link(
                         $playback['url'],

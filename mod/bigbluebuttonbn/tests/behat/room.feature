@@ -25,11 +25,11 @@ Feature: The recording can be managed through the room page and as a user I can 
   @javascript
   Scenario: Recording should be sortable by date
     Given I am on the "RoomRecordings" "bigbluebuttonbn activity" page logged in as admin
-    When I click on "th[data-yui3-col-id='date'] .yui3-datatable-sort-indicator" "css_element"
+    When I click on "div.sortable-header[data-sort='date'] span.sort-icon" "css_element"
     And "Recording 1" "text" should appear before "Recording 3" "text"
     And "Recording 3" "text" should appear before "Recording 2" "text"
     And "Recording 2" "text" should appear before "Recording 4" "text"
-    And I click on "th[data-yui3-col-id='date'] .yui3-datatable-sort-indicator" "css_element"
+    And I click on "div.sortable-header[data-sort='date'] span.sort-icon" "css_element"
     Then "Recording 1" "text" should appear after "Recording 3" "text"
     And "Recording 3" "text" should appear after "Recording 2" "text"
     And "Recording 2" "text" should appear after "Recording 4" "text"

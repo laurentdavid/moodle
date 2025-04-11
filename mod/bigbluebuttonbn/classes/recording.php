@@ -393,17 +393,30 @@ class recording extends persistent {
      * @return void
      */
     protected function before_update() {
-        // We update if the remote metadata has been changed locally.
-        if ($this->metadatachanged && !$this->get('imported')) {
+        // Only proceed if metadata was changed.
+        if (!$this->metadatachanged) {
+            return;
+        }
+
+        $recordingid = $this->get('recordingid');
+
+        if (!$this->get('imported')) {
+            // Case: non-imported recording — update remote BigBlueButton server.
             $metadata = $this->fetch_metadata();
             if ($metadata) {
-                recording_proxy::update_recording(
-                    $this->get('recordingid'),
-                    $metadata
-                );
+                recording_proxy::update_recording($recordingid, $metadata);
             }
-            $this->metadatachanged = false;
+        } else {
+            // Case: imported recording — update importeddata field in DB.
+            $metadata = $this->fetch_metadata();
+            if ($metadata) {
+                // Save back as JSON string into importeddata column.
+                $this->set('importeddata', json_encode($metadata, JSON_UNESCAPED_SLASHES));
+            }
         }
+
+        // Reset the change flag regardless of import status.
+        $this->metadatachanged = false;
     }
 
     /**
@@ -556,14 +569,14 @@ class recording extends persistent {
      * Description is stored in the metadata, so we sometimes needs to do some conversion.
      */
     protected function get_description() {
-        return trim($this->metadata_get('description'));
+        return trim((string) $this->metadata_get('description'));
     }
 
     /**
      * Name is stored in the metadata
      */
     protected function get_name() {
-        return trim($this->metadata_get('name'));
+        return trim((string) $this->metadata_get('name'));
     }
 
     /**
@@ -653,11 +666,6 @@ class recording extends persistent {
      * @param mixed $value
      */
     protected function metadata_set($fieldname, $value) {
-        // Can we can change the metadata on the imported record ?
-        if ($this->get('imported')) {
-            return;
-        }
-
         $this->metadatachanged = true;
 
         $metadata = $this->fetch_metadata();
@@ -707,14 +715,35 @@ class recording extends persistent {
             $recordingsort
         );
 
-        // Grab the recording IDs.
+        // Separate recordings into imported and non-imported.
+        $recordingsimported = array_filter($recordings, function ($recording) {
+            return isset($recording->imported) && (int)$recording->imported === 1;
+        });
+
+        $recordingsnonimported = array_filter($recordings, function ($recording) {
+            return isset($recording->imported) && (int)$recording->imported === 0;
+        });
+
+        // Grab the recording IDs to be fetched.
         $recordingids = array_values(array_map(function ($recording) {
             return $recording->recordingid;
-        }, $recordings));
+        }, $recordingsnonimported));
 
         // Fetch all metadata for these recordings.
         $metadatas = recording_proxy::fetch_recordings($recordingids);
+
+        // Also track failed remote fetches if needed.
         $failedids = recording_proxy::fetch_missing_recordings($recordingids);
+
+        // Add locally stored metadata for imported recordings.
+        foreach ($recordingsimported as $recording) {
+            if (isset($recording->recordingid, $recording->importeddata)) {
+                $decoded = json_decode($recording->importeddata, true);
+                if (is_array($decoded)) {
+                    $metadatas[$recording->recordingid] = $decoded;
+                }
+            }
+        }
 
         // Return the instances.
         return array_filter(array_map(function ($recording) use ($metadatas, $withindays, $failedids) {

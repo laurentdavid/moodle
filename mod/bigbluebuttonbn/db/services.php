@@ -43,6 +43,7 @@ $functions = [
         'ajax'          => true,
         'capabilities'  => 'mod/bigbluebuttonbn:view',
         'services'      => [MOODLE_OFFICIAL_MOBILE_SERVICE],
+        'deprecated'  => 2025032800,
     ],
     'mod_bigbluebuttonbn_get_recordings_to_import' => [
         'classname'     => 'mod_bigbluebuttonbn\external\get_recordings_to_import',
@@ -52,6 +53,7 @@ $functions = [
         'ajax'          => true,
         'capabilities'  => 'mod/bigbluebuttonbn:importrecordings',
         'services'      => [MOODLE_OFFICIAL_MOBILE_SERVICE],
+        'deprecated'  => 2025032800,
     ],
     'mod_bigbluebuttonbn_update_recording' => [
         'classname'     => 'mod_bigbluebuttonbn\external\update_recording',

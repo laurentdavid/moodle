@@ -21,22 +21,6 @@
 
     Example context (json):
     {
-        "instanceid": 1234,
-        "meetingname": "My first meeting",
-        "meetingdescription": "This is my <strong>first</strong> meeting!",
-        "serverwarning": true,
-        "sitenotification": {
-            "message": "Unlock premium feature",
-            "actions": [
-                {
-                    "url": "https://example.com/",
-                    "name": "action",
-                    "value": "buy",
-                    "title": "Upgrade now"
-                }
-            ]
-        },
-        "pollinterval": 5
     }
 
 }}
@@ -50,21 +34,34 @@
   {{>core/local/notification/cta}}
 {{/sitenotification}}
 
-<h3>{{meetingname}}</h3>
+{{#meetingname}}
+    <h3>{{meetingname}}</h3>
+{{/meetingname}}
 
-<h5>{{{meetingdescription}}}</h5>
+{{#meetingdescription}}
+    <h5>{{{meetingdescription}}}</h5>
+{{/meetingdescription}}
 
 {{#room}}
     {{>mod_bigbluebuttonbn/room_view}}
 {{/room}}
 
-
-
 {{#recordings}}
-    {{>mod_bigbluebuttonbn/recordings_session}}
+    <div class="mod_bigbluebuttonbn_recordings">
+        {{< mod_bigbluebuttonbn/recordings_table}}
+            {{$title}}{{#str}}view_section_title_recordings, mod_bigbluebuttonbn{{/str}}{{/title}}
+        {{/mod_bigbluebuttonbn/recordings_table}}
+        <div class="mt-3">
+            {{#session.import_button}}
+                {{>core/single_button}}
+            {{/session.import_button}}
+        </div>
+    </div>
 {{/recordings}}
 
 {{#js}}
+{{#instanceid}}
+{{#pollinterval}}
 require(['mod_bigbluebuttonbn/rooms'], function(rooms) {
     // Register action on all buttons.
     rooms.init(
@@ -72,4 +69,6 @@ require(['mod_bigbluebuttonbn/rooms'], function(rooms) {
         {{pollinterval}}
         );
     });
+{{/pollinterval}}
+{{/instanceid}}
 {{/js}}

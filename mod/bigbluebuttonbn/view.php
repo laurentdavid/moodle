@@ -115,6 +115,3 @@ echo $renderedinfo;
 
 // Output finishes.
 echo $OUTPUT->footer();
-
-// Shows version as a comment.
-echo '<!-- ' . $instance->get_origin_data()->originTag . ' -->' . "\n";

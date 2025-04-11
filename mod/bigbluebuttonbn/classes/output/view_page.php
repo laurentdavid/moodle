@@ -19,6 +19,7 @@ namespace mod_bigbluebuttonbn\output;
 use core\check\result;
 use core\output\notification;
 use mod_bigbluebuttonbn\instance;
+use mod_bigbluebuttonbn\external\get_recordings;
 use mod_bigbluebuttonbn\local\config;
 use mod_bigbluebuttonbn\local\proxy\bigbluebutton_proxy;
 use mod_bigbluebuttonbn\meeting;
@@ -64,6 +65,11 @@ class view_page implements renderable, templatable {
             'meetingname' => $this->instance->get_meeting_name(),
             'description' => $this->instance->get_meeting_description(true),
             'joinurl' => $this->instance->get_join_url(),
+            'recordings' => (object) [
+                'session' => (object) [],
+                'output' => (object) [],
+                'search' => true,
+            ],
         ];
 
         $viewwarningmessage = config::get('general_warning_message');
@@ -96,6 +102,8 @@ class view_page implements renderable, templatable {
             $templatedata->room = $roomdata;
         }
 
+        $templatedata->showactionbar = $this->instance->can_manage_recordings();
+        $templatedata->refreshurl = $this->instance->get_view_url()->out();
         $templatedata->recordingwarnings = [];
         $check = new cronrunning();
         $result = $check->get_result();
@@ -108,8 +116,33 @@ class view_page implements renderable, templatable {
             ))->export_for_template($output);
         }
         if ($this->instance->is_feature_enabled('showrecordings') && $this->instance->is_recorded()) {
-            $recordings = new recordings_session($this->instance);
-            $templatedata->recordings = $recordings->export_for_template($output);
+            $recordingssession = new recordings_session($this->instance);
+            $templatedata->recordings->session = $recordingssession->export_for_template($output);
+
+            try {
+                $recordings = get_recordings::execute(
+                    $this->instance->get_instance_id(),
+                    'protect,unprotect,publish,unpublish,delete',
+                    $this->instance->get_group_id()
+                );
+                if (!empty($recordings['tabledata']['data'])) {
+                    $recordingsoutput = json_decode($recordings['tabledata']['data'], true);
+                    // Mark the first recording as first.
+                    if (!empty($recordingsoutput)) {
+                        $recordingsoutput[0]['first'] = true;
+                    }
+                    // Format date before passing it to Mustache.
+                    foreach ($recordingsoutput as &$recording) {
+                        if (!empty($recording['date'])) {
+                            $recording['date'] = userdate($recording['date'] / 1000, '%B %d, %Y, %I:%M %p');
+                        }
+                    }
+                    $templatedata->recordings->output = $recordingsoutput;
+                }
+            } catch (\moodle_exception $e) {
+                debugging('Error fetching recordings: ' . $e->getMessage());
+            }
+
         } else if ($this->instance->is_type_recordings_only()) {
             $templatedata->recordingwarnings[] = (new notification(
                 get_string('view_message_recordings_disabled', 'mod_bigbluebuttonbn'),

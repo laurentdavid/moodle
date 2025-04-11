@@ -24,58 +24,6 @@
 import {call as fetchMany} from 'core/ajax';
 
 /**
- * Fetch the list of recordings from the server.
- *
- * @param   {Number} bigbluebuttonbnid The instance ID
- * @param   {String} tools the set of tools to display
- * @param   {number} groupid
- * @returns {Promise}
- */
-export const fetchRecordings = (bigbluebuttonbnid, tools, groupid) => {
-    const args = {
-        bigbluebuttonbnid,
-        tools,
-    };
-
-    if (groupid) {
-        args.groupid = groupid;
-    }
-
-    return fetchMany([{methodname: 'mod_bigbluebuttonbn_get_recordings', args}])[0];
-};
-
-/**
- * Fetch the list of recordings from the server that can be imported.
- *
- * @param   {Number} destinationinstanceid The destination instance ID
- * @param   {Number} sourcebigbluebuttonbnid The original instance ID
- * @param   {Number} sourcecourseid The destination instance ID
- * @param   {String} tools the set of tools to display
- * @param   {number} groupid
- * @returns {Promise}
- */
-export const fetchRecordingsToImport = (
-    destinationinstanceid,
-    sourcebigbluebuttonbnid,
-    sourcecourseid,
-    tools,
-    groupid
-) => {
-    const args = {
-        destinationinstanceid,
-        sourcebigbluebuttonbnid,
-        sourcecourseid,
-        tools,
-    };
-
-    if (groupid) {
-        args.groupid = groupid;
-    }
-
-    return fetchMany([{methodname: 'mod_bigbluebuttonbn_get_recordings_to_import', args}])[0];
-};
-
-/**
  * Perform an update on a single recording.
  *
  * @param   {object} args The instance ID

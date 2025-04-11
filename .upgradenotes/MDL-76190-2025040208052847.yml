@@ -1,0 +1,8 @@
+issueNumber: MDL-76190
+notes:
+  mod_bigbluebuttonbn:
+    - message: >
+        Deprecated the external service function
+        `mod_bigbluebuttonbn_get_recordings`. This web service is no longer used
+        via AJAX and is now only called internally by renderers.
+      type: deprecated

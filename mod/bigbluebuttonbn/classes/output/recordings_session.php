@@ -55,7 +55,7 @@ class recordings_session implements renderable, templatable {
     public function export_for_template(renderer_base $output): stdClass {
         $isrecordedtype = $this->instance->is_type_room_and_recordings() || $this->instance->is_type_recordings_only();
 
-        $context = (object) [
+        $templatedata = (object) [
             'bbbid' => $this->instance->get_instance_id(),
             'groupid' => $this->instance->get_group_id(),
             'has_recordings' => $this->instance->is_recorded() && $isrecordedtype,
@@ -65,13 +65,21 @@ class recordings_session implements renderable, templatable {
         ];
 
         if ($this->instance->can_import_recordings()) {
+            global $PAGE;
+            $urlpath = parse_url($PAGE->url->out_as_local_url(false), PHP_URL_PATH);
+            $pagename = preg_replace('/\.php.*/', '', basename($urlpath));
+            $pageparams = ['id' => $this->instance->get_cm()->id];
             $button = new \single_button(
-                $this->instance->get_import_url(),
+                $this->instance->get_page_url('import', [
+                    'destbn' => $this->instance->get_instance_id(),
+                    'originpage' => $pagename,
+                    'originparams' => http_build_query($pageparams),
+                ]),
                 get_string('view_recording_button_import', 'mod_bigbluebuttonbn')
             );
-            $context->import_button = $button->export_for_template($output);
+            $templatedata->import_button = $button->export_for_template($output);
         }
 
-        return $context;
+        return $templatedata;
     }
 }

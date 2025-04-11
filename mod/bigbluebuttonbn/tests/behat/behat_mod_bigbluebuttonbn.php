@@ -27,6 +27,8 @@ require_once(__DIR__ . '/../../../../lib/behat/behat_base.php');
 
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Gherkin\Node\TableNode;
+use Behat\Mink\Element\NodeElement;
+use Behat\Mink\Exception\ElementNotFoundException;
 use mod_bigbluebuttonbn\instance;
 use mod_bigbluebuttonbn\local\config;
 use mod_bigbluebuttonbn\test\subplugins_test_helper_trait;
@@ -271,5 +273,198 @@ XPATH
      */
     public function uninstall_simple_subplugin() {
         $this->uninstall_fake_plugin("simple");
+    }
+
+    /**
+     * Deletes a recording by name by clicking the delete icon and confirming in modal.
+     *
+     * @param string $name The name of the recording to delete.
+     * @When /^I delete the recording "(?P<name>[^"]+)"$/
+     */
+    public function i_delete_the_recording($name) {
+        $xpath = "//div[contains(@class,'row')][.//*[contains(text(), \"$name\")]]";
+        $container = $this->find('xpath', $xpath);
+
+        if (!$container) {
+            throw new ElementNotFoundException($this->getSession(), 'recording row', 'xpath', $xpath);
+        }
+
+        // Wait for the delete link to be visible.
+        $deletelink = $this->spin(function() use ($container) {
+            $link = $container->find('css', "a[data-action='delete']");
+            return ($link && $link->isVisible()) ? $link : false;
+        }, false, 5, new \Exception("Delete link not visible"));
+
+        // Attempt to click (fallback to JS).
+        try {
+            $deletelink->click();
+        } catch (\Exception $e) {
+            $this->getSession()->executeScript("arguments[0].click();", [$deletelink]);
+        }
+
+        // Wait for modal.
+        $this->ensure_element_exists('css', '.modal-content');
+        $this->getSession()->wait(500, "document.querySelector('.modal-content') !== null");
+
+        // Find OK button by data-action.
+        $okbutton = $this->find('css', '.modal-content button[data-action="save"]');
+        if (!$okbutton || !$okbutton->isVisible()) {
+            throw new ElementNotFoundException($this->getSession(), 'OK button', 'css', 'button[data-action="save"]');
+        }
+
+        // Click the OK button to confirm deletion.
+        try {
+            $okbutton->click();
+        } catch (\Exception $e) {
+            $this->getSession()->executeScript("arguments[0].click();", [$okbutton]);
+        }
+
+        // Optional: wait briefly for deletion to complete.
+        $this->getSession()->wait(500);
+    }
+
+    /**
+     * Click the import icon for a recording by name.
+     *
+     * @param string $recordingname The name of the recording to import.
+     * @When /^I import the recording "(?P<recordingname>[^"]+)"$/
+     */
+    public function i_import_the_recording($recordingname) {
+        // Find the row/container with the recording name.
+        $row = $this->find(
+            'xpath',
+            "//div[contains(@class, 'row') or contains(@class, 'd-flex')][.//*[contains(text(), \"$recordingname\")]]"
+        );
+
+        if (!$row) {
+            throw new ElementNotFoundException($this->getSession(), 'recording row', 'xpath', $recordingname);
+        }
+
+        // Find the import icon inside that row.
+        $importicon = $row->find('css', "a.action-icon[data-action='import']");
+        if (!$importicon || !$importicon->isVisible()) {
+            throw new ElementNotFoundException($this->getSession(), 'import icon', 'css', "a.action-icon[data-action='import']");
+        }
+
+        // Click it (JS fallback included).
+        try {
+            $importicon->click();
+        } catch (\Exception $e) {
+            $this->getSession()->executeScript("arguments[0].click();", [$importicon]);
+        }
+
+        // Optional wait for import to be processed.
+        $this->getSession()->wait(300);
+    }
+
+    /**
+     * Ensures a CSS element exists before continuing.
+     *
+     * @param string $type The type of selector (e.g. css, xpath).
+     * @param string $selector The actual selector value.
+     * @throws ElementNotFoundException If the element is not found after retries.
+     */
+    protected function ensure_element_exists($type, $selector) {
+        for ($i = 0; $i < 5; $i++) {
+            $element = $this->getSession()->getPage()->find($type, $selector);
+            if ($element) {
+                return;
+            }
+            $this->getSession()->wait(200);
+        }
+
+        throw new ElementNotFoundException($this->getSession(), 'element', $type, $selector);
+    }
+
+    /**
+     * Rename the recording name via inplace editing.
+     *
+     * @param string $oldname The current name of the recording.
+     * @param string $newname The new name to set.
+     * @When /^I update the recording name from "(?P<oldname_string>[^"]+)" to "(?P<newname_string>[^"]+)"$/
+     */
+    public function update_recording_name_from_to(string $oldname, string $newname): void {
+        $container = $this->find_recording_row_by_text($oldname);
+        $this->update_inplace_editable($container, 'a[title="Edit name"]', $newname);
+    }
+
+    /**
+     * Rename the recording description via inplace editing.
+     *
+     * @param string $olddesc The current description of the recording.
+     * @param string $newdesc The new description to set.
+     * @When /^I update the recording description from "(?P<olddesc_string>[^"]+)" to "(?P<newdesc_string>[^"]+)"$/
+     */
+    public function update_recording_description_from_to(string $olddesc, string $newdesc): void {
+        $container = $this->find_recording_row_by_text($olddesc);
+        $this->update_inplace_editable($container, 'a[title="Edit description"]', $newdesc);
+    }
+
+    /**
+     * Locate a recording row by text content (name or description).
+     *
+     * @param string $text Text to locate inside the recording row.
+     * @return NodeElement
+     */
+    private function find_recording_row_by_text(string $text): NodeElement {
+        $xpath = "//div[contains(@class,'row')][.//*[contains(text(), \"$text\")]]";
+        $container = $this->find('xpath', $xpath);
+
+        if (!$container) {
+            throw new ElementNotFoundException($this->getSession(), 'recording row', 'xpath', $xpath);
+        }
+
+        return $container;
+    }
+
+    /**
+     * Generic helper to update an inplace editable field (name or description).
+     *
+     * @param NodeElement $container Container element to scope the search.
+     * @param string $editselector CSS selector for the edit icon.
+     * @param string $newvalue The new value to set.
+     */
+    private function update_inplace_editable(NodeElement $container, string $editselector, string $newvalue): void {
+        $editlink = $container->find('css', $editselector);
+        if (!$editlink) {
+            throw new ElementNotFoundException($this->getSession(), 'edit link', 'css', $editselector);
+        }
+
+        $editlink->click();
+        $this->ensure_element_exists('css', 'span.inplaceeditable input[type="text"]');
+
+        $input = $this->find('css', 'span.inplaceeditable input[type="text"]');
+        $input->setValue($newvalue);
+
+        $browser = $this->get_current_browser();
+        if ($browser === 'chrome') {
+            $input->keyPress(13);
+        } else {
+            $this->getSession()->executeScript("
+                if (arguments[0] && typeof arguments[0].blur === 'function') {
+                    arguments[0].blur();
+                }
+            ", [$input]);
+        }
+
+        $this->getSession()->wait(500);
+    }
+
+    /**
+     * Detects the current browser name (e.g. chrome, firefox).
+     *
+     * @return string Lowercase browser name, or empty string if unknown.
+     */
+    private function get_current_browser(): string {
+        $driver = $this->getSession()->getDriver();
+
+        if (method_exists($driver, 'getCapabilities')) {
+            $caps = $driver->getCapabilities();
+            if (!empty($caps['browserName'])) {
+                return strtolower($caps['browserName']);
+            }
+        }
+
+        return '';
     }
 }

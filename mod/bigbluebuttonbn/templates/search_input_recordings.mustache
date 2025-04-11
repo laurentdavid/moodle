@@ -23,40 +23,14 @@
 
     Example context (json):
     {
-        "action": "https://moodle.local/admin/search.php",
-        "extraclasses": "my-2",
-        "inputname": "search",
-        "searchstring": "Search settings",
-        "sesskey": "sesskey",
-        "value": "policy",
-        "btnclass": "primary",
-        "hiddenfields": [
-            {
-                "name": "course",
-                "value": "11"
-            }
-        ]
     }
 }}
-<div id="searchform-auto-{{uniqid}}" class="d-flex flex-wrap align-items-center simplesearchform">
-    <div class="input-group searchbar" role="search">
-        <label for="mod_bigbluebutton_search-{{uniqid}}">
-            <span class="visually-hidden">{{$label}}{{#str}} search, core {{/str}}{{/label}}</span>
-        </label>
-        <input
-           type="text"
-           id="mod_bigbluebutton_search-{{uniqid}}"
-           data-region="input"
-           data-action="search"
-           class="form-control withclear"
-           placeholder="{{$placeholder}}{{#str}} search, core {{/str}}{{/placeholder}}"
-           name="search"
-           value="{{$value}}{{/value}}"
-           autocomplete="off"
-        >
-        <button type="submit" class="btn {{^btnclass}}btn-submit{{/btnclass}} {{ btnclass }} search-icon">
-            {{#pix}} a/search, core {{/pix}}
-            <span class="visually-hidden">{{ searchstring }}</span>
-        </button>
-    </div>
+<div class="d-flex justify-content-end align-items-center mb-3">
+    <input id="recordings-search-input" type="text"
+           class="form-control form-control-sm w-auto mr-2"
+           style="max-width: 300px;"
+           placeholder="{{#str}}view_recording_search_placeholder, mod_bigbluebuttonbn{{/str}}">
+    <button id="recordings-search-button" class="btn btn-sm btn-primary">
+        {{#str}}view_recording_search, mod_bigbluebuttonbn{{/str}}
+    </button>
 </div>

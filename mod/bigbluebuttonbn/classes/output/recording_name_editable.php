@@ -48,7 +48,7 @@ class recording_name_editable extends recording_editable {
      */
     public function get_recording_value(recording $recording): string {
         $metaname = $recording->get('name');
-        return \html_writer::span($metaname);
+        return \html_writer::span($metaname, 'recording-name');
     }
 
     /**
