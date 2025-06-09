@@ -32,6 +32,8 @@ import DrawerEvents from 'core/drawer_events';
 import {subscribe} from 'core/pubsub';
 import * as MessageDrawerHelper from 'core_message/message_drawer_helper';
 import {getString} from 'core/str';
+import * as FocusLock from 'core/local/aria/focuslock';
+import {isSmall} from "core/pagehelpers";
 
 const AICourseAssist = class {
 
@@ -239,6 +241,11 @@ const AICourseAssist = class {
         }
         this.jumpToElement.setAttribute('tabindex', 0);
         this.jumpToElement.focus();
+        if (isSmall()) {
+            // If the screen is small, we need to trap focus in the AI drawer.
+            this.aiDrawerElement.focus();
+            FocusLock.trapFocus(this.aiDrawerElement);
+        }
     }
 
     /**
@@ -261,6 +268,10 @@ const AICourseAssist = class {
         // we will remove the active class at {@see registerEventListeners()}
         this.actionElement.classList.add('active');
         this.actionElement.focus();
+        if (isSmall()) {
+            // If the screen is small, we need to trap focus in the AI drawer.
+            FocusLock.untrapFocus();
+        }
     }
 
     /**
