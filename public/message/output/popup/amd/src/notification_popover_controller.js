@@ -25,9 +25,11 @@
  */
 define(['jquery', 'core/ajax', 'core/templates', 'core/str', 'core/url',
             'core/notification', 'core/custom_interaction_events', 'core/popover_region_controller',
-            'message_popup/notification_repository', 'message_popup/notification_area_events'],
+            'message_popup/notification_repository', 'message_popup/notification_area_events',
+            'core/local/aria/focuslock', 'core/pagehelpers'
+        ],
         function($, Ajax, Templates, Str, URL, DebugNotification, CustomEvents,
-            PopoverController, NotificationRepo, NotificationAreaEvents) {
+            PopoverController, NotificationRepo, NotificationAreaEvents, FocusLock, PageHelpers) {
 
     var SELECTORS = {
         MARK_ALL_READ_BUTTON: '[data-action="mark-all-read"]',
@@ -366,12 +368,21 @@ define(['jquery', 'core/ajax', 'core/templates', 'core/str', 'core/url',
             if (!this.hasDoneInitialLoad()) {
                 this.loadMoreNotifications();
             }
+            if (PageHelpers.isSmall()) {
+                // Lock focus to the popover when it is opened, it is the parent of the container.
+                const contentContainer = this.getContentContainer()[0].parentNode;
+                FocusLock.trapFocus(contentContainer);
+            }
         }.bind(this));
 
         // Update the unread notification count when the menu is closed.
         this.root.on(this.events().menuClosed, function() {
             this.renderUnreadCount();
             this.updateButtonAriaLabel();
+            if (PageHelpers.isSmall()) {
+                // Lock focus to the popover when it is opened, it is the parent of the container.
+                FocusLock.untrapFocus();
+            }
         }.bind(this));
 
         // Set aria attributes when popover is loading.
