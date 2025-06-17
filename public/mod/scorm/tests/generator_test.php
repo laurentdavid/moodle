@@ -66,4 +66,51 @@ final class generator_test extends \advanced_testcase {
         $fs->create_file_from_pathname($filerecord, $CFG->dirroot.'/mod/scorm/tests/packages/singlescobasic.zip');
         $scorm = $this->getDataGenerator()->create_module('scorm', $params);
     }
+
+
+    /**
+     * Test creating a SCORM attempt.
+     *
+     * @covers \mod_scorm_generator::create_attempt
+     */
+    public function test_create_attempt(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $dg = $this->getDataGenerator();
+        $course = $dg->create_course();
+        $user = $dg->create_user();
+        $scorm = $dg->create_module('scorm', ['course' => $course]);
+
+        $scormgenerator = $dg->get_plugin_generator('mod_scorm');
+        $scormgenerator->create_attempt(['scormid' => $scorm->id, 'userid' => $user->id]);
+        $records = $DB->get_records('scorm_attempt', ['scormid' => $scorm->id], 'id');
+        $this->assertEquals(1, count($records));
+    }
+
+    /**
+     * Test creating a SCORM attempt.
+     *
+     * @covers \mod_scorm_generator::create_attempt
+     */
+    public function test_create_instance_timeopen_timeclose(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $dg = $this->getDataGenerator();
+        $course = $dg->create_course();
+        $clock = $this->mock_clock_with_frozen();
+        $timeopen = $clock->time();
+        $timeclose = $clock->time() + 10;
+        $scorm = $dg->create_module('scorm',
+            [
+                'course' => $course,
+                'timeopen' => $timeopen,
+                'timeclose' => $timeclose,
+            ]
+        );
+        $record = $DB->get_record('scorm', ['id' => $scorm->id]);
+        $this->assertEquals($timeopen, $record->timeopen);
+        $this->assertEquals($timeclose, $record->timeclose);
+    }
 }
