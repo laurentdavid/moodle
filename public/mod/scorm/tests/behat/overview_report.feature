@@ -87,4 +87,3 @@ Feature: Testing overview integration in mod_scorm
       | student  | grade  |
       | student1 | 50.00  |
       | student2 | 100.00 |
-
