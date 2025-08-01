@@ -171,10 +171,11 @@ class overview extends \core_courseformat\activityoverviewbase {
         );
 
         $content->add_item(get_string('allowedattemptsstudent', 'mod_scorm'), $maxattemptstext);
+        $averageattempts = 0;
         if ($userswhocanattempt > 0) {
             $averageattempts = (int) round($totalattempts / $userswhocanattempt);
-            $content->add_item(get_string('averageattemptperstudent', 'mod_scorm'), $averageattempts);
         }
+        $content->add_item(get_string('averageattemptperstudent', 'mod_scorm'), $averageattempts);
 
         return new overviewitem(
             name: get_string('totalattempts', 'mod_scorm'),

@@ -196,7 +196,6 @@ final class overview_test extends \advanced_testcase {
         $this->setAdminUser();
         $items = overviewfactory::create($cm)->get_extra_overview_items();
         $this->assertArrayHasKey('attempted', $items);
-        $this->assertEquals(0, $items['attempted']->get_value());
         $this->assertEquals(
             0,
             $items['attempted']->get_value(),
@@ -208,7 +207,6 @@ final class overview_test extends \advanced_testcase {
             'Expected no attempts when there are no users in the course.'
         );
         $this->assertArrayHasKey('totalattempts', $items);
-        $this->assertEquals(0, $items['totalattempts']->get_value());
         $this->assertEquals(
             0,
             $items['totalattempts']->get_value(),
@@ -216,9 +214,25 @@ final class overview_test extends \advanced_testcase {
         );
         $content = $items['totalattempts']->get_content()->export_for_template($PAGE->get_renderer('core'));
         $this->assertCount(
-            2, // Grading method and allowed attempts.
+            3, // Grading method and allowed attempts.
             $content['items'],
             'Expected items even if the content is empty.'
+        );
+        $items = $content['items'];
+        $this->assertEquals(
+            (object) ['label' => 'Grading method', 'value' => 'Highest attempt'],
+            array_shift($items),
+            'Expected grading method item.'
+        );
+        $this->assertEquals(
+            (object) ['label' => 'Allowed attempts per student', 'value' => 'Unlimited'],
+            array_shift($items),
+            'Expected allowed attempts item.'
+        );
+        $this->assertEquals(
+            (object) ['label' => 'Average attempts per student', 'value' => '0'],
+            array_shift($items),
+            'Expected average attempts item.'
         );
     }
 
