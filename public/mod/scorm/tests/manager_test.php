@@ -204,7 +204,7 @@ final class manager_test extends \advanced_testcase {
                     't2' => 4,
                     's1' => 4,
                     's2' => 4,
-                    's3' => 4, // s3 is a test role that does not have mod/scorm:savetrack permission.
+                    's3' => 4, // The user s3 is a test role that does not have mod/scorm:savetrack permission.
                 ],
             ],
         ];
