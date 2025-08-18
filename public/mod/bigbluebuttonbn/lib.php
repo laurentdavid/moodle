@@ -575,13 +575,11 @@ function mod_bigbluebuttonbn_core_calendar_is_event_visible(calendar_event $even
  */
 function bigbluebuttonbn_extend_settings_navigation(settings_navigation $settingsnav, navigation_node $nodenav) {
     // 1. Check for overrides.
-    $overrides = extension::get_instances_implementing(\mod_bigbluebuttonbn\local\extension\navigation_override_addon::class);
-    if (!empty($overrides) && $overrides[0] !== null) {
-        // Call the first override and return.
-        $overrides[0]->override_settings_navigation($settingsnav, $nodenav);
+    $overriden = extension::override_settings_navigation($settingsnav, $nodenav);
+    if ($overriden) {
+        // If the override returns true, it means that the settings navigation has been overridden.
         return;
     }
-
     // 2. Run core/default logic here.
     global $USER;
     $context = context_module::instance($settingsnav->get_page()->cm->id);
@@ -599,10 +597,7 @@ function bigbluebuttonbn_extend_settings_navigation(settings_navigation $setting
     }
 
     // 3. Call all appends.
-    $appends = extension::get_instances_implementing(\mod_bigbluebuttonbn\local\extension\navigation_append_addon::class);
-    foreach ($appends as $addon) {
-        $addon->append_settings_navigation($settingsnav, $nodenav);
-    }
+    extension::append_settings_navigation($settingsnav, $nodenav);
 }
 
 /**
