@@ -24,19 +24,17 @@ use mod_bigbluebuttonbn\test\testcase_helper_trait;
 /**
  * Tests for bigbluebuttonbn activity overview
  *
- * @covers     \mod_bigbluebuttonbn\courseformat\overview
  * @package    mod_bigbluebuttonbn
  * @category   test
  * @copyright  2025 Laurent David <laurent.david@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers     \mod_bigbluebuttonbn\courseformat\overview
  */
 final class overview_test extends \advanced_testcase {
-
     use testcase_helper_trait;
+
     /**
      * Test get_actions_overview.
-     *
-     * @covers ::get_actions_overview
      */
     public function test_get_actions_overview(): void {
         $this->resetAfterTest();
@@ -71,8 +69,6 @@ final class overview_test extends \advanced_testcase {
      * - opens: the opening date of the activity.
      * - closes: the closing date of the activity.
      * This test just checks that the due date overview is not used in the bigbluebuttonbn activity overview.
-     *
-     * @covers ::get_due_date_overview
      */
     public function test_get_due_date_overview(): void {
         $this->resetAfterTest();
@@ -95,8 +91,6 @@ final class overview_test extends \advanced_testcase {
      * Test get_extra_date_open method.
      *
      * @param int|null $timeincrement
-     *
-     * @covers ::get_extra_date_open
      * @dataProvider get_extra_date_data
      */
     public function test_get_extra_date_open(?int $timeincrement): void {
@@ -124,8 +118,6 @@ final class overview_test extends \advanced_testcase {
      * Test get_extra_date_close method.
      *
      * @param int|null $timeincrement
-     *
-     * @covers ::get_extra_date_close
      * @dataProvider get_extra_date_data
      */
     public function test_get_extra_date_close(?int $timeincrement): void {
@@ -176,8 +168,6 @@ final class overview_test extends \advanced_testcase {
      *
      * @param int $roomtype
      * @param string $expectedtype
-     *
-     * @covers ::get_extra_room_type_overview
      * @dataProvider get_extra_room_type_overview_data
      */
     public function test_get_extra_room_type_overview(int $roomtype, string $expectedtype): void {
@@ -227,9 +217,6 @@ final class overview_test extends \advanced_testcase {
      *
      * @param string $activityname
      * @param int $recordingcount
-     * @throws \coding_exception
-     * @throws \moodle_exception
-     * @covers ::get_extra_recordings_overview
      * @dataProvider get_extra_recordings_overview_data
      */
     public function test_get_extra_recordings_overview(string $activityname, int $recordingcount): void {
