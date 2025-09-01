@@ -4285,4 +4285,52 @@ final class lib_test extends \advanced_testcase {
         $f3discussionscount = forum_count_discussions($forum3, $forum3cm, $course2);
         $this->assertEquals(0, $f3discussionscount);
     }
+
+
+    /**
+     * Test forum_resetdata function.
+     */
+    public function test_forum_resetdata(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $this->setAdminUser();
+
+        $clock = $this->mock_clock_with_frozen();
+        // Create a course.
+        $course = $this->getDataGenerator()->create_course([
+            'startdate' => $clock->time() - 1000,
+        ]);
+
+        $currenttime = $clock->time();
+        // Create a forum activity.
+        $forum = $this->getDataGenerator()->create_module('forum',
+            [
+                'course' => $course->id,
+                'duedate' => $currenttime,
+                'cutoffdate' => $currenttime + 1000,
+                'assesstimestart' => $currenttime - 1000,
+                'assesstimefinish' => $currenttime + 2000,
+                'assessed' => 1, // To enable time-based assessment.
+                'ratingtime' => 5 // Same as above.
+            ]
+        );
+        $data = new \stdClass();
+        $data->courseid = $course->id;
+        $data->timeshift = DAYSECS;
+        forum_reset_userdata($data);
+
+        $this->assertEquals($currenttime + DAYSECS,
+            $DB->get_field('forum', 'duedate', ['id' => $forum->id])
+        );
+        $this->assertEquals($currenttime + DAYSECS + 1000,
+            $DB->get_field('forum', 'cutoffdate', ['id' => $forum->id])
+        );
+        $this->assertEquals($currenttime + DAYSECS - 1000,
+            $DB->get_field('forum', 'assesstimestart', ['id' => $forum->id])
+        );
+        $this->assertEquals($currenttime + DAYSECS + 1000,
+            $DB->get_field('forum', 'assesstimefinish', ['id' => $forum->id])
+        );
+    }
 }
