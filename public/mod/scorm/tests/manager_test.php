@@ -194,6 +194,84 @@ final class manager_test extends \advanced_testcase {
     }
 
     /**
+     * Count the number of attempts for the SCORM activity.
+     *
+     * @param int $groupmode the group mode to use for the course.
+     * @param string $activity the activity name to test.
+     * @param array $currentgroups
+     * @param int $expectedcount
+     * @throws \moodle_exception
+     * @dataProvider get_count_all_attemptss_data
+     */
+    public function test_count_all_attempts(int $groupmode, string $activity, array $currentgroups, int $expectedcount): void {
+        $this->resetAfterTest();
+        ['users' => $users, 'course' => $course, 'instances' => $instances, 'groups' => $groups ] =
+            $this->setup_users_and_activity(groupmode: $groupmode);
+        $manager = \mod_scorm\manager::create_from_instance($instances[$activity]);
+        $groupids = array_map(
+            fn($gname) => $groups[$gname]->id,
+            $currentgroups
+        );
+        $this->assertEquals(
+            $expectedcount,
+            $manager->count_all_attempts($groupids),
+        );
+    }
+
+    /**
+     * Data provider for participant count tests.
+     *
+     * @return array
+     */
+    public static function get_count_all_attemptss_data(): array {
+        return [
+            'No groups' => [
+                'groupmode' => NOGROUPS,
+                'activity' => 'withattempts',
+                'currentgroups' => [],
+                'expectedcount' => 3,
+            ],
+            'Separate groups, g1 selected' => [
+                'groupmode' => SEPARATEGROUPS,
+                'activity' => 'withattempts',
+                'currentgroups' => ['g1'],
+                'expectedcount' => 2,
+            ],
+            'Separate groups, g2 selected' => [
+                'groupmode' => SEPARATEGROUPS,
+                'activity' => 'withattempts',
+                'currentgroups' => ['g2'],
+                'expectedcount' => 1,
+            ],
+            'Separate groups, g1 and g2 selected' => [
+                'groupmode' => SEPARATEGROUPS,
+                'activity' => 'withattempts',
+                'currentgroups' => ['g1', 'g2'],
+                'expectedcount' => 3,
+            ],
+            'Separate groups, no group selected' => [
+                'groupmode' => SEPARATEGROUPS,
+                'activity' => 'withattempts',
+                'currentgroups' => [],
+                'expectedcount' => 3, // Seems counter-intuitive but with no group selected we count all attempts.
+            ],
+            'Visible groups' => [
+                'groupmode' => VISIBLEGROUPS,
+                'activity' => 'withattempts',
+                'currentgroups' => ['g1', 'g2'],
+                'expectedcount' => 3,
+            ],
+            'Visible groups g1 selected' => [
+                'groupmode' => VISIBLEGROUPS,
+                'activity' => 'withattempts',
+                'currentgroups' => ['g1'],
+                'expectedcount' => 2,
+            ],
+        ];
+    }
+
+
+    /**
      * Test if the manager can view reports for a user.
      *
      * @param int $groupmode the group mode to use for the course.
@@ -392,6 +470,7 @@ final class manager_test extends \advanced_testcase {
             'users' => $users,
             'course' => $course,
             'instances' => $instances,
+            'groups' => $groups,
         ];
     }
 }
