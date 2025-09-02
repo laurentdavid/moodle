@@ -137,3 +137,13 @@ Feature: BigBlueButtonBN Subplugins test
     And I am on the "BBB Instance name" "bigbluebuttonbn activity" page logged in as "admin"
     Then I should see "Override Navigation"
     And I should not see "Append Navigation"
+
+  @javascript
+  Scenario: I check that subplugins can override the view
+    Given I log in as "admin"
+    And I am on the "BBB Instance name" "bigbluebuttonbn activity" page logged in as "admin"
+    And I should not see "Hello from complex::renderer!"
+    And I navigate to "Plugins > Activity modules > BigBlueButton > Manage BigBlueButton extension plugins" in site administration
+    And I click on "Enable" "link" in the "Complex" "table_row"
+    When I am on the "BBB Instance name" "bigbluebuttonbn activity" page logged in as "admin"
+    And I should see "Hello from complex::renderer!"
