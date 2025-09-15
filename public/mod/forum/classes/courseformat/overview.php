@@ -22,6 +22,7 @@ use core_calendar\output\humandate;
 use core\output\local\properties\text_align;
 use core_courseformat\local\overview\overviewitem;
 use core_courseformat\output\local\overview\overviewaction;
+use mod_forum\output\courseformat\toggle;
 
 /**
  * Forum overview integration.
@@ -201,29 +202,13 @@ class overview extends \core_courseformat\activityoverviewbase {
             $label = get_string('trackforum', 'mod_forum');
         }
 
-        $renderer = $this->rendererhelper->get_renderer('mod_forum');
-        $dataattributes = [
-            ['name' => 'type', 'value' => 'forum-track-toggle'],
-            ['name' => 'action', 'value' => 'toggle'],
-            ['name' => 'forumid', 'value' => $this->forum->id],
-            ['name' => 'targetstate', 'value' => !$tracked],
-        ];
-        $content = $renderer->render_from_template(
-            'core/toggle',
-            [
-                'id' => 'forum-track-toggle-' . $this->forum->id,
-                'checked' => $tracked,
-                'disabled' => $disabled,
-                'dataattributes' => $dataattributes,
-                'label' => $label,
-                'labelclasses' => 'visually-hidden',
-            ],
-        );
-
-        $renderer->get_page()->requires->js_call_amd(
-            'mod_forum/forum_overview_toggle',
-            'init',
-            ['#forum-track-toggle-' . $this->forum->id],
+        $content = new toggle(
+            cm: $this->cm,
+            type: 'forum-track-toggle',
+            targetstate: !$tracked,
+            checked: $tracked,
+            disabled: $disabled,
+            label: $label,
         );
 
         return new overviewitem(
@@ -265,29 +250,13 @@ class overview extends \core_courseformat\activityoverviewbase {
             }
         }
 
-        $renderer = $this->rendererhelper->get_renderer('mod_forum');
-        $dataattributes = [
-            ['name' => 'type', 'value' => 'forum-subscription-toggle'],
-            ['name' => 'action', 'value' => 'toggle'],
-            ['name' => 'forumid', 'value' => $this->forum->id],
-            ['name' => 'targetstate', 'value' => !$subscribed],
-        ];
-        $content = $renderer->render_from_template(
-            'core/toggle',
-            [
-                'id' => 'forum-subscription-toggle-' . $this->forum->id,
-                'checked' => $subscribed,
-                'disabled' => $disabled,
-                'dataattributes' => $dataattributes,
-                'label' => $label,
-                'labelclasses' => 'visually-hidden',
-            ],
-        );
-
-        $renderer->get_page()->requires->js_call_amd(
-            'mod_forum/forum_overview_toggle',
-            'init',
-            ['#forum-subscription-toggle-' . $this->forum->id],
+        $content = new toggle(
+            cm: $this->cm,
+            type: 'forum-subscription-toggle',
+            targetstate: !$subscribed,
+            checked: $subscribed,
+            disabled: $disabled,
+            label: $label,
         );
 
         return new overviewitem(
