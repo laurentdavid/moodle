@@ -306,9 +306,9 @@ class modinfo {
      * @param int $instanceid Instance id
      * @param int $strictness Use IGNORE_MISSING to return null if not found, or MUST_EXIST to throw exception
      * @return cm_info|null cm_info for the instance on this course or null if not found
-     * @throws coding_exception If the instance is not found
+     * @throws moodle_exception If the instance is not found
      */
-    public function get_instance_of(string $modname, int $instanceid, $strictness = IGNORE_MISSING): ?cm_info {
+    public function get_instance_of(string $modname, int $instanceid, int $strictness = IGNORE_MISSING): ?cm_info {
         if (empty($this->instances[$modname]) || empty($this->instances[$modname][$instanceid])) {
             if ($strictness === IGNORE_MISSING) {
                 return null;
@@ -321,10 +321,10 @@ class modinfo {
     /**
      * Sorts the given array of course modules according to the order they appear on the course page.
      *
-     * @param array $cms Array of cm_info objects to sort by reference
+     * @param cm_info[] $cms Array of cm_info objects to sort by reference
      * @return void
      */
-    public function sort_cm_array(array &$cms) {
+    public function sort_cm_array(array &$cms): void {
         $weights = $this->get_content_weights();
         uasort($cms, function ($a, $b) use ($weights) {
             $weighta = $weights['cm' . $a->id] ?? PHP_INT_MAX;
