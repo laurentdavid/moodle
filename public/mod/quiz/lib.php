@@ -1606,12 +1606,12 @@ function quiz_num_attempt_summary($quiz, $cm, $returnzero = false, $currentgroup
  *
  * @param cm_info $cm
  * @param array $groupidlist array of group ids to count attempts from, if array is empty we return all records from all groups.
- * @param array|null $withcapabilities if non-null, only count attempts from users who have any the given capabilities
+ * @param array $withcapabilities if non-null, only count attempts from users who have any the given capabilities
  * in the quiz context.
  *
  * @return int the number of attempts filtered by group if groupidlist is not empty (or all attempts).
  */
-function quiz_num_attempts(cm_info $cm, array $groupidlist = [], ?array $withcapabilities = null): int {
+function quiz_num_attempts(cm_info $cm, array $groupidlist = [], array $withcapabilities = []): int {
     global $DB;
     $context = context_module::instance($cm->id);
 
