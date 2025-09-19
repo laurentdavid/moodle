@@ -98,7 +98,7 @@ final class manager_test extends \advanced_testcase {
      */
     public function test_can_view_reports(): void {
         $this->resetAfterTest();
-        ['users' => $users, 'course' => $course, 'instances' => $instances] = $this->setup_users_and_activity();
+        ['users' => $users, 'instances' => $instances] = $this->setup_users_and_activity();
         $manager = \mod_scorm\manager::create_from_instance($instances['withattempts']);
         // Create an attempt for the current user.
         $this->assertTrue($manager->can_view_reports($users['t1']));
@@ -132,8 +132,7 @@ final class manager_test extends \advanced_testcase {
      */
     public function test_count_users_who_attempted(int $groupmode, string $activity, array $expected): void {
         $this->resetAfterTest();
-        ['users' => $users, 'course' => $course, 'instances' => $instances] =
-            $this->setup_users_and_activity(groupmode: $groupmode);
+        ['users' => $users, 'instances' => $instances] = $this->setup_users_and_activity(groupmode: $groupmode);
 
         $manager = \mod_scorm\manager::create_from_instance($instances[$activity]);
         // Check the count of users who attempted.
@@ -205,8 +204,7 @@ final class manager_test extends \advanced_testcase {
      */
     public function test_count_all_attempts(int $groupmode, string $activity, array $currentgroups, int $expectedcount): void {
         $this->resetAfterTest();
-        ['users' => $users, 'course' => $course, 'instances' => $instances, 'groups' => $groups ] =
-            $this->setup_users_and_activity(groupmode: $groupmode);
+        ['instances' => $instances, 'groups' => $groups] = $this->setup_users_and_activity(groupmode: $groupmode);
         $manager = \mod_scorm\manager::create_from_instance($instances[$activity]);
         $groupids = array_map(
             fn($gname) => $groups[$gname]->id,
