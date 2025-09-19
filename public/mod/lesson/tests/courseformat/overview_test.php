@@ -353,7 +353,7 @@ final class overview_test extends \advanced_testcase {
      * @param string $role
      * @param int $groupmode
      * @param bool $hasentries
-     * @param int|null $studentswhoattempted
+     * @param array|null $expected
      * @return void
      */
     #[\PHPUnit\Framework\Attributes\DataProvider('provider_test_get_extra_attemptedstudents_overview')]
