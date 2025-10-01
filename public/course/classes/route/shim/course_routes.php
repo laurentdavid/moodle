@@ -16,10 +16,13 @@
 
 namespace core_course\route\shim;
 
+use core\di;
 use core\param;
+use core\router\parameters\query_returnurl;
 use core\router\route;
 use core\router\route_controller;
 use core\router\schema\parameters\query_parameter;
+use moodle_database;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -99,6 +102,66 @@ final class course_routes {
             $response,
             [\core_course\route\controller\tags_controller::class, 'administer_tags'],
             pathparams: $params + ['course' => $params['id']],
+            excludeparams: ['id'],
+        );
+    }
+
+    /**
+     * Shim /course/editsection.php to the section management controller.
+     *
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface $response
+     * @return ResponseInterface
+     */
+    #[route(
+        path: '/editsection.php',
+        queryparams: [
+            new query_parameter(
+                name: 'id',
+                type: param::INT,
+                description: 'The section ID',
+                required: true,
+            ),
+            new query_parameter(
+                name: 'sr',
+                type: param::INT,
+                description: 'The section return',
+                required: false,
+                default: null,
+            ),
+            new query_parameter(
+                name: 'delete',
+                type: param::BOOL,
+                description: 'Delete the section',
+                required: false,
+                default: false,
+            ),
+            new query_parameter(
+                name: 'showonly',
+                type: param::TAGLIST,
+                description: 'Show only tags',
+                required: false,
+                default: 0,
+            ),
+            new query_returnurl(),
+        ],
+    )]
+    public function edit_section(
+        ServerRequestInterface $request,
+        ResponseInterface $response,
+    ): ResponseInterface {
+        $db  = di::get_container()->get(moodle_database::class); // We could have done that by injection too but there
+        // is a bug as $DB is not defined in the constructor.
+        $params = $request->getQueryParams();
+        $params['section'] = $params['id'];
+        $data = $db->get_record('course_sections', [
+            'id' => $params['id'],
+        ]);
+        return self::redirect_to_callable(
+            $request,
+            $response,
+            [\core_course\route\controller\section_management::class, 'edit'],
+            pathparams: $params + ['course' => $data->course],
             excludeparams: ['id'],
         );
     }
