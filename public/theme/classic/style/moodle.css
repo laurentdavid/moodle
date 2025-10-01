@@ -31484,7 +31484,7 @@ table.calendartable caption {
 #page-course-pending .singlebutton,
 #page-course-index .singlebutton,
 #page-course-index-category .singlebutton,
-#page-course-editsection .singlebutton {
+.course-section-list .singlebutton {
   text-align: center;
 }
 
