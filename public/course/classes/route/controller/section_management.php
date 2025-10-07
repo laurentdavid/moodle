@@ -37,6 +37,10 @@ class section_management {
     use \core\router\route_controller;
 
     /**
+     * Key used to store the anchor in the navigation manager.
+     */
+    public const SECTION_EDIT_RETURN_ANCHOR_KEY = 'section-edit-return';
+    /**
      * Edit a section
      *
      * @param ResponseInterface $response
@@ -114,6 +118,9 @@ class section_management {
         }
         $returnurlstring= $this->get_param($request, 'returnurl') ?? course_get_url($course);
         $returnurl = new \core\url($returnurlstring);
+        if (navigation_anchor_manager::has(self::SECTION_EDIT_RETURN_ANCHOR_KEY)) {
+            $returnurl = navigation_anchor_manager::get(self::SECTION_EDIT_RETURN_ANCHOR_KEY);
+        }
         if ($mform->is_cancelled()){
             // Form cancelled, return to course.
             redirect($returnurl);

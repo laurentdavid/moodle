@@ -22,6 +22,8 @@ use core\output\action_menu\link;
 use core\output\action_menu\link_secondary;
 use core\output\pix_icon;
 use core\output\renderer_base;
+use core\router\parameters\query_set_nav_anchor_to_referer;
+use core_course\route\controller\section_management;
 use core_courseformat\base as course_format;
 use core_courseformat\output\local\content\basecontrolmenu;
 use core\url;
@@ -141,7 +143,7 @@ class controlmenu extends basecontrolmenu {
             [
                 'id' => $this->section->id,
                 'sr' => $this->section->sectionnum,
-                'returnurl' => $this->baseurl->out_as_local_url()
+                'setnavanchoreferer' => section_management::SECTION_EDIT_RETURN_ANCHOR_KEY, // To return to the same place in the course or in the current page.
             ]
         );
 

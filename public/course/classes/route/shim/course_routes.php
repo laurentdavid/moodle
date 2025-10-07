@@ -17,8 +17,10 @@
 namespace core_course\route\shim;
 
 use core\di;
+use core\navigation\navigation_anchor_manager;
 use core\param;
 use core\router\parameters\query_returnurl;
+use core\router\parameters\query_set_nav_anchor_to_referer;
 use core\router\route;
 use core\router\route_controller;
 use core\router\schema\parameters\query_parameter;
@@ -141,9 +143,10 @@ final class course_routes {
                 type: param::TAGLIST,
                 description: 'Show only tags',
                 required: false,
-                default: 0,
+                default: [],
             ),
             new query_returnurl(),
+            new query_set_nav_anchor_to_referer(),
         ],
     )]
     public function edit_section(
@@ -157,6 +160,8 @@ final class course_routes {
         $data = $db->get_record('course_sections', [
             'id' => $params['id'],
         ]);
+        navigation_anchor_manager::push_referer_from_request($request); // We need to push the anchors before redirecting as if not
+        // we will lose the information.
         return self::redirect_to_callable(
             $request,
             $response,

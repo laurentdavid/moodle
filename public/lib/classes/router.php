@@ -22,6 +22,7 @@ use core\router\middleware\moodle_api_authentication_middleware;
 use core\router\middleware\moodle_authentication_middleware;
 use core\router\middleware\moodle_bootstrap_middleware;
 use core\router\middleware\moodle_route_attribute_middleware;
+use core\router\middleware\navigation_anchor_middleware;
 use core\router\middleware\uri_normalisation_middleware;
 use core\router\middleware\validation_middleware;
 use core\router\request_validator_interface;
@@ -263,6 +264,7 @@ class router {
     protected function configure_standard_route(RouteGroupInterface $group): void {
         $group
             ->add(di::get(moodle_authentication_middleware::class))
+            ->add(di::get(navigation_anchor_middleware::class))
             ->add(di::get(validation_middleware::class));
     }
 
@@ -274,6 +276,7 @@ class router {
     protected function configure_shim_route(RouteGroupInterface $group): void {
         $group
             // Note: In the future we may wish to add a shim middleware to notify users of updated bookmarks.
+            ->add(di::get(navigation_anchor_middleware::class))
             ->add(di::get(validation_middleware::class));
     }
 
