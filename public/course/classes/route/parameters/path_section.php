@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace core_course\route\parameters;
 
@@ -6,6 +20,7 @@ use core\exception\not_found_exception;
 use core\param;
 use core\router\schema\example;
 use core\router\schema\parameters\mapped_property_parameter;
+use core\router\schema\parameters\path_parameter;
 use core\router\schema\referenced_object;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -16,9 +31,7 @@ use Psr\Http\Message\ServerRequestInterface;
  * @copyright  Laurent David <laurent.david@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  **/
-class path_section
-    extends \core\router\schema\parameters\path_parameter
-    implements mapped_property_parameter, referenced_object {
+class path_section extends path_parameter implements mapped_property_parameter, referenced_object {
     /**
      * Create a new instance of the path_section.
      *
@@ -61,16 +74,11 @@ class path_section
      */
     protected function get_section_for_value(string $value, ?int $courseid = null): mixed {
         global $DB;
-
-        $data = false;
-
-        // Try to find by section ID first
         if (!$courseid) {
             $data = $DB->get_record('course_sections', [
                 'id' => $value,
             ]);
         } else {
-            // Find by section number within the specified course
             $data = $DB->get_record('course_sections', [
                 'course' => $courseid,
                 'section' => $value,
@@ -89,7 +97,6 @@ class path_section
         ServerRequestInterface $request,
         string $value,
     ): ServerRequestInterface {
-        // Check if there's a course parameter in the request
         $course = $request->getAttribute('course');
         $courseid = $course ? $course->id : null;
 
@@ -103,10 +110,7 @@ class path_section
     #[\Override]
     public function get_schema_from_type(param $type): \stdClass {
         $schema = parent::get_schema_from_type($type);
-
-        // Simple integer pattern since we handle the logic internally
         $schema->pattern = "^\d+$";
-
         return $schema;
     }
 }

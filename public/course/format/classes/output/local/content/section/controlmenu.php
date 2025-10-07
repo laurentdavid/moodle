@@ -17,11 +17,14 @@
 namespace core_courseformat\output\local\content\section;
 
 use core\context\course as context_course;
+use core\navigation\navigation_anchor_manager;
 use core\output\action_menu;
 use core\output\action_menu\link;
 use core\output\action_menu\link_secondary;
 use core\output\pix_icon;
 use core\output\renderer_base;
+use core\router\parameters\query_set_nav_anchor_to_referer;
+use core_course\route\controller\section_management;
 use core_courseformat\base as course_format;
 use core_courseformat\output\local\content\basecontrolmenu;
 use core\url;
@@ -141,9 +144,9 @@ class controlmenu extends basecontrolmenu {
             [
                 'id' => $this->section->id,
                 'sr' => $this->section->sectionnum,
-                'returnurl' => $this->baseurl->out_as_local_url()
             ]
         );
+        $url = navigation_anchor_manager::add_set_anchor_to_referer($url, section_management::SECTION_EDIT_RETURN_ANCHOR_KEY);
 
         return new link_secondary(
                 url: $url,

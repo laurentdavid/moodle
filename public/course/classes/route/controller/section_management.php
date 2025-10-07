@@ -37,6 +37,10 @@ class section_management {
     use \core\router\route_controller;
 
     /**
+     * Key used to store the anchor in the navigation manager.
+     */
+    public const SECTION_EDIT_RETURN_ANCHOR_KEY = 'section-edit-return';
+    /**
      * Edit a section
      *
      * @param ResponseInterface $response
@@ -81,29 +85,29 @@ class section_management {
         } else {
             $defaultsectionname = $courseformat->get_default_section_name($section);
         }
-        $editoroptions = array(
+        $editoroptions = [
             'context'   => $sectioncontext,
             'maxfiles'  => EDITOR_UNLIMITED_FILES,
             'maxbytes'  => $CFG->maxbytes,
             'trusttext' => false,
             'noclean'   => true,
-            'subdirs'   => true
-        );
+            'subdirs'   => true,
+        ];
 
         $customdata = [
             'cs' => $sectioninfo,
             'editoroptions' => $editoroptions,
             'defaultsectionname' => $defaultsectionname,
-            'showonly' => 0,// $this->get_param($request, 'showonly', 0),
-            'returnurl' => $this->get_param($request, 'returnurl') ?? null,
+            'showonly' => $this->get_param($request, 'showonly', 0),
+            'returnurl' => $this->get_param($request, 'returnurl', null) ,
         ];
         $PAGE->set_context($sectioncontext);
         $course = get_course($courseid);
         $PAGE->set_course($course);
         $PAGE->add_body_class('course-section-edit');
         $mform = $courseformat->editsection_form($PAGE->url, $customdata);
-        // set current value, make an editable copy of section_info object
-        // this will retrieve all format-specific options as well
+        // Set current value, make an editable copy of section_info object
+        // this will retrieve all format-specific options as well.
         $initialdata = convert_to_array($sectioninfo);
         if (!empty($CFG->enableavailability)) {
             $initialdata['availabilityconditionsjson'] = $sectioninfo->availability;
@@ -112,11 +116,14 @@ class section_management {
         if (!empty($showonly)) {
             $mform->filter_shown_headers(explode(',', $showonly));
         }
-        $returnurlstring= $this->get_param($request, 'returnurl') ?? course_get_url($course);
+        $returnurlstring = $this->get_param($request, 'returnurl') ?? course_get_url($course);
         $returnurl = new \core\url($returnurlstring);
-        if ($mform->is_cancelled()){
+        if (navigation_anchor_manager::has(self::SECTION_EDIT_RETURN_ANCHOR_KEY)) {
+            $returnurl = navigation_anchor_manager::get(self::SECTION_EDIT_RETURN_ANCHOR_KEY);
+        }
+        if ($mform->is_cancelled()) {
             // Form cancelled, return to course.
-            redirect($returnurl);
+            return self::redirect($response, $returnurl);
         } else if ($data = $mform->get_data()) {
             // Data submitted and validated, update and return to course.
 
@@ -135,7 +142,7 @@ class section_management {
             if ($data->returnurl) {
                 $returnurl = new \core\url($data->returnurl);
             }
-            redirect($returnurl);
+            return self::redirect($response, $returnurl);
         }
 
         $sectionname = get_section_name($courseid, $sectioninfo);
