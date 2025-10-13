@@ -614,8 +614,15 @@ function course_add_cm_to_section($courseorid, $cmid, $sectionnum, $beforemod = 
  * @param int $groupmode the new groupmode value.
  * @return bool True if the $groupmode was updated.
  */
+#[\core\attribute\deprecated(
+    replacement: 'core_courseformat\local\cmactions',
+    since: '5.2',
+    mdl: 'MDL-86857',
+    reason: 'Replaced by an equivalent in the course format cmactions.',
+)]
 function set_coursemodule_groupmode($id, $groupmode) {
     global $DB;
+    \core\deprecation::emit_deprecation(__FUNCTION__);
     $cm = $DB->get_record('course_modules', array('id' => $id), 'id,course,groupmode', MUST_EXIST);
     if ($cm->groupmode != $groupmode) {
         $DB->set_field('course_modules', 'groupmode', $groupmode, array('id' => $cm->id));
