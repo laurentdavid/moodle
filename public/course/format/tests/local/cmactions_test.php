@@ -548,4 +548,34 @@ final class cmactions_test extends \advanced_testcase {
         // Verify the course_module record has been deleted.
         $this->assertEquals(0, $DB->count_records('course_modules', ['id' => $module->cmid]));
     }
+
+    /**
+     * Test setting group mode on a course module.
+     */
+    public function test_set_set_groupmode(): void {
+        $this->resetAfterTest();
+        $course = $this->getDataGenerator()->create_course();
+        $activity = $this->getDataGenerator()->create_module(
+            'assign',
+            ['course' => $course->id, 'name' => 'Old name']
+        );
+        $cm = get_fast_modinfo($course)->get_cm($activity->cmid);
+        $this->assertEquals(NOGROUPS, $cm->groupmode);
+
+        $cmactions = new cmactions($course);
+        $result = $cmactions->set_groupmode($activity->cmid, VISIBLEGROUPS);
+        $this->assertTrue($result);
+        $cm = get_fast_modinfo($course)->get_cm($activity->cmid);
+        $this->assertEquals(VISIBLEGROUPS, $cm->groupmode);
+
+        $result = $cmactions->set_groupmode($activity->cmid, SEPARATEGROUPS);
+        $this->assertTrue($result);
+        $cm = get_fast_modinfo($course)->get_cm($activity->cmid);
+        $this->assertEquals(SEPARATEGROUPS, $cm->groupmode);
+
+        // Check the rebuild cache option.
+        $cmactions->set_groupmode($activity->cmid, NOGROUPS, false);
+        $cm = get_fast_modinfo($course)->get_cm($activity->cmid);
+        $this->assertEquals(SEPARATEGROUPS, $cm->groupmode); // Not changed.
+    }
 }
