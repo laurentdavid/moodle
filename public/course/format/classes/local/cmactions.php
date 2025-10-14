@@ -468,4 +468,129 @@ class cmactions extends baseactions {
             );
         }
     }
+
+    /**
+     * Move a course module before another one in the same section.
+     *
+     * @param int $cmid the course module id to move.
+     * @param int $beforecmid
+     * @return bool true if the course module was moved, false otherwise.
+     */
+    public function move_before(int $cmid, int $beforecmid): bool {
+        global $DB;
+        if ($cmid === $beforecmid) {
+            return false;
+        }
+        $modinfo = get_fast_modinfo($this->course->id);
+        $mod = $modinfo->get_cm($cmid);
+        $beforemod = $modinfo->get_cm($beforecmid);
+
+        if (!$mod || !$beforemod) {
+            return false;
+        }
+        if ($beforemod->section != 0 && !course_modinfo::is_mod_type_visible_on_course($mod->modname)) {
+            throw new \core\exception\coding_exception(
+                "Modules with FEATURE_CAN_DISPLAY set to false can not be moved from section 0"
+            );
+        }
+        // Remove original module from original section.
+        if (!delete_mod_from_section($mod->id, $mod->section)) {
+            throw new \core\exception\coding_exception("Could not delete module ($mod->id) from existing section");
+        }
+
+        // Add the module into the new section.
+        $section = $this->get_section_info($beforemod->section, MUST_EXIST);
+        course_add_cm_to_section($mod->get_course(), $mod->id, $section->sectionnum, $beforemod, $mod->modname);
+
+        // If moving to a hidden section then hide module.
+        $modsection = $this->get_section_info($mod->section, MUST_EXIST);
+        if ($modsection->id != $section->id) {
+            if (!$section->visible && $mod->visible) {
+                // Module was visible but must become hidden after moving to hidden section.
+                $this->set_visibility($mod->id, 0);
+                // Set visibleold to 1 so module will be visible when section is made visible.
+                $DB->set_field(
+                    'course_modules',
+                    'visibleold',
+                    1,
+                    ['id' => $mod->id]
+                );
+                \course_modinfo::purge_course_module_cache($this->course->id, $mod->id);
+            }
+            if ($section->visible && !$mod->visible) {
+                // Hidden module was moved to the visible section, restore the module visibility from visibleold.
+                $this->set_visibility($mod->id, $mod->visibleold);
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Move a course module to the end of a section.
+     *
+     * @param int $cmid the course module id to move.
+     * @param int $targetsectionid the target section.
+     * @return bool true if the course module was moved, false otherwise.
+     */
+    public function move_end_section(int $cmid, int $targetsectionid): bool {
+        global $DB;
+        $modinfo = get_fast_modinfo($this->course->id);
+        if (!$cm = $modinfo->get_cm($cmid)) {
+            return false;
+        }
+        $targetsection = $this->get_section_info($targetsectionid, MUST_EXIST);
+        if ($targetsection && $targetsection->section != 0 && !course_modinfo::is_mod_type_visible_on_course($cm->modname)) {
+            throw new \core\exception\coding_exception(
+                "Modules with FEATURE_CAN_DISPLAY set to false can not be moved from section 0"
+            );
+        }
+        $haschangedsection = $cm->section != $targetsection->id;
+        // Remove original module from original section.
+        $cmsection = $this->get_section_info($cm->section, MUST_EXIST);
+        $modarray = explode(",", $cmsection->sequence);
+        $key = array_search($cm->id, $modarray);
+        if ($key === false) {
+            throw new \core\exception\coding_exception("Could not find module ($cm->id) in existing section sequence");
+        }
+        unset($modarray[$key]);
+        $newsequence = implode(",", $modarray);
+        $DB->set_field("course_sections", "sequence", $newsequence, ["id" => $cmsection->id]);
+
+        // Add the module into the target section at the end.
+        $sequence = trim($targetsection->sequence);
+        $modarray = empty($sequence) ? [] : explode(",", $sequence);
+        $modarray = array_diff($modarray, [$cm->id]);
+        $modarray[] = $cm->id;
+        $newsequence = implode(",", $modarray);
+        $DB->set_field("course_sections", "sequence", $newsequence, ["id" => $targetsection->id]);
+        $DB->set_field('course_modules', 'section', $targetsection->id, ['id' => $cm->id]);
+
+        // Purge caches and rebuild.
+        \course_modinfo::purge_course_section_cache_by_id($cmsection->course, $cmsection->id);
+        \course_modinfo::purge_course_section_cache_by_id($targetsection->course, $targetsection->id);
+        \course_modinfo::purge_course_modules_cache($targetsection->course, [$cm->id]);
+        rebuild_course_cache($targetsection->course, true);
+
+        // If moving to a different section then handle visibility (we check if the cm has changed section).
+        if ($haschangedsection) {
+            // Refresh cm info after rebuild.
+            $modinfo = get_fast_modinfo($this->course->id);
+            $cm = $modinfo->get_cm($cmid);
+            $targetsection = $this->get_section_info($targetsection->id, MUST_EXIST);
+            if (!$targetsection->visible && $cm->visible) {
+                // Module was visible but must become hidden after moving to hidden section.
+                $this->set_visibility($cm->id, 0);
+                // Set visibleold to 1 so module will be visible when section is made visible.
+                // Here we rectify the visibleold field that was just set to 0 by set_visible.
+                $DB->set_field('course_modules', 'visibleold', $cm->visible, ['id' => $cm->id]);
+                \course_modinfo::purge_course_module_cache($cm->course, $cm->id);
+                rebuild_course_cache($cm->course, true, true);
+            }
+            if ($targetsection->visible && !$cm->visible) {
+                // Hidden module was moved to the visible section, restore the module visibility from visibleold.
+                $this->set_visibility($cm->id, $cm->visibleold);
+            }
+        }
+        return true;
+    }
 }
