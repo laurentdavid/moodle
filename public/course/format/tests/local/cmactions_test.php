@@ -573,9 +573,21 @@ final class cmactions_test extends \advanced_testcase {
         $cm = get_fast_modinfo($course)->get_cm($activity->cmid);
         $this->assertEquals(SEPARATEGROUPS, $cm->groupmode);
 
-        // Check the rebuild cache option.
-        $cmactions->set_groupmode($activity->cmid, NOGROUPS, false);
+        // Check that return value is false when setting the same group mode.
+        $returnval = $cmactions->set_groupmode($activity->cmid, SEPARATEGROUPS);
+        $this->assertFalse($returnval);
         $cm = get_fast_modinfo($course)->get_cm($activity->cmid);
         $this->assertEquals(SEPARATEGROUPS, $cm->groupmode); // Not changed.
+    }
+
+    /**
+     * Test setting group mode on a course module that does not exist.
+     */
+    public function test_set_set_groupmode_cm_doesnotexist(): void {
+        $this->resetAfterTest();
+        $course = $this->getDataGenerator()->create_course();
+        $this->expectException(\dml_missing_record_exception::class);
+        $cmactions = new cmactions($course);
+        $cmactions->set_groupmode(10000, VISIBLEGROUPS);
     }
 }

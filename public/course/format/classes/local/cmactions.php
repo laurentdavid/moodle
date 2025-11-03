@@ -235,22 +235,17 @@ class cmactions extends baseactions {
      * @param int $cmid the course module id.
      * @param int $groupmode the new group mode.
      *      One of NOGROUPS, SEPARATEGROUPS, VISIBLEGROUPS constants.
-     * @param bool $rebuildcache If true (default), perform a partial cache purge and rebuild.
      * @return bool whether course module was updated
      */
-    public function set_groupmode(int $cmid, int $groupmode, bool $rebuildcache = true): bool {
+    public function set_groupmode(int $cmid, int $groupmode): bool {
         global $DB;
-        if (!$cm = get_coursemodule_from_id('', $cmid, 0, false, MUST_EXIST)) {
+        $cm = $DB->get_record('course_modules', ['id' => $cmid], 'id, course, groupmode', MUST_EXIST);
+        if ($cm->groupmode == $groupmode) {
             return false;
         }
-        if ($cm->groupmode == $groupmode) {
-            return true;
-        }
         $DB->set_field('course_modules', 'groupmode', $groupmode, ['id' => $cm->id]);
-        if ($rebuildcache) {
-            \course_modinfo::purge_course_module_cache($cm->course, $cm->id);
-            rebuild_course_cache($cm->course, false, true);
-        }
+        \course_modinfo::purge_course_module_cache($cm->course, $cm->id);
+        rebuild_course_cache($cm->course, false, true);
 
         return true;
     }
