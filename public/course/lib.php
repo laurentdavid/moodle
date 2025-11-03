@@ -621,15 +621,10 @@ function course_add_cm_to_section($courseorid, $cmid, $sectionnum, $beforemod = 
     reason: 'Replaced by an equivalent in the course format cmactions.',
 )]
 function set_coursemodule_groupmode($id, $groupmode) {
-    global $DB;
     \core\deprecation::emit_deprecation(__FUNCTION__);
-    $cm = $DB->get_record('course_modules', array('id' => $id), 'id,course,groupmode', MUST_EXIST);
-    if ($cm->groupmode != $groupmode) {
-        $DB->set_field('course_modules', 'groupmode', $groupmode, array('id' => $cm->id));
-        \course_modinfo::purge_course_module_cache($cm->course, $cm->id);
-        rebuild_course_cache($cm->course, false, true);
-    }
-    return ($cm->groupmode != $groupmode);
+
+    $coursecontext = context_module::instance($id)->get_course_context();
+    return formatactions::cm($coursecontext->instanceid)->set_groupmode($id, $groupmode);
 }
 
 function set_coursemodule_idnumber($id, $idnumber) {
