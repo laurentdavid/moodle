@@ -16,6 +16,8 @@
 
 namespace core_courseformat\local;
 
+use core\exception\coding_exception;
+use core\exception\moodle_exception;
 use core_courseformat\formatactions;
 use core_courseformat\hook\after_cm_name_edited;
 
@@ -207,7 +209,7 @@ final class cmactions_test extends \advanced_testcase {
 
         $executedhook = null;
 
-        $testcallback = function(after_cm_name_edited $hook) use (&$executedhook): void {
+        $testcallback = function (after_cm_name_edited $hook) use (&$executedhook): void {
             $executedhook = $hook;
         };
         $this->redirectHook(after_cm_name_edited::class, $testcallback);
@@ -737,5 +739,324 @@ final class cmactions_test extends \advanced_testcase {
         $this->expectException(\dml_missing_record_exception::class);
         $cmactions = new cmactions($course);
         $cmactions->set_groupmode(10000, VISIBLEGROUPS);
+    }
+
+    /**
+     * Test duplicating a course module.
+     *
+     * @param array $coursedata Array defining the course structure. Keys are section names, values are arrays of cm names.
+     * @param string $cmname Name of the course module to duplicate.
+     * @param string|null $sectionname Name of the section to duplicate into, or null to duplicate into the same section.
+     * @param string|null $aftercmname Name of the course module to duplicate after, or null to duplicate at the end of the section.
+     * @param string|null $newname New name for the duplicated course module, or null to keep the same name.
+     * @param array $expected Expected result array with keys: 'section' (int), 'position' (int), 'name' (string).
+     * @return void
+     *
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('duplicate_provider')]
+    public function test_duplicate(
+        array $coursedata,
+        string $cmname,
+        ?string $sectionname,
+        ?string $aftercmname,
+        ?string $newname,
+        array $expected
+    ): void {
+        $this->resetAfterTest();
+
+        $course = $this->create_course_from_data($coursedata);
+        // Lookup cmid and sectionid based on names.
+        $cmactions = new cmactions($course);
+        $modinfo = get_fast_modinfo($course);
+        $targetsectionid = null;
+        $aftercmid = null;
+        $allcms = $modinfo->get_cms();
+        $allcmsbyname = array_combine(
+            array_map(fn($cminfo) => $cminfo->get_name(), $allcms),
+            $allcms
+        );
+        $cmid = $allcmsbyname[$cmname]->id;
+
+        $allsectionsbyname = $this->get_sections_by_name($course);
+        if ($sectionname !== null) {
+            $targetsectionid = $allsectionsbyname[$sectionname]->id;
+        }
+        if ($aftercmname !== null) {
+            $aftercmid = $allcmsbyname[$aftercmname]->id;
+        }
+        // For backup/restore operations, we need to be logged in.
+        $this->setAdminUser();
+        $cmactions->duplicate(
+            cmid: $cmid,
+            targetsectionid: $targetsectionid,
+            aftercmid: $aftercmid,
+            newname: $newname,
+        );
+        // Verify expected result.
+        $mappedcourse = [];
+        $modinfo = get_fast_modinfo($course); // Refresh modinfo.
+        foreach ($modinfo->get_section_info_all() as $sectioninfo) {
+            if (empty($sectioninfo->name)) {
+                continue; // Ignore sections without a name.
+            }
+            $mappedcourse[$sectioninfo->name] = [];
+            foreach ($sectioninfo->get_sequence_cm_infos() as $cminfo) {
+                $mappedcourse[$sectioninfo->name][] = $cminfo->name;
+            }
+        }
+        $this->assertEquals($expected, $mappedcourse);
+    }
+
+    /**
+     * Data provider for test_duplicate.
+     *
+     * @return \Generator
+     */
+    public static function duplicate_provider(): \Generator {
+        yield 'duplicate after current module, no name provided' => [
+            'coursedata' => [
+                'Section 1' => [
+                    'cm1',
+                    'cm2',
+                    'cm3',
+                ],
+            ],
+            'cmname' => 'cm1',
+            'sectionname' => null,
+            'aftercmname' => null,
+            'newname' => null,
+            'expected' => [
+                'Section 1' => [
+                    'cm1',
+                    'cm1 (copy)',
+                    'cm2',
+                    'cm3',
+                ],
+            ],
+        ];
+
+        yield 'duplicate after current module, name provided' => [
+            'coursedata' => [
+                'Section 1' => [
+                    'cm1',
+                    'cm2',
+                    'cm3',
+                ],
+            ],
+            'cmname' => 'cm1',
+            'sectionname' => null,
+            'aftercmname' => null,
+            'newname' => 'New name',
+            'expected' => [
+                'Section 1' => [
+                    'cm1',
+                    'New name',
+                    'cm2',
+                    'cm3',
+                ],
+            ],
+        ];
+        yield 'duplicate after a module that is at the end of a section, name not provided' => [
+            'coursedata' => [
+                'Section 1' => [
+                    'cm1',
+                    'cm2',
+                    'cm3',
+                ],
+            ],
+            'cmname' => 'cm1',
+            'sectionname' => null,
+            'aftercmname' => 'cm3',
+            'newname' => null,
+            'expected' => [
+                'Section 1' => [
+                    'cm1',
+                    'cm2',
+                    'cm3',
+                    'cm1 (copy)',
+                ],
+            ],
+        ];
+        yield 'duplicate at the end of a section, name not provided' => [
+            'coursedata' => [
+                'Section 1' => [
+                    'cm1',
+                ],
+                'Section 2' => [
+                    'cm2',
+                ],
+            ],
+            'cmname' => 'cm1',
+            'sectionname' => 'Section 2',
+            'aftercmname' => null,
+            'newname' => null,
+            'expected' => [
+                'Section 1' => [
+                    'cm1',
+                ],
+                'Section 2' => [
+                    'cm2',
+                    'cm1 (copy)',
+                ],
+            ],
+        ];
+        yield 'duplicate after a given module, name not provided' => [
+            'coursedata' => [
+                'Section 1' => [
+                    'cm1',
+                    'cm2',
+                    'cm3',
+                ],
+            ],
+            'cmname' => 'cm1',
+            'sectionname' => null,
+            'aftercmname' => 'cm2',
+            'newname' => null,
+            'expected' => [
+                'Section 1' => [
+                    'cm1',
+                    'cm2',
+                    'cm1 (copy)',
+                    'cm3',
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Test duplicating a course with wrong cmid (from another course).
+     *
+     * @return void
+     */
+    public function test_duplicate_wrong_cm(): void {
+        $this->resetAfterTest();
+        $generator = $this->getDataGenerator();
+        $coursedata = [
+            'Section 1' => [
+                'cm1',
+                'cm2',
+                'cm3',
+            ],
+        ];
+        $course2  = $generator->create_course();
+        $cm5 = $generator->create_module(
+            'assign',
+            ['course' => $course2->id, 'name' => 'cm5', 'section' => 1],
+        );
+        $course = $this->create_course_from_data($coursedata);
+        // Lookup cmid and sectionid based on names.
+        $cmactions = new cmactions($course);
+        $this->expectException(\moodle_exception::class);
+        $this->expectExceptionMessage('Invalid course module ID: ' . $cm5->cmid);
+        // For backup/restore operations, we need to be logged in.
+        $this->setAdminUser();
+        $cmactions->duplicate(
+            cmid: $cm5->cmid,
+        );
+    }
+
+    /**
+     * Test duplicating a course with wrong targetsectionid.
+     *
+     * @return void
+     */
+    public function test_duplicate_wrong_targetsectionid(): void {
+        $this->resetAfterTest();
+        $coursedata = [
+            'Section 1' => [
+                'cm1',
+                'cm2',
+                'cm3',
+            ],
+        ];
+        $course = $this->create_course_from_data($coursedata);
+        $modinfo = get_fast_modinfo($course);
+        $allcms = $modinfo->get_cms();
+        $allcmsbyname = array_combine(
+            array_map(fn($cminfo) => $cminfo->get_name(), $allcms),
+            $allcms
+        );
+        // Lookup cmid and sectionid based on names.
+        $cmactions = new cmactions($course);
+        $this->expectException(\moodle_exception::class);
+        $this->expectExceptionMessage('This section does not exist');
+        // For backup/restore operations, we need to be logged in.
+        $this->setAdminUser();
+        $cmactions->duplicate(
+            cmid: $allcmsbyname['cm1']->id,
+            targetsectionid: 99999,
+        );
+    }
+
+    /**
+     * Test duplicating a course with wrong aftercmid.
+     *
+     * @return void
+     */
+    public function test_duplicate_wrong_aftercmid(): void {
+        $this->resetAfterTest();
+        $coursedata = [
+            'Section 1' => [
+                'cm1',
+                'cm2',
+                'cm3',
+            ],
+        ];
+        $course = $this->create_course_from_data($coursedata);
+        $modinfo = get_fast_modinfo($course);
+        $allcms = $modinfo->get_cms();
+        $allcmsbyname = array_combine(
+            array_map(fn($cminfo) => $cminfo->get_name(), $allcms),
+            $allcms
+        );
+        // Lookup cmid and sectionid based on names.
+        $cmactions = new cmactions($course);
+        $this->expectException(\moodle_exception::class);
+        $this->expectExceptionMessage('Invalid course module ID: 99999');
+        // For backup/restore operations, we need to be logged in.
+        $this->setAdminUser();
+        $cmactions->duplicate(
+            cmid: $allcmsbyname['cm1']->id,
+            aftercmid: 99999,
+        );
+    }
+
+    /**
+     * Helper function to create a course from given data.
+     *
+     * @param array $coursedata Array defining the course structure.
+     * @return \stdClass The created course object.
+     */
+    private function create_course_from_data(array $coursedata): \stdClass {
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course(['numsections' => count($coursedata), 'initsections' => 1]);
+        $allsections = $this->get_sections_by_name($course);
+        $allsectionsbyname = array_filter($allsections, fn($section) => !empty($section->name));
+        // Create course modules as per $coursedata.
+        foreach ($coursedata as $sectionname => $cmlist) {
+            $section  = $allsectionsbyname[$sectionname];
+            foreach ($cmlist as $cm) {
+                $generator->create_module(
+                    'assign',
+                    ['course' => $course->id, 'name' => $cm, 'section' => $section->section],
+                );
+            }
+        }
+        return $course;
+    }
+
+    /**
+     * Helper function to get sections by name.
+     *
+     * @param \stdClass $course The course object.
+     * @return array Array of sections indexed by their names.
+     */
+    private function get_sections_by_name(\stdClass $course): array {
+        $modinfo = get_fast_modinfo($course);
+        $allsections = $modinfo->get_section_info_all();
+        return array_combine(
+            array_map(fn($section) => $section->name, $allsections),
+            $allsections
+        );
     }
 }
