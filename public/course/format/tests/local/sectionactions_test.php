@@ -16,6 +16,7 @@
 
 namespace core_courseformat\local;
 
+use core_courseformat\formatactions;
 use stdClass;
 
 /**
@@ -1005,5 +1006,85 @@ final class sectionactions_test extends \advanced_testcase {
         $sectionactions->remove_all_markers();
         $this->assertFalse(course_get_format($course)->is_section_current(1));
         $this->assertEquals(0, $COURSE->marker);
+    }
+
+
+    /**
+     * Test section move after method
+     *
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('move_after_provider')]
+    public function test_move_after(int $movedsection, int $previoussection, array $expected): void {
+        $this->resetAfterTest();
+
+        // Create 4 activities (visible, visible, hidden, hidden).
+        $course = $this->getDataGenerator()->create_course(
+            ['format' => 'topics', 'numsections' => 4, 'initsections' => true],
+            ['createsections' => true]
+        );
+        $sectionactions = formatactions::section($course);
+        $sections  = get_fast_modinfo($course)->get_section_info_all();
+
+        $sectionactions->move_after($sections[$movedsection], $sections[$previoussection]);
+        $sections = array_map(
+            fn($section) => $section->name,
+            get_fast_modinfo($course)->get_section_info_all(),
+        );
+        $this->assertEquals(
+            $expected,
+            $sections
+        );
+    }
+
+    /**
+     * Data provider for test_move_after.
+     *
+     * @return \Generator
+     */
+    public static function move_after_provider(): \Generator {
+        yield 'move section 4 after section 2' => [
+            'movedsection' => 4,
+            'previoussection' => 2,
+            'expected' => [
+                null,
+                'Section 1',
+                'Section 2',
+                'Section 4',
+                'Section 3',
+            ],
+        ];
+        yield 'move section 3 after section 4' => [
+            'movedsection' => 3,
+            'previoussection' => 4,
+            'expected' => [
+                null,
+                'Section 1',
+                'Section 2',
+                'Section 4',
+                'Section 3',
+            ],
+        ];
+        yield 'move section 3 after section 0' => [
+            'movedsection' => 3,
+            'previoussection' => 0,
+            'expected' => [
+                null,
+                'Section 3',
+                'Section 1',
+                'Section 2',
+                'Section 4',
+            ],
+        ];
+        yield 'move section 1 after section 4' => [
+            'movedsection' => 1,
+            'previoussection' => 4,
+            'expected' => [
+                null,
+                'Section 2',
+                'Section 3',
+                'Section 4',
+                'Section 1',
+            ],
+        ];
     }
 }

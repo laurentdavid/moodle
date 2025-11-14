@@ -928,63 +928,38 @@ function course_module_calendar_event_update_process($instance, $cm) {
  * @param bool $ignorenumsections
  * @return boolean Result
  */
+#[\core\attribute\deprecated(
+    replacement: 'core_courseformat\local\sectionactions',
+    since: '5.2',
+    mdl: 'MDL-86862',
+    reason: 'Replaced by sectionactions::move_after.',
+)]
 function move_section_to($course, $section, $destination, $ignorenumsections = false) {
-/// Moves a whole course section up and down within the course
-    global $USER, $DB;
+    \core\deprecation::emit_deprecation(__FUNCTION__);
 
     if (!$destination && $destination != 0) {
         return true;
     }
-
-    // compartibility with course formats using field 'numsections'
     $courseformatoptions = course_get_format($course)->get_format_options();
     if ((!$ignorenumsections && array_key_exists('numsections', $courseformatoptions) &&
             ($destination > $courseformatoptions['numsections'])) || ($destination < 1)) {
         return false;
     }
 
-    // Get all sections for this course and re-order them (2 of them should now share the same section number)
-    if (!$sections = $DB->get_records_menu('course_sections', array('course' => $course->id),
-            'section ASC, id ASC', 'id, section')) {
+    $sectionactions = formatactions::section($course);
+    $modinfo = get_fast_modinfo($course);
+    $sectioninfo = $modinfo->get_section_info($section);
+    if (!$sectioninfo) {
         return false;
     }
-
-    $movedsections = reorder_sections($sections, $section, $destination);
-
-    // Update all sections. Do this in 2 steps to avoid breaking database
-    // uniqueness constraint
-    $transaction = $DB->start_delegated_transaction();
-    foreach ($movedsections as $id => $position) {
-        if ((int) $sections[$id] !== $position) {
-            $DB->set_field('course_sections', 'section', -$position, ['id' => $id]);
-            // Invalidate the section cache by given section id.
-            course_modinfo::purge_course_section_cache_by_id($course->id, $id);
-        }
+    // We need to aim for the section before which we want to insert the moved section.
+    $previoussectionposition = $destination - ($destination < $section ? 1 : 0);
+    $previoussectionposition = $previoussectionposition < 0 ? 0 : $previoussectionposition;
+    $previoussectioninfo = $modinfo->get_section_info($previoussectionposition);
+    if (!$previoussectioninfo) {
+        return false;
     }
-    foreach ($movedsections as $id => $position) {
-        if ((int) $sections[$id] !== $position) {
-            $DB->set_field('course_sections', 'section', $position, ['id' => $id]);
-            // Invalidate the section cache by given section id.
-            course_modinfo::purge_course_section_cache_by_id($course->id, $id);
-        }
-    }
-
-    // If we move the highlighted section itself, then just highlight the destination.
-    // Adjust the higlighted section location if we move something over it either direction.
-    if ($section == $course->marker) {
-        $sectioninfo = get_fast_modinfo($course->id)->get_section_info($destination);
-        formatactions::section($course->id)->set_marker($sectioninfo, true);
-    } else if ($section > $course->marker && $course->marker >= $destination) {
-        $sectioninfo = get_fast_modinfo($course->id)->get_section_info($course->marker + 1);
-        formatactions::section($course->id)->set_marker($sectioninfo, true);
-    } else if ($section < $course->marker && $course->marker <= $destination) {
-        $sectioninfo = get_fast_modinfo($course->id)->get_section_info($course->marker - 1);
-        formatactions::section($course->id)->set_marker($sectioninfo, true);
-    }
-
-    $transaction->allow_commit();
-    rebuild_course_cache($course->id, true, true);
-    return true;
+    return $sectionactions->move_after($sectioninfo, $previoussectioninfo);
 }
 
 /**
@@ -1099,7 +1074,13 @@ function course_can_delete_section($course, $section) {
  * @param int $target_position
  * @return array|false
  */
+#[\core\attribute\deprecated(
+    since: '5.2',
+    reason: 'Unused after refactoring the move_after function.',
+    mdl: 'MDL-86862',
+)]
 function reorder_sections($sections, $origin_position, $target_position) {
+    \core\deprecation::emit_deprecation(__FUNCTION__);
     if (!is_array($sections)) {
         return false;
     }

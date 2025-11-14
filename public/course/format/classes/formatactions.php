@@ -147,4 +147,18 @@ final class formatactions {
         $coursesectionscache->set($cachekey, $result);
         return $result;
     }
+
+    /**
+     * Clear the cached instance for the given course.
+     *
+     * @param int|stdClass $courseorid course id or record.
+     * @return void
+     */
+    public static function clear_instance_cache(int|stdClass $courseorid): void {
+        $coursesectionscache = \cache::make('core', 'courseactionsinstances');
+        $format = base::instance($courseorid);
+        $courseid = $format->get_courseid();
+        $cachekey = "{$courseid}_{$format->get_format()}";
+        $coursesectionscache->delete($cachekey);
+    }
 }

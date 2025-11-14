@@ -16,6 +16,7 @@
 
 namespace core_courseformat\local;
 
+use core_courseformat\formatactions;
 use section_info;
 use stdClass;
 use core\event\course_module_updated;
@@ -63,7 +64,7 @@ class sectionactions extends baseactions {
 
         // Now move it to the specified position.
         if ($position > 0 && $position <= $lastsection) {
-            move_section_to($this->course, $sectionrecord->section, $position, true);
+            $this->move_section_to_position($sectionrecord->id, $position);
             $sectionrecord->section = $position;
         }
 
@@ -390,6 +391,153 @@ class sectionactions extends baseactions {
             $this->transfer_visibility_to_cms($sectioninfo, (bool) $fields['visible']);
         }
         return true;
+    }
+
+    /**
+     * Move a course section after another one.
+     *
+     * @param section_info $section the section to move
+     * @param section_info $precedingsectioninfo the section after which to move
+     * @return bool whether section was moved
+     */
+    public function move_after(section_info $section, section_info $precedingsectioninfo): bool {
+        $position = $precedingsectioninfo->sectionnum;
+        if ($section->sectionnum >= $precedingsectioninfo->sectionnum) {
+            $position += 1;
+        }
+        return $this->move_section_to_position($section->id, $position);
+    }
+
+    /**
+     * Move a course section to a specific position.
+     *
+     * @param int $sectionid sectionid
+     * @param int $destination the position to insert the section to (this will be the sectionnum of the section after the move,
+     * any existing section at this position will be shifted down).
+     * @return bool
+     */
+    protected function move_section_to_position(int $sectionid, int $destination): bool {
+        global $DB;
+
+        if (!$destination && $destination != 0) {
+            return true;
+        }
+
+        // Get all sections for this course and re-order them (2 of them should now share the same section number).
+        $sections  = $DB->get_records_menu(
+            'course_sections',
+            ['course' => $this->course->id],
+            'section ASC, id ASC',
+            'id, section'
+        );
+        if (!isset($sections[$sectionid])) {
+            return false;
+        }
+
+        $sectionposition = $sections[$sectionid];
+        $movedsections = $this->reorder_sections($sections, $sectionposition, $destination);
+
+        // Update all sections. Do this in 2 steps to avoid breaking database
+        // uniqueness constraint.
+        $transaction = $DB->start_delegated_transaction();
+        foreach ($movedsections as $id => $position) {
+            if ((int) $sections[$id] !== $position) {
+                $DB->set_field('course_sections', 'section', -$position, ['id' => $id]);
+                // Invalidate the section cache by given section id.
+                \core_course\modinfo::purge_course_section_cache_by_id($this->course->id, $id);
+            }
+        }
+        foreach ($movedsections as $id => $position) {
+            if ((int) $sections[$id] !== $position) {
+                $DB->set_field('course_sections', 'section', $position, ['id' => $id]);
+                // Invalidate the section cache by given section id.
+                \core_course\modinfo::purge_course_section_cache_by_id($this->course->id, $id);
+            }
+        }
+
+        // If we move the highlighted section itself, then just highlight the destination.
+        // Adjust the higlighted section location if we move something over it either direction.
+        $marker = null;
+        if ($sectionposition == $this->course->marker) {
+            $marker = $destination;
+        } else if ($sectionposition > $this->course->marker && $this->course->marker >= $destination) {
+            $marker = $this->course->marker + 1;
+        } else if ($sectionposition < $this->course->marker && $this->course->marker <= $destination) {
+            $marker = $this->course->marker - 1;
+        }
+        if ($marker !== null) {
+            $DB->set_field("course", "marker", $marker, ['id' => $this->course->id]);
+            \core_courseformat\base::reset_course_cache($this->course->id);
+            \core_course\modinfo::clear_instance_cache($this->course->id);
+            formatactions::clear_instance_cache($this->course->id);
+        }
+
+        $transaction->allow_commit();
+        rebuild_course_cache($this->course->id, true, true);
+        return true;
+    }
+
+    /**
+     * Reorder sections array by moving origin position to target position.
+     *
+     * @param array $sections array of sectionid=>position
+     * @param int $originposition the position to move
+     * @param int $targetposition the position to move to
+     * @return array|null reordered sections array or false on error
+     */
+    private function reorder_sections(array $sections, int $originposition, int $targetposition): ?array {
+        if (!is_array($sections)) {
+            return null;
+        }
+
+        // We can't move section position 0.
+        if ($originposition < 1) {
+            return null;
+        }
+
+        // Locate origin section in sections array.
+        if (!$originkey = array_search($originposition, $sections)) {
+            return null; // Searched position not in sections array.
+        }
+
+        // Extract origin section.
+        $originsection = $sections[$originkey];
+        unset($sections[$originkey]);
+
+        // Find offset of target position (stupid PHP's array_splice requires offset instead of key index!).
+        $found = false;
+        $appendarray = [];
+        foreach ($sections as $id => $position) {
+            if ($found) {
+                $appendarray[$id] = $position;
+                unset($sections[$id]);
+            }
+            if ($position == $targetposition) {
+                if ($targetposition < $originposition) {
+                    $appendarray[$id] = $position;
+                    unset($sections[$id]);
+                }
+                $found = true;
+            }
+        }
+
+        // Append moved section.
+        $sections[$originkey] = $originsection;
+
+        // Append rest of array (if applicable).
+        if (!empty($appendarray)) {
+            foreach ($appendarray as $id => $position) {
+                $sections[$id] = $position;
+            }
+        }
+
+        // Renumber positions.
+        $position = 0;
+        foreach ($sections as $id => $p) {
+            $sections[$id] = $position;
+            $position++;
+        }
+        return $sections;
     }
 
     /**
