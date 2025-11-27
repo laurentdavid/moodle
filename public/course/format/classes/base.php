@@ -1841,8 +1841,7 @@ abstract class base {
         $sectionactions = \core_courseformat\formatactions::section($course);
         $modinfo = get_fast_modinfo($course);
         $sectioninfo = $modinfo->get_section_info($section->section);
-        $destinationsection = $modinfo->get_section_info($lastsection);
-        $sectionactions->move_after($sectioninfo, $destinationsection);
+        $sectionactions->move_at($sectioninfo, $lastsection);
 
         // Delete all modules from the section.
         foreach (preg_split('/,/', $section->sequence, -1, PREG_SPLIT_NO_EMPTY) as $cmid) {

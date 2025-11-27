@@ -66,9 +66,7 @@ if ($class === 'section' && $field === 'move') {
     $sectionactions = \core_courseformat\formatactions::section($course);
     $modinfo = get_fast_modinfo($course);
     $sectioninfo = $modinfo->get_section_info_by_id($id);
-    $sectionnum = $value < 1 ? 0 : $value - 1;
-    $destinationsection = $modinfo->get_section_info($sectionnum);
-    $sectionactions->move_after($sectioninfo, $destinationsection);
+    $sectionactions->move_at($sectioninfo, $value);
 
     // See if format wants to do something about it.
     $response = course_get_format($course)->ajax_section_move();

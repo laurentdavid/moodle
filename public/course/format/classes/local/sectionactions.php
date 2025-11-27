@@ -420,6 +420,36 @@ class sectionactions extends baseactions {
     }
 
     /**
+     * Move a course section at a given position. The position will be the target position, i.e. if
+     * we move section 5 to position 2, section 5 will become section 2, and sections 2, 3 and 4
+     *
+     * @param section_info $section the section to move
+     * @param int $position the position to move the section to
+     * @return bool whether section was moved
+     */
+    public function move_at(section_info $section, int $position): bool {
+        if (!course_get_format($this->course->id)->uses_sections()) {
+            return false;
+        }
+        if ($section->sectionnum == 0) {
+            return false;
+        }
+        if ($section->course != $this->course->id) {
+            return false;
+        }
+        $modinfo = get_fast_modinfo($this->course->id);
+        $allsections = $modinfo->get_section_info_all();
+
+        if (count($allsections) <= $position || $position < 1) {
+            return false;
+        }
+        if ($section->sectionnum == $position) {
+            return false;
+        }
+        return $this->move_section_to_position($section->id, $position);
+    }
+
+    /**
      * Move a course section to a specific position.
      *
      * @param int $sectionid sectionid

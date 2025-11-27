@@ -1192,4 +1192,182 @@ final class sectionactions_test extends \advanced_testcase {
             'expected' => false,
         ];
     }
+
+    /**
+     * Test section move at method
+     *
+     * @param int $movedsection The section number to move.
+     * @param int $position The position to move the section to.
+     * @param array $expected The expected results.
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('move_at_provider')]
+    public function test_move_at(int $movedsection, int $position, array $expected): void {
+        $this->resetAfterTest();
+
+        // Create 4 activities (visible, visible, hidden, hidden).
+        $course = $this->getDataGenerator()->create_course(
+            ['format' => 'topics', 'numsections' => 4, 'initsections' => true],
+            ['createsections' => true]
+        );
+        $sectionactions = formatactions::section($course);
+        $sections  = get_fast_modinfo($course)->get_section_info_all();
+
+        $sectionactions->move_at($sections[$movedsection], $position);
+        $sections = array_map(
+            fn($section) => $section->name,
+            get_fast_modinfo($course)->get_section_info_all(),
+        );
+        $this->assertEquals(
+            $expected,
+            $sections
+        );
+    }
+
+    /**
+     * Test section move at method
+     *
+     * @param int $movedsection The section number to move.
+     * @param int $position The position to move the section to.
+     * @param bool $expected The expected results.
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('move_at_provider_return_value')]
+    public function test_move_at_return_value(int $movedsection, int $position, bool $expected): void {
+        $this->resetAfterTest();
+
+        // Create 4 activities (visible, visible, hidden, hidden).
+        $course = $this->getDataGenerator()->create_course(
+            ['format' => 'topics', 'numsections' => 4, 'initsections' => true],
+            ['createsections' => true]
+        );
+        $sectionactions = formatactions::section($course);
+        $sections  = get_fast_modinfo($course)->get_section_info_all();
+
+        $hasmoved = $sectionactions->move_at($sections[$movedsection], $position);
+        $this->assertEquals($expected, $hasmoved);
+    }
+
+
+    /**
+     * Test section move at method when trying to move a section after a non-used section.
+     */
+    public function test_move_at_no_use_section(): void {
+        $this->resetAfterTest();
+
+        // Create 4 activities (visible, visible, hidden, hidden).
+        $course = $this->getDataGenerator()->create_course(
+            ['format' => 'singleactivity', 'numsections' => 3, 'initsections' => true],
+            ['createsections' => true]
+        );
+        $sectionactions = formatactions::section($course);
+        $sections  = get_fast_modinfo($course)->get_section_info_all();
+        $hasmoved = $sectionactions->move_at($sections[1], 2);
+        $this->assertFalse($hasmoved);
+    }
+
+    /**
+     * Test section move at method when trying to move a section that belongs to another course.
+     */
+    public function test_move_at_other_course(): void {
+        $this->resetAfterTest();
+
+        // Create 4 activities (visible, visible, hidden, hidden).
+        $course = $this->getDataGenerator()->create_course(
+            ['format' => 'topics', 'numsections' => 2, 'initsections' => true],
+            ['createsections' => true]
+        );
+        $othercourse = $this->getDataGenerator()->create_course(
+            ['format' => 'topics', 'numsections' => 2, 'initsections' => true],
+            ['createsections' => true]
+        );
+        $sectionactions = formatactions::section($course);
+        $othersections  = get_fast_modinfo($othercourse)->get_section_info_all();
+        $hasmoved = $sectionactions->move_at($othersections[1], 2);
+        $this->assertFalse($hasmoved);
+    }
+
+
+    /**
+     * Data provider for test_move_at.
+     *
+     * @return \Generator
+     */
+    public static function move_at_provider(): \Generator {
+        yield 'move section 4 at position 2' => [
+            'movedsection' => 4,
+            'position' => 2,
+            'expected' => [
+                null,
+                'Section 1',
+                'Section 4',
+                'Section 2',
+                'Section 3',
+            ],
+        ];
+        yield 'move section 3 at position 4' => [
+            'movedsection' => 3,
+            'position' => 4,
+            'expected' => [
+                null,
+                'Section 1',
+                'Section 2',
+                'Section 4',
+                'Section 3',
+            ],
+        ];
+        yield 'move section 3 at position 1' => [
+            'movedsection' => 3,
+            'position' => 1,
+            'expected' => [
+                null,
+                'Section 3',
+                'Section 1',
+                'Section 2',
+                'Section 4',
+            ],
+        ];
+    }
+
+
+    /**
+     * Data provider for test_move_at.
+     *
+     * @return \Generator
+     */
+    public static function move_at_provider_return_value(): \Generator {
+        yield 'move section 4 at position 2' => [
+            'movedsection' => 4,
+            'position' => 2,
+            'expected' => true,
+        ];
+        yield 'move section 3 at position 4' => [
+            'movedsection' => 3,
+            'position' => 4,
+            'expected' => true,
+        ];
+        yield 'move section 3 at position 1' => [
+            'movedsection' => 3,
+            'position' => 1,
+            'expected' => true,
+        ];
+        yield 'move section 2 at position 2' => [
+            'movedsection' => 2,
+            'position' => 2,
+            'expected' => false,
+        ];
+        yield 'move section 2 at position 6' => [
+            'movedsection' => 2,
+            'position' => 6,
+            'expected' => false,
+        ];
+        yield 'move section 2 at position 0' => [
+            'movedsection' => 2,
+            'position' => 0,
+            'expected' => false,
+        ];
+        yield 'move section 0 at position 2' => [
+            'movedsection' => 2,
+            'position' => 0,
+            'expected' => false,
+        ];
+    }
 }
