@@ -1012,6 +1012,9 @@ final class sectionactions_test extends \advanced_testcase {
     /**
      * Test section move after method
      *
+     * @param int $movedsection The section number to move.
+     * @param int $previoussection The section number to move after.
+     * @param array $expected The expected results.
      */
     #[\PHPUnit\Framework\Attributes\DataProvider('move_after_provider')]
     public function test_move_after(int $movedsection, int $previoussection, array $expected): void {
@@ -1034,6 +1037,70 @@ final class sectionactions_test extends \advanced_testcase {
             $expected,
             $sections
         );
+    }
+
+    /**
+     * Test section move after method
+     *
+     * @param int $movedsection The section number to move.
+     * @param int $previoussection The section number to move after.
+     * @param bool $expected The expected results.
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('move_after_return_value_provider')]
+    public function test_move_after_return_value(int $movedsection, int $previoussection, bool $expected): void {
+        $this->resetAfterTest();
+
+        // Create 4 activities (visible, visible, hidden, hidden).
+        $course = $this->getDataGenerator()->create_course(
+            ['format' => 'topics', 'numsections' => 4, 'initsections' => true],
+            ['createsections' => true]
+        );
+        $sectionactions = formatactions::section($course);
+        $sections  = get_fast_modinfo($course)->get_section_info_all();
+
+        $hasmoved = $sectionactions->move_after($sections[$movedsection], $sections[$previoussection]);
+        $this->assertEquals($expected, $hasmoved);
+    }
+
+    /**
+     * Test section move after method when trying to move a section after a non-used section.
+     */
+    public function test_move_after_no_use_section(): void {
+        $this->resetAfterTest();
+
+        // Create 4 activities (visible, visible, hidden, hidden).
+        $course = $this->getDataGenerator()->create_course(
+            ['format' => 'singleactivity', 'numsections' => 3, 'initsections' => true],
+            ['createsections' => true]
+        );
+        $sectionactions = formatactions::section($course);
+        $sections  = get_fast_modinfo($course)->get_section_info_all();
+        $hasmoved = $sectionactions->move_after($sections[1], $sections[2]);
+        $this->assertFalse($hasmoved);
+    }
+
+    /**
+     * Test section move after method when trying to move a section after a section in another course.
+     */
+    public function test_move_after_other_course(): void {
+        $this->resetAfterTest();
+
+        // Create 4 activities (visible, visible, hidden, hidden).
+        $course = $this->getDataGenerator()->create_course(
+            ['format' => 'topics', 'numsections' => 2, 'initsections' => true],
+            ['createsections' => true]
+        );
+        $othercourse = $this->getDataGenerator()->create_course(
+            ['format' => 'topics', 'numsections' => 2, 'initsections' => true],
+            ['createsections' => true]
+        );
+        $sectionactions = formatactions::section($course);
+        $sections  = get_fast_modinfo($course)->get_section_info_all();
+        $othersections  = get_fast_modinfo($othercourse)->get_section_info_all();
+        $hasmoved = $sectionactions->move_after($sections[1], $sections[2]);
+        $this->assertTrue($hasmoved);
+        $hasmoved = $sectionactions->move_after($sections[1], $othersections[1]);
+        $this->assertFalse($hasmoved);
     }
 
     /**
@@ -1085,6 +1152,44 @@ final class sectionactions_test extends \advanced_testcase {
                 'Section 4',
                 'Section 1',
             ],
+        ];
+    }
+
+    /**
+     * Data provider for test_move_after.
+     *
+     * @return \Generator
+     */
+    public static function move_after_return_value_provider(): \Generator {
+        yield 'move section 4 after section 2' => [
+            'movedsection' => 4,
+            'previoussection' => 2,
+            'expected' => true,
+        ];
+        yield 'move section 3 after section 4' => [
+            'movedsection' => 3,
+            'previoussection' => 4,
+            'expected' => true,
+        ];
+        yield 'move section 3 after section 0' => [
+            'movedsection' => 3,
+            'previoussection' => 0,
+            'expected' => true,
+        ];
+        yield 'move section 1 after section 4' => [
+            'movedsection' => 1,
+            'previoussection' => 4,
+            'expected' => true,
+        ];
+        yield 'move section 0 to section 4' => [
+            'movedsection' => 0,
+            'previoussection' => 4,
+            'expected' => false,
+        ];
+        yield 'move section 2 after section 1 (existing position)' => [
+            'movedsection' => 2,
+            'previoussection' => 1,
+            'expected' => false,
         ];
     }
 }

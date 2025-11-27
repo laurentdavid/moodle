@@ -16,7 +16,6 @@
 
 namespace core_courseformat\local;
 
-use core_courseformat\formatactions;
 use section_info;
 use stdClass;
 use core\event\course_module_updated;
@@ -401,11 +400,23 @@ class sectionactions extends baseactions {
      * @return bool whether section was moved
      */
     public function move_after(section_info $section, section_info $precedingsectioninfo): bool {
-        $position = $precedingsectioninfo->sectionnum;
-        if ($section->sectionnum >= $precedingsectioninfo->sectionnum) {
-            $position += 1;
+        if (!course_get_format($this->course->id)->uses_sections()) {
+            return false;
         }
-        return $this->move_section_to_position($section->id, $position);
+        if ($section->sectionnum == 0) {
+            return false;
+        }
+        $precedingsectionposition = $precedingsectioninfo->sectionnum;
+        if ($section->sectionnum == $precedingsectionposition + 1) {
+            return false;
+        }
+        if ($section->course != $this->course->id || $precedingsectioninfo->course != $this->course->id) {
+            return false;
+        }
+        if ($section->sectionnum >= $precedingsectioninfo->sectionnum) {
+            $precedingsectionposition += 1;
+        }
+        return $this->move_section_to_position($section->id, $precedingsectionposition);
     }
 
     /**
@@ -418,11 +429,6 @@ class sectionactions extends baseactions {
      */
     protected function move_section_to_position(int $sectionid, int $destination): bool {
         global $DB;
-
-        if (!$destination && $destination != 0) {
-            return true;
-        }
-
         // Get all sections for this course and re-order them (2 of them should now share the same section number).
         $sections  = $DB->get_records_menu(
             'course_sections',
@@ -466,10 +472,7 @@ class sectionactions extends baseactions {
             $marker = $this->course->marker - 1;
         }
         if ($marker !== null) {
-            $DB->set_field("course", "marker", $marker, ['id' => $this->course->id]);
-            \core_courseformat\base::reset_course_cache($this->course->id);
-            \core_course\modinfo::clear_instance_cache($this->course->id);
-            formatactions::clear_instance_cache($this->course->id);
+            $this->set_marker_internal($marker);
         }
 
         $transaction->allow_commit();
@@ -665,5 +668,8 @@ class sectionactions extends baseactions {
             clearonly: true,
             partialrebuild: true,
         );
+        $format = $this->get_format();
+        $cachekey = "{$this->course->id}_{$format->get_format()}";
+        \cache_helper::invalidate_by_event('changesincourseactionstate', [$cachekey]);
     }
 }
