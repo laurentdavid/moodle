@@ -959,14 +959,7 @@ function move_section_to($course, $section, $destination, $ignorenumsections = f
     if (!$sectioninfo) {
         return false;
     }
-    // We need to aim for the section before which we want to insert the moved section.
-    $previoussectionposition = $destination - ($destination < $section ? 1 : 0);
-    $previoussectionposition = $previoussectionposition < 0 ? 0 : $previoussectionposition;
-    $previoussectioninfo = $modinfo->get_section_info($previoussectionposition);
-    if (!$previoussectioninfo) {
-        return false;
-    }
-    return $sectionactions->move_after($sectioninfo, $previoussectioninfo);
+    return $sectionactions->move_at($sectioninfo, $destination);
 }
 
 /**
