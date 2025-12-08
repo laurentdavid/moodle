@@ -1037,16 +1037,21 @@ final class sectionactions_test extends \advanced_testcase {
         $this->assertEquals(1, $DB->count_records('course_modules', ['course' => $course->id, 'visible' => 0]));
     }
 
-
     /**
      * Test section move after method
      *
      * @param int $movedsection The section number to move.
      * @param int $previoussection The section number to move after.
-     * @param array $expected The expected results.
+     * @param bool $expectedreturnvalue The expected return value of the move_after method.
+     * @param array|null $expectedsections The expected order of sections after the move, or null to use default.
      */
     #[\PHPUnit\Framework\Attributes\DataProvider('move_after_provider')]
-    public function test_move_after(int $movedsection, int $previoussection, array $expected): void {
+    public function test_move_after(
+        int $movedsection,
+        int $previoussection,
+        bool $expectedreturnvalue,
+        ?array $expectedsections = null
+    ): void {
         $this->resetAfterTest();
 
         // Create 4 activities (visible, visible, hidden, hidden).
@@ -1055,40 +1060,32 @@ final class sectionactions_test extends \advanced_testcase {
             ['createsections' => true]
         );
         $sectionactions = formatactions::section($course);
-        $sections  = get_fast_modinfo($course)->get_section_info_all();
+        $sections = get_fast_modinfo($course)->get_section_info_all();
 
-        $sectionactions->move_after($sections[$movedsection], $sections[$previoussection]);
+        $returnval = $sectionactions->move_after($sections[$movedsection], $sections[$previoussection]);
         $sections = array_map(
             fn($section) => $section->name,
             get_fast_modinfo($course)->get_section_info_all(),
         );
+
+        $this->assertEquals($expectedreturnvalue, $returnval);
+        $sections = array_map(
+            fn($section) => $section->name,
+            get_fast_modinfo($course)->get_section_info_all(),
+        );
+        if (!$expectedreturnvalue) {
+            $expectedsections = [
+                null,
+                'Section 1',
+                'Section 2',
+                'Section 3',
+                'Section 4',
+            ];
+        }
         $this->assertEquals(
-            $expected,
+            $expectedsections,
             $sections
         );
-    }
-
-    /**
-     * Test section move after method
-     *
-     * @param int $movedsection The section number to move.
-     * @param int $previoussection The section number to move after.
-     * @param bool $expected The expected results.
-     */
-    #[\PHPUnit\Framework\Attributes\DataProvider('move_after_return_value_provider')]
-    public function test_move_after_return_value(int $movedsection, int $previoussection, bool $expected): void {
-        $this->resetAfterTest();
-
-        // Create 4 activities (visible, visible, hidden, hidden).
-        $course = $this->getDataGenerator()->create_course(
-            ['format' => 'topics', 'numsections' => 4, 'initsections' => true],
-            ['createsections' => true]
-        );
-        $sectionactions = formatactions::section($course);
-        $sections  = get_fast_modinfo($course)->get_section_info_all();
-
-        $hasmoved = $sectionactions->move_after($sections[$movedsection], $sections[$previoussection]);
-        $this->assertEquals($expected, $hasmoved);
     }
 
     /**
@@ -1141,7 +1138,8 @@ final class sectionactions_test extends \advanced_testcase {
         yield 'move section 4 after section 2' => [
             'movedsection' => 4,
             'previoussection' => 2,
-            'expected' => [
+            'expectedreturnvalue' => true,
+            'expectedsections' => [
                 null,
                 'Section 1',
                 'Section 2',
@@ -1152,7 +1150,8 @@ final class sectionactions_test extends \advanced_testcase {
         yield 'move section 3 after section 4' => [
             'movedsection' => 3,
             'previoussection' => 4,
-            'expected' => [
+            'expectedreturnvalue' => true,
+            'expectedsections' => [
                 null,
                 'Section 1',
                 'Section 2',
@@ -1163,7 +1162,8 @@ final class sectionactions_test extends \advanced_testcase {
         yield 'move section 3 after section 0' => [
             'movedsection' => 3,
             'previoussection' => 0,
-            'expected' => [
+            'expectedreturnvalue' => true,
+            'expectedsections' => [
                 null,
                 'Section 3',
                 'Section 1',
@@ -1174,51 +1174,24 @@ final class sectionactions_test extends \advanced_testcase {
         yield 'move section 1 after section 4' => [
             'movedsection' => 1,
             'previoussection' => 4,
-            'expected' => [
+            'expectedreturnvalue' => true,
+            'expectedsections' => [
                 null,
                 'Section 2',
                 'Section 3',
                 'Section 4',
                 'Section 1',
             ],
-        ];
-    }
-
-    /**
-     * Data provider for test_move_after.
-     *
-     * @return \Generator
-     */
-    public static function move_after_return_value_provider(): \Generator {
-        yield 'move section 4 after section 2' => [
-            'movedsection' => 4,
-            'previoussection' => 2,
-            'expected' => true,
-        ];
-        yield 'move section 3 after section 4' => [
-            'movedsection' => 3,
-            'previoussection' => 4,
-            'expected' => true,
-        ];
-        yield 'move section 3 after section 0' => [
-            'movedsection' => 3,
-            'previoussection' => 0,
-            'expected' => true,
-        ];
-        yield 'move section 1 after section 4' => [
-            'movedsection' => 1,
-            'previoussection' => 4,
-            'expected' => true,
         ];
         yield 'move section 0 to section 4' => [
             'movedsection' => 0,
             'previoussection' => 4,
-            'expected' => false,
+            'expectedreturnvalue' => false,
         ];
         yield 'move section 2 after section 1 (existing position)' => [
             'movedsection' => 2,
             'previoussection' => 1,
-            'expected' => false,
+            'expectedreturnvalue' => false,
         ];
     }
 
@@ -1227,10 +1200,16 @@ final class sectionactions_test extends \advanced_testcase {
      *
      * @param int $movedsection The section number to move.
      * @param int $position The position to move the section to.
-     * @param array $expected The expected results.
+     * @param bool $expectedreturnvalue
+     * @param array|null $expectedsections
      */
     #[\PHPUnit\Framework\Attributes\DataProvider('move_at_provider')]
-    public function test_move_at(int $movedsection, int $position, array $expected): void {
+    public function test_move_at(
+        int $movedsection,
+        int $position,
+        bool $expectedreturnvalue,
+        ?array $expectedsections = null
+    ): void {
         $this->resetAfterTest();
 
         // Create 4 activities (visible, visible, hidden, hidden).
@@ -1241,40 +1220,26 @@ final class sectionactions_test extends \advanced_testcase {
         $sectionactions = formatactions::section($course);
         $sections  = get_fast_modinfo($course)->get_section_info_all();
 
-        $sectionactions->move_at($sections[$movedsection], $position);
+        $returnvalue = $sectionactions->move_at($sections[$movedsection], $position);
+        $this->assertEquals($expectedreturnvalue, $returnvalue);
         $sections = array_map(
             fn($section) => $section->name,
             get_fast_modinfo($course)->get_section_info_all(),
         );
+        if (!$expectedreturnvalue) {
+            $expectedsections = [
+                null,
+                'Section 1',
+                'Section 2',
+                'Section 3',
+                'Section 4',
+            ];
+        }
         $this->assertEquals(
-            $expected,
+            $expectedsections,
             $sections
         );
     }
-
-    /**
-     * Test section move at method
-     *
-     * @param int $movedsection The section number to move.
-     * @param int $position The position to move the section to.
-     * @param bool $expected The expected results.
-     */
-    #[\PHPUnit\Framework\Attributes\DataProvider('move_at_provider_return_value')]
-    public function test_move_at_return_value(int $movedsection, int $position, bool $expected): void {
-        $this->resetAfterTest();
-
-        // Create 4 activities (visible, visible, hidden, hidden).
-        $course = $this->getDataGenerator()->create_course(
-            ['format' => 'topics', 'numsections' => 4, 'initsections' => true],
-            ['createsections' => true]
-        );
-        $sectionactions = formatactions::section($course);
-        $sections  = get_fast_modinfo($course)->get_section_info_all();
-
-        $hasmoved = $sectionactions->move_at($sections[$movedsection], $position);
-        $this->assertEquals($expected, $hasmoved);
-    }
-
 
     /**
      * Test section move at method when trying to move a section after a non-used section.
@@ -1324,7 +1289,8 @@ final class sectionactions_test extends \advanced_testcase {
         yield 'move section 4 at position 2' => [
             'movedsection' => 4,
             'position' => 2,
-            'expected' => [
+            'expectedreturnvalue' => true,
+            'expectedsections' => [
                 null,
                 'Section 1',
                 'Section 4',
@@ -1335,7 +1301,8 @@ final class sectionactions_test extends \advanced_testcase {
         yield 'move section 3 at position 4' => [
             'movedsection' => 3,
             'position' => 4,
-            'expected' => [
+            'expectedreturnvalue' => true,
+            'expectedsections' => [
                 null,
                 'Section 1',
                 'Section 2',
@@ -1346,56 +1313,34 @@ final class sectionactions_test extends \advanced_testcase {
         yield 'move section 3 at position 1' => [
             'movedsection' => 3,
             'position' => 1,
-            'expected' => [
+            'expectedreturnvalue' => true,
+            'expectedsections' => [
                 null,
                 'Section 3',
                 'Section 1',
                 'Section 2',
                 'Section 4',
             ],
-        ];
-    }
-
-    /**
-     * Data provider for test_move_at.
-     *
-     * @return \Generator
-     */
-    public static function move_at_provider_return_value(): \Generator {
-        yield 'move section 4 at position 2' => [
-            'movedsection' => 4,
-            'position' => 2,
-            'expected' => true,
-        ];
-        yield 'move section 3 at position 4' => [
-            'movedsection' => 3,
-            'position' => 4,
-            'expected' => true,
-        ];
-        yield 'move section 3 at position 1' => [
-            'movedsection' => 3,
-            'position' => 1,
-            'expected' => true,
         ];
         yield 'move section 2 at position 2' => [
             'movedsection' => 2,
             'position' => 2,
-            'expected' => false,
+            'expectedreturnvalue' => false,
         ];
         yield 'move section 2 at position 6' => [
             'movedsection' => 2,
             'position' => 6,
-            'expected' => false,
+            'expectedreturnvalue' => false,
         ];
         yield 'move section 2 at position 0' => [
             'movedsection' => 2,
             'position' => 0,
-            'expected' => false,
+            'expectedreturnvalue' => false,
         ];
         yield 'move section 0 at position 2' => [
             'movedsection' => 2,
             'position' => 0,
-            'expected' => false,
+            'expectedreturnvalue' => false,
         ];
     }
 }
