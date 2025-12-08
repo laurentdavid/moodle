@@ -934,6 +934,7 @@ function course_module_calendar_event_update_process($instance, $cm) {
  * @param int $destination
  * @param bool $ignorenumsections
  * @return boolean Result
+ * @todo see MDL-87419 for the final deprecation in Moodle 6.0.
  */
 #[\core\attribute\deprecated(
     replacement: 'core_courseformat\local\sectionactions',
