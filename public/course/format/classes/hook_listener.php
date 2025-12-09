@@ -114,4 +114,24 @@ class hook_listener {
             base::session_cache_reset($course);
         }
     }
+
+    /**
+     * Example of adding HTML to the footer using the before_footer_html_generation hook.
+     *
+     * @param \core\hook\output\before_footer_html_generation $hook The hook object.
+     */
+    public static function add_navigation_footer_html(
+        \core\hook\output\before_footer_html_generation $hook,
+    ): void {
+
+        if ($hook->renderer->get_page()->has_sticky_footer()) {
+            // If there is already a sticky footer, do not add another one.
+            return;
+        }
+        $navfooter = new \core_courseformat\output\local\coursenav\footer("Sticky Course Navigation Footer");
+        $renderer = $hook->renderer;
+        $hook->add_html(
+            $renderer->render($navfooter)
+        );
+    }
 }
