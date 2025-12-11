@@ -15,7 +15,12 @@ body {
     bottom: calc(#{$stickyfooter-height} * -1);
     transition: bottom .5s;
     z-index: $zindex-sticky;
-    box-shadow: 0 0 1rem rgba($black, .15);
+    // Sticky footer styles: we now have a shadow only on the top, we hide the one on the right side.
+    box-shadow:
+        1rem 1px 0 rgba(var(--bs-white-rgb), var(--bs-bg-opacity)), // To hide the shadown on the right.
+        0.5rem 0 1rem rgba($black, .15);
+    margin-right: 1em; // To match the box shawdow on the right side.
+    padding-left: 1rem; // To compensate for the margin-right.
     font-size: calc(#{$font-size-base} * 1.10);
     // Adjust sticky footer width to the main content area.
     .sticky-footer-content {
@@ -54,7 +59,16 @@ body {
         width: 100%;
     }
 }
-
+#page.show-drawer-left {
+    .stickyfooter {
+        left: $drawer-left-width;
+    }
+}
+#page.show-drawer-right {
+    .stickyfooter {
+        right: $drawer-right-width;
+    }
+}
 .hasstickyfooter .stickyfooter {
     bottom: 0;
 }
