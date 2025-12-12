@@ -580,8 +580,6 @@ final class cmactions_test extends \advanced_testcase {
         // Activity 1 is now in section 2.
         $this->assertEquals(2, $cms[$activities[1]->cmid]->sectionnum);
 
-        // Move back to section 1 after activity 0, we ignore the section param because we provided an "aftercmid" value.
-
         // Create an extra invisible section to test moving to non visible sections.
         $section4 = $this->getDataGenerator()->create_course_section(['course' => $course->id, 'section' => 4]);
         formatactions::section($course)->update($section4, ['visible' => 0]);
@@ -627,7 +625,7 @@ final class cmactions_test extends \advanced_testcase {
         $cmactions = new cmactions($course);
         // Invalid move, cannot move after itself.
         $this->assertFalse($cmactions->move_before($activities[0]->cmid, $activities[0]->cmid));
-        // Move activity 0 after activity 2, so it becomes last in the section.
+        // Move activity 0 before activity 2.
         $this->assertTrue($cmactions->move_before($activities[0]->cmid, $activities[2]->cmid));
         $cms = get_fast_modinfo($course)->get_cms();
         $this->assertEquals(
@@ -649,8 +647,6 @@ final class cmactions_test extends \advanced_testcase {
             ],
             array_values(array_map(fn($cminfo) => $cminfo->name, $cms))
         );
-        // Activity 1 is back to section 1 because Activity 0 is in section 1 (we ignored the $section2 parameter).
-        $this->assertEquals(1, $cms[$activities[1]->cmid]->sectionnum);
 
         // Create an extra invisible section to test moving to non visible sections.
         $section4 = $this->getDataGenerator()->create_course_section(['course' => $course->id, 'section' => 4]);
@@ -665,12 +661,14 @@ final class cmactions_test extends \advanced_testcase {
         // Activity 1 is now in section 4.
         $this->assertEquals(4, get_fast_modinfo($course)->get_cm($activities[1]->cmid)->sectionnum);
         $cms = get_fast_modinfo($course)->get_cms();
+        // And not visible.
         $this->assertEquals(0, $cms[$activities[1]->cmid]->visible);
 
         // Now move it back to section 1, at the end of the section, and check that it becomes visible again.
         $this->assertTrue($cmactions->move_before($activities[1]->cmid, $activities[0]->cmid));
         $this->assertEquals(1, get_fast_modinfo($course)->get_cm($activities[1]->cmid)->sectionnum);
         $cms = get_fast_modinfo($course)->get_cms();
+        // And visible again.
         $this->assertEquals(1, $cms[$activities[1]->cmid]->visible);
     }
     /**

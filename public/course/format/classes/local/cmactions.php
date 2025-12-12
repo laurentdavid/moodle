@@ -475,6 +475,7 @@ class cmactions extends baseactions {
      * @param int $cmid the course module id to move.
      * @param int $beforecmid
      * @return bool true if the course module was moved, false otherwise.
+     * @throws \core\exception\coding_exception If trying to move a module with FEATURE_CAN_DISPLAY = false from section 0.
      */
     public function move_before(int $cmid, int $beforecmid): bool {
         if ($cmid === $beforecmid) {
@@ -513,6 +514,7 @@ class cmactions extends baseactions {
      * @param int $cmid the course module id to move.
      * @param int $targetsectionid the target section.
      * @return bool true if the course module was moved, false otherwise.
+     * @throws \core\exception\coding_exception If trying to move a module with FEATURE_CAN_DISPLAY = false from section 0.
      */
     public function move_end_section(int $cmid, int $targetsectionid): bool {
         $modinfo = get_fast_modinfo($this->course->id);
@@ -521,6 +523,11 @@ class cmactions extends baseactions {
         }
         $cmsection = $cm->get_section_info();
         $targetsection = $this->get_section_info($targetsectionid, MUST_EXIST);
+        if ($targetsection->section != 0 && !course_modinfo::is_mod_type_visible_on_course($cm->modname)) {
+            throw new \core\exception\coding_exception(
+                "Modules with FEATURE_CAN_DISPLAY set to false can not be moved from section 0"
+            );
+        }
         // Remove original module from original section.
         if (!delete_mod_from_section($cm->id, $cm->section)) {
             throw new \core\exception\coding_exception("Could not delete module ($cm->id) from existing section");
