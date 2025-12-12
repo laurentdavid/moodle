@@ -5,4 +5,4 @@ notes:
         Deprecates moveto_module (core_course) in favor of
         cmactions::move_before or cmactions::move_end_section
         (core_courseformat\local\cmactions).
-      type: improved
+      type: deprecated
