@@ -1439,8 +1439,9 @@ final class stateactions_test extends \advanced_testcase {
     #[\PHPUnit\Framework\Attributes\DataProvider('cm_move_provider')]
     public function test_cm_move(
         array $cmtomove,
-        string $targetsection,
         array $expectedcoursetree,
+        ?string $targetsection = null,
+        ?string $targetmodule = null,
         ?string $expectedexception = null
     ): void {
         $this->resetAfterTest();
@@ -1457,48 +1458,15 @@ final class stateactions_test extends \advanced_testcase {
         $actions = new stateactions();
         // We do this to make sure we can reference subsection1 in the course tree (and not just section5 as subsection1 is
         // both a module and a subsection).
-        if (str_starts_with($targetsection, 'subsection')) {
+        if ($targetsection && str_starts_with($targetsection, 'subsection')) {
             $targetsection = $targetsection . 'sectionid';
         }
         $actions->cm_move(
             $updates,
             $course,
             $this->translate_references($references, $cmtomove),
-            $references[$targetsection]
-        );
-
-        $coursetree = $this->get_course_tree($course, $references);
-        $this->assertEquals($expectedcoursetree, $coursetree);
-    }
-
-    /**
-     * Test course module move and subsection move.
-     *
-     * @covers ::cm_move
-     * @dataProvider cm_move_to_module_provider
-     * @param string[] $cmtomove the sections to move
-     * @param string $targetmodule
-     * @param string[] $expectedcoursetree expected course tree
-     */
-    public function test_cm_move_to_module(
-        array $cmtomove,
-        string $targetmodule,
-        array $expectedcoursetree,
-    ): void {
-        $this->resetAfterTest();
-        [$course, $references] = $this->setup_move_to_course_and_modules();
-        // Initialise stateupdates.
-        $courseformat = course_get_format($course->id);
-        $updates = new stateupdates($courseformat);
-
-        // Execute the method.
-        $actions = new stateactions();
-        $actions->cm_move(
-            $updates,
-            $course,
-            $this->translate_references($references, $cmtomove),
-            null,
-            $references[$targetmodule]
+            $targetsection ? $references[$targetsection] : null,
+            $targetmodule ? $references[$targetmodule] : null
         );
 
         $coursetree = $this->get_course_tree($course, $references);
@@ -1653,24 +1621,6 @@ final class stateactions_test extends \advanced_testcase {
                 'section4' => [],
             ],
         ];
-    }
-
-    /**
-     * Provider for test_cm_move_to_module.
-     *
-     *
-     * The original coursetree looks like this:
-     * 'coursetree' => [
-     *    'section0' => ['cm0'],
-     *    'section1' => ['subsection1' => ['cm2'],'subsection2' => []],
-     *    'section2' => ['cm1'],
-     *    'section3' => ['cm3', 'cm4'],
-     *    'section4' => [],
-     * ],
-     *
-     * @return array the testing scenarios
-     */
-    public static function cm_move_to_module_provider(): \Generator {
         yield
         'Move module after cm1' => [
             'cmtomove' => ['cm0'],

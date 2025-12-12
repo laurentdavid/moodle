@@ -63,8 +63,8 @@ class stateactions {
         }
 
         $this->validate_cms($course, $ids, __FUNCTION__, ['moodle/course:manageactivities']);
-        // The moveto_module function move elements before a specific target.
-        // To keep the order the movements must be done in descending order (last activity first).
+        // To keep the order the movements must be done in descending order (last activity first), so we add them "before"
+        // in the reverse order (ending up in the original ascending order).
         $ids = $this->sort_cm_ids_by_course_position($course, $ids, true);
 
         // Target cm has more priority than target section.
