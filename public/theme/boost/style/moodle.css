@@ -31261,8 +31261,9 @@ table.calendartable caption {
   }
 }
 /* Temporary visual highlight for anchors. */
-[id^=section-]:target,
-[id^=module-]:target {
+body:not(.editing) [id^=section-]:target, body.editing [id^=section-]:target .activity-item,
+body:not(.editing) [id^=module-]:target,
+body.editing [id^=module-]:target .activity-item {
   animation: highlight-fade 3s ease-in-out forwards;
 }
 

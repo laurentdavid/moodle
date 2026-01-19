@@ -939,7 +939,10 @@ $divider-hover-color: $primary !default;
 /* Temporary visual highlight for anchors. */
 [id^="section-"]:target,
 [id^="module-"]:target {
-    animation: highlight-fade 3s ease-in-out forwards;
+    body:not(.editing) &,
+    body.editing & .activity-item {
+        animation: highlight-fade 3s ease-in-out forwards;
+    }
 }
 
 @keyframes highlight-fade {
