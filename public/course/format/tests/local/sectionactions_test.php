@@ -1188,6 +1188,11 @@ final class sectionactions_test extends \advanced_testcase {
             'previoussection' => 1,
             'expectedreturnvalue' => false,
         ];
+        yield 'move section 2 after itself' => [
+            'movedsection' => 2,
+            'previoussection' => 2,
+            'expectedreturnvalue' => false,
+        ];
     }
 
     /**

@@ -423,13 +423,13 @@ class sectionactions extends baseactions {
      */
     public function move_after(section_info $section, section_info $precedingsectioninfo): bool {
         $precedingsectionposition = $precedingsectioninfo->sectionnum;
-        if ($section->sectionnum == $precedingsectionposition + 1) {
+        $canmove = $section->id != $precedingsectioninfo->id &&
+            ($section->sectionnum != $precedingsectionposition + 1);
+        $canmove = $canmove && ($precedingsectioninfo->course == $this->course->id);
+        if (!$canmove) {
             return false;
         }
-        if ($precedingsectioninfo->course != $this->course->id) {
-            return false;
-        }
-        if ($section->sectionnum >= $precedingsectioninfo->sectionnum) {
+        if ($section->sectionnum > $precedingsectioninfo->sectionnum) {
             $precedingsectionposition += 1;
         }
         return $this->move_at($section, $precedingsectionposition);
