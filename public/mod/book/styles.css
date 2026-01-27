@@ -105,9 +105,11 @@
 
 @media (max-width: 768px) {
     .path-mod-book #mod_book-chaptersnavigation {
-        top: calc(100% - 250px);
+        top: calc(100vh - 250px);
         margin: 0 -0.5rem;
         z-index: 1;
+        position: fixed;
+        width: 100%;
     }
 
     .path-mod-book .btn-previous,
