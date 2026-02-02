@@ -16,8 +16,6 @@
 
 namespace core_courseformat\local;
 
-use core\exception\coding_exception;
-use core\exception\moodle_exception;
 use core_courseformat\formatactions;
 use core_courseformat\hook\after_cm_name_edited;
 
@@ -787,7 +785,7 @@ final class cmactions_test extends \advanced_testcase {
         }
         // For backup/restore operations, we need to be logged in.
         $this->setAdminUser();
-        $cmactions->duplicate(
+        $newcm = $cmactions->duplicate(
             cmid: $cmid,
             targetsectionid: $targetsectionid,
             aftercmid: $aftercmid,
@@ -806,6 +804,25 @@ final class cmactions_test extends \advanced_testcase {
             }
         }
         $this->assertEquals($expected, $mappedcourse);
+
+        // We ignore obvious differences and also sections information as it is already tested above (and
+        // can differ due to section movements).
+        $ignoredproperties = ['id', 'url', 'instance', 'added', 'context', 'section', 'sectionid', 'sectionnum'];
+        // Make sure they are the same, except obvious id changes.
+        foreach ($modinfo->get_cm($cmid) as $prop => $value) {
+            if (in_array($prop, $ignoredproperties, true)) {
+                // Ignore obviously different properties.
+                continue;
+            }
+            if ($prop == 'name') {
+                if (empty($newname)) {
+                    $value = get_string('duplicatedmodule', 'moodle', $value);
+                } else {
+                    $value = $newname;
+                }
+            }
+            $this->assertEquals($value, $newcm->$prop);
+        }
     }
 
     /**
@@ -1026,6 +1043,115 @@ final class cmactions_test extends \advanced_testcase {
                 aftercmid: 99999,
             )
         );
+    }
+
+    /**
+     * Test that duplicating a module triggers the expected event.
+     */
+    public function test_duplicate_module_created_event(): void {
+        global $USER;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        // Create an assign module.
+        $sink = $this->redirectEvents();
+        $course = $this->getDataGenerator()->create_course();
+        $module = $this->getDataGenerator()->create_module('assign', ['course' => $course]);
+        $sink->clear(); // Make sure we only capture events from duplication.
+        // Lookup cmid and sectionid based on names.
+        $cmactions = new cmactions($course);
+        $newcm = $cmactions->duplicate($module->cmid);
+        $events = $sink->get_events();
+        $eventscount = 0;
+        $sink->close();
+
+        foreach ($events as $event) {
+            if ($event instanceof \core\event\course_module_created) {
+                $eventscount++;
+                // Validate event data.
+                $this->assertInstanceOf('\core\event\course_module_created', $event);
+                $this->assertEquals($newcm->id, $event->objectid);
+                $this->assertEquals($USER->id, $event->userid);
+                $this->assertEquals($course->id, $event->courseid);
+                $url = new \core\url('/mod/assign/view.php', ['id' => $newcm->id]);
+                $this->assertEquals($url, $event->get_url());
+            }
+        }
+        // Only one \core\event\course_module_created event should be triggered.
+        $this->assertEquals(1, $eventscount);
+    }
+
+    /**
+     * Test that permissions are correctly duplicated when duplicating a module.
+     */
+    public function test_duplicate_module_permissions(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        // Create course and course module.
+        $course = self::getDataGenerator()->create_course();
+        $res = self::getDataGenerator()->create_module('assign', ['course' => $course]);
+        $cm = get_coursemodule_from_id('assign', $res->cmid, 0, false, MUST_EXIST);
+        $cmcontext = \context_module::instance($cm->id);
+
+        // Enrol student user.
+        $user = self::getDataGenerator()->create_user();
+        $roleid = $DB->get_field('role', 'id', ['shortname' => 'student'], MUST_EXIST);
+        self::getDataGenerator()->enrol_user($user->id, $course->id, $roleid);
+
+        // Add capability to original course module.
+        assign_capability('gradereport/grader:view', CAP_ALLOW, $roleid, $cmcontext->id);
+
+        // Duplicate module.
+        $cmactions = new cmactions($course);
+        $newcm = $cmactions->duplicate($res->cmid);
+        $newcmcontext = \context_module::instance($newcm->id);
+
+        // Assert that user still has capability.
+        $this->assertTrue(has_capability('gradereport/grader:view', $newcmcontext, $user));
+
+        // Assert that both modules contain the same count of overrides.
+        $overrides = $DB->get_records('role_capabilities', ['contextid' => $cmcontext->id]);
+        $newoverrides = $DB->get_records('role_capabilities', ['contextid' => $newcmcontext->id]);
+        $this->assertEquals(count($overrides), count($newoverrides));
+    }
+
+    /**
+     * Test that local permissions are correctly duplicated when duplicating a module.
+     */
+    public function test_duplicate_module_role_assignments(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        // Create course and course module.
+        $course = self::getDataGenerator()->create_course();
+        $res = self::getDataGenerator()->create_module('assign', ['course' => $course]);
+        $cm = get_coursemodule_from_id('assign', $res->cmid, 0, false, MUST_EXIST);
+        $cmcontext = \context_module::instance($cm->id);
+
+        // Enrol student user.
+        $user = self::getDataGenerator()->create_user();
+        $roleid = $DB->get_field('role', 'id', ['shortname' => 'student'], MUST_EXIST);
+        self::getDataGenerator()->enrol_user($user->id, $course->id, $roleid);
+
+        // Assign user a new local role.
+        $newroleid = $DB->get_field('role', 'id', ['shortname' => 'editingteacher'], MUST_EXIST);
+        role_assign($newroleid, $user->id, $cmcontext->id);
+
+        // Duplicate module.
+        $cmactions = new cmactions($course);
+        $newcm = $cmactions->duplicate($res->cmid);
+        $newcmcontext = \context_module::instance($newcm->id);
+
+        // Assert that user still has role assigned.
+        $this->assertTrue(user_has_role_assignment($user->id, $newroleid, $newcmcontext->id));
+
+        // Assert that both modules contain the same count of overrides.
+        $overrides = $DB->get_records('role_assignments', ['contextid' => $cmcontext->id]);
+        $newoverrides = $DB->get_records('role_assignments', ['contextid' => $newcmcontext->id]);
+        $this->assertEquals(count($overrides), count($newoverrides));
     }
 
     /**

@@ -518,9 +518,11 @@ class cmactions extends baseactions {
                 // Add ' (copy)' language string postfix to duplicated module.
                 $newname = get_string('duplicatedmodule', 'moodle', $cm->name);
             }
-            set_coursemodule_name($newcm->id, $newname);
+            if ($newname !== $cm->name) {
+                $this->rename($newcm->id, $newname);
+            }
             // Move the new module to the target section.
-            if (isset($targetsectionid) && $targetsectionid != $cm->section) {
+            if (isset($targetsectionid) && $targetsectionid != $newcm->section) {
                 $this->move_end_section($newcm->id, $targetsection->id);
             } else {
                 // Move the new module right after the original one, so it means before the next one.
