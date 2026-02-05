@@ -401,7 +401,6 @@ class cmactions extends baseactions {
      *
      * @param int $cmid Course module id.
      * @param int|null $targetsectionid Target section id. If null, the original section is used.
-     * @param int|null $aftercmid If provided, the duplicated module will be placed after this cmid in the section.
      * @param string|null $newname If provided, the duplicated module will be renamed to this name, if not we
      * use the default ' (copy)' postfix.
      * @return \core_course\cm_info |null The duplicated course module info object, or null if duplication failed.
@@ -411,7 +410,6 @@ class cmactions extends baseactions {
     public function duplicate(
         int $cmid,
         ?int $targetsectionid = null,
-        ?int $aftercmid = null,
         ?string $newname = null
     ): ?\core_course\cm_info {
         global $CFG, $DB, $USER;
@@ -422,7 +420,6 @@ class cmactions extends baseactions {
         $modinfo = get_fast_modinfo($this->course);
         $cm = $modinfo->get_cm($cmid);
         $targetsection = $modinfo->get_section_info_by_id($targetsectionid ?? $cm->get_section_info()->id, MUST_EXIST);
-        $aftercm = $aftercmid ? $modinfo->get_cm($aftercmid) : $cm;
         // Plugins with this feature flag set to false must ALWAYS be in section 0.
         if (!course_modinfo::is_mod_type_visible_on_course($cm->modname)) {
             if ($modinfo->get_section_info(0, MUST_EXIST)->id != $targetsectionid) {
@@ -526,10 +523,10 @@ class cmactions extends baseactions {
                 $this->move_end_section($newcm->id, $targetsection->id);
             } else {
                 // Move the new module right after the original one, so it means before the next one.
-                $sectioninfo = $aftercm->get_section_info();
+                $sectioninfo = $cm->get_section_info();
                 $cmsequence = $sectioninfo->get_sequence_cm_infos();
                 $cmidsequence = array_map(fn($cm) => $cm->id, $cmsequence); // We get the cmid => sequence key map.
-                $aftercmposition = array_search($aftercm->id, $cmidsequence, true);
+                $aftercmposition = array_search($cm->id, $cmidsequence, true);
                 $nextcm = null;
                 if (array_key_exists($aftercmposition + 1, $cmsequence)) {
                     $nextcm = $cmsequence[$aftercmposition + 1];

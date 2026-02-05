@@ -745,7 +745,6 @@ final class cmactions_test extends \advanced_testcase {
      * @param array $coursedata Array defining the course structure. Keys are section names, values are arrays of cm names.
      * @param string $cmname Name of the course module to duplicate.
      * @param string|null $sectionname Name of the section to duplicate into, or null to duplicate into the same section.
-     * @param string|null $aftercmname Name of the course module to duplicate after, or null to duplicate at the end of the section.
      * @param string|null $newname New name for the duplicated course module, or null to use default naming
      * (original name + ' (copy)').
      * @param array $expected Expected result array with keys: 'section' (int), 'position' (int), 'name' (string).
@@ -757,7 +756,6 @@ final class cmactions_test extends \advanced_testcase {
         array $coursedata,
         string $cmname,
         ?string $sectionname,
-        ?string $aftercmname,
         ?string $newname,
         array $expected
     ): void {
@@ -768,7 +766,6 @@ final class cmactions_test extends \advanced_testcase {
         $cmactions = new cmactions($course);
         $modinfo = get_fast_modinfo($course);
         $targetsectionid = null;
-        $aftercmid = null;
         $allcms = $modinfo->get_cms();
         $allcmsbyname = array_combine(
             array_map(fn($cminfo) => $cminfo->get_name(), $allcms),
@@ -780,15 +777,11 @@ final class cmactions_test extends \advanced_testcase {
         if ($sectionname !== null) {
             $targetsectionid = $allsectionsbyname[$sectionname]->id;
         }
-        if ($aftercmname !== null) {
-            $aftercmid = $allcmsbyname[$aftercmname]->id;
-        }
         // For backup/restore operations, we need to be logged in.
         $this->setAdminUser();
         $newcm = $cmactions->duplicate(
             cmid: $cmid,
             targetsectionid: $targetsectionid,
-            aftercmid: $aftercmid,
             newname: $newname,
         );
         // Verify expected result.
@@ -841,7 +834,6 @@ final class cmactions_test extends \advanced_testcase {
             ],
             'cmname' => 'cm1',
             'sectionname' => null,
-            'aftercmname' => null,
             'newname' => null,
             'expected' => [
                 'Section 1' => [
@@ -863,7 +855,6 @@ final class cmactions_test extends \advanced_testcase {
             ],
             'cmname' => 'cm1',
             'sectionname' => null,
-            'aftercmname' => null,
             'newname' => 'New name',
             'expected' => [
                 'Section 1' => [
@@ -871,27 +862,6 @@ final class cmactions_test extends \advanced_testcase {
                     'New name',
                     'cm2',
                     'cm3',
-                ],
-            ],
-        ];
-        yield 'duplicate after a module that is at the end of a section, name not provided' => [
-            'coursedata' => [
-                'Section 1' => [
-                    'cm1',
-                    'cm2',
-                    'cm3',
-                ],
-            ],
-            'cmname' => 'cm1',
-            'sectionname' => null,
-            'aftercmname' => 'cm3',
-            'newname' => null,
-            'expected' => [
-                'Section 1' => [
-                    'cm1',
-                    'cm2',
-                    'cm3',
-                    'cm1 (copy)',
                 ],
             ],
         ];
@@ -906,7 +876,6 @@ final class cmactions_test extends \advanced_testcase {
             ],
             'cmname' => 'cm1',
             'sectionname' => 'Section 2',
-            'aftercmname' => null,
             'newname' => null,
             'expected' => [
                 'Section 1' => [
@@ -915,27 +884,6 @@ final class cmactions_test extends \advanced_testcase {
                 'Section 2' => [
                     'cm2',
                     'cm1 (copy)',
-                ],
-            ],
-        ];
-        yield 'duplicate after a given module, name not provided' => [
-            'coursedata' => [
-                'Section 1' => [
-                    'cm1',
-                    'cm2',
-                    'cm3',
-                ],
-            ],
-            'cmname' => 'cm1',
-            'sectionname' => null,
-            'aftercmname' => 'cm2',
-            'newname' => null,
-            'expected' => [
-                'Section 1' => [
-                    'cm1',
-                    'cm2',
-                    'cm1 (copy)',
-                    'cm3',
                 ],
             ],
         ];
@@ -1006,41 +954,6 @@ final class cmactions_test extends \advanced_testcase {
             $cmactions->duplicate(
                 cmid: $allcmsbyname['cm1']->id,
                 targetsectionid: 99999,
-            )
-        );
-    }
-
-    /**
-     * Test duplicating a course with wrong aftercmid.
-     *
-     * @return void
-     */
-    public function test_duplicate_wrong_aftercmid(): void {
-        $this->resetAfterTest();
-        $coursedata = [
-            'Section 1' => [
-                'cm1',
-                'cm2',
-                'cm3',
-            ],
-        ];
-        $course = $this->create_course_from_data($coursedata);
-        $modinfo = get_fast_modinfo($course);
-        $allcms = $modinfo->get_cms();
-        $allcmsbyname = array_combine(
-            array_map(fn($cminfo) => $cminfo->get_name(), $allcms),
-            $allcms
-        );
-        // Lookup cmid and sectionid based on names.
-        $cmactions = new cmactions($course);
-        $this->expectException(\moodle_exception::class);
-        $this->expectExceptionMessage('Invalid course module ID: 99999');
-        // For backup/restore operations, we need to be logged in.
-        $this->setAdminUser();
-        $this->assertFalse(
-            $cmactions->duplicate(
-                cmid: $allcmsbyname['cm1']->id,
-                aftercmid: 99999,
             )
         );
     }
