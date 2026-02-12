@@ -17,6 +17,8 @@
 namespace core;
 
 use core\tests\router\route_testcase;
+use GuzzleHttp\Psr7\ServerRequest;
+use Psr\Http\Message\ResponseInterface;
 use Slim\App;
 
 /**
@@ -25,9 +27,9 @@ use Slim\App;
  * @package    core
  * @copyright  Andrew Lyons <andrew@nicols.co.uk>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \core\router
- * @covers     \core\router\response_handler
  */
+#[\PHPUnit\Framework\Attributes\CoversClass(\core\router::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(\core\router\response_handler::class)]
 final class router_test extends route_testcase {
     public function test_get_app(): void {
         $router = $this->get_router('/example');
@@ -88,9 +90,8 @@ final class router_test extends route_testcase {
         $this->assertEquals('/example', $router->basepath);
     }
 
-    /**
-     * @dataProvider basepath_provider
-     */
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('basepath_provider')]
     public function test_basepath(
         string $wwwroot,
         bool $configured,
@@ -231,6 +232,53 @@ final class router_test extends route_testcase {
             false,
             '/example',
             '/moodle/r.php',
+        ];
+    }
+
+    /**
+     * Test the expected error codes of various exception types.
+     *
+     * @param \Throwable $exception The exception to throw.
+     * @param int $expectedstatus The expected HTTP status code.
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('exception_provider')]
+    public function test_error_codes_correct(
+        \Throwable $exception,
+        int $expectedstatus,
+    ): void {
+        $app = $this->get_app();
+
+        $app->map(['GET'], '/test', fn ($request, $response) => throw $exception);
+        // Handle the request.
+        $request = new ServerRequest('GET', '/test');
+        $returns = $app->handle($request);
+        $this->assertInstanceOf(ResponseInterface::class, $returns);
+        $this->assertEquals($expectedstatus, $returns->getStatusCode());
+    }
+
+    /**
+     * Data provider for testing error handling.
+     *
+     * @return \Iterator
+     */
+    public static function exception_provider(): \Iterator {
+        yield 'Generic Exception' => [new \Exception('Test'), 500];
+        yield 'Moodle not_found_exception' => [
+            new \core\exception\not_found_exception('test', 'thing'),
+            404,
+        ];
+        yield 'Not Found Exception' => [new \Slim\Exception\HttpNotFoundException(new ServerRequest('GET', '/test')), 404];
+        yield 'Method Not Allowed Exception' => [
+            new \Slim\Exception\HttpMethodNotAllowedException(
+                new ServerRequest('POST', '/test'),
+                'GET',
+            ),
+            405,
+        ];
+
+        yield 'Moodle exception not implementing response_aware_exception_interface' => [
+            new \core\exception\moodle_exception('test', 'thing'),
+            500,
         ];
     }
 }
