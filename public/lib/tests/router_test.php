@@ -108,13 +108,21 @@ final class router_test extends route_testcase {
         $this->assertEquals($expected, $router->basepath);
     }
 
-    public static function basepath_provider(): \Iterator {
+    /**
+     * Data provider for test_basepath.
+     *
+     * @return \Generator
+     */
+    public static function basepath_provider(): \Generator {
         yield 'Domain Router not configured' => ['http://example.com', false, '/r.php'];
         yield 'Domain Router configured' => ['http://example.com', true, ''];
         yield 'Subdirectory Router not configured' => ['http://example.com/moodle', false, '/moodle/r.php'];
         yield 'Subdirectory Router configured' => ['http://example.com/moodle', true, '/moodle'];
     }
 
+    /**
+     * Test that the basepath is correctly guessed when accessed via r.php.
+     */
     public function test_basepath_guessed_rphp(): void {
         $wwwroot = new \moodle_url('/r.php');
         $_SERVER['SCRIPT_FILENAME'] = 'r.php';
@@ -156,11 +164,9 @@ final class router_test extends route_testcase {
     /**
      * Data provider for test_basepath_guessed_rphp_configuration_provided.
      *
-     * @return \Generator<string, array<bool|string|null>, mixed, void>
+     * @return \Generator
      */
-    public static function router_configured_basepath_provider(): \Iterator {
-        global $CFG;
-
+    public static function router_configured_basepath_provider(): \Generator {
         yield 'Root domain, Not configured, accessed via r.php' => [
             'http://example.com',
             null,
@@ -259,9 +265,9 @@ final class router_test extends route_testcase {
     /**
      * Data provider for testing error handling.
      *
-     * @return \Iterator
+     * @return \Generator
      */
-    public static function exception_provider(): \Iterator {
+    public static function exception_provider(): \Generator {
         yield 'Generic Exception' => [new \Exception('Test'), 500];
         yield 'Moodle not_found_exception' => [
             new \core\exception\not_found_exception('test', 'thing'),

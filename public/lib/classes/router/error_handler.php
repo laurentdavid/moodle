@@ -19,11 +19,10 @@ namespace core\router;
 use core\exception\response_aware_exception;
 use core\router\response\exception_response;
 use Psr\Http\Message\ServerRequestInterface;
-use Slim\App;
 use Slim\Handlers\ErrorHandler;
 
 /**
- * An Eerror Handler implementation for Moodle which is aware of the REST API.
+ * An Error Handler implementation for Moodle which is aware of the REST API.
  *
  * @package    core
  * @copyright  Andrew Lyons <andrew@nicols.co.uk>
@@ -49,7 +48,7 @@ class error_handler extends ErrorHandler {
         if ($exception instanceof response_aware_exception) {
             $responseclassname = $exception->get_response_classname();
             if (is_subclass_of($responseclassname, exception_response::class)) {
-                /** @psalm-var class-string<exception_response> $responseclassname */
+                /** @var class-string<exception_response> $responseclassname */
                 return $responseclassname::get_exception_status_code();
             }
         }
