@@ -69,7 +69,8 @@ class path_section extends \core\router\schema\parameters\path_parameter impleme
         $section = $this->get_section_for_value($value);
         return $request
             ->withAttribute($this->name, $section)
-            ->withAttribute("coursecontext", \context_course::instance($section->course));
+            ->withAttribute("coursecontext", \context_course::instance($section->course))
+            ->withAttribute("course", $section->course);
     }
 
     /**

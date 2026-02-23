@@ -72,6 +72,7 @@ class path_module extends \core\router\schema\parameters\path_parameter implemen
 
         return $request
             ->withAttribute($this->name, $cm)
-            ->withAttribute("{$this->name}context", \core\context\module::instance($cm->id));
+            ->withAttribute("{$this->name}context", \core\context\module::instance($cm->id))
+            ->withAttribute("course", $cm->course);
     }
 }
