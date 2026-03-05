@@ -474,6 +474,9 @@ final class course_navigation_test extends route_testcase {
      * @return \Generator
      */
     public static function cm_previous_provider(): \Generator {
+        global $CFG;
+        require_once("$CFG->libdir/resourcelib.php");
+
         yield 'Simple case (teacher)' => [
             'cmsdef' => [
                 ['name' => 'cm1'],
@@ -831,6 +834,74 @@ final class course_navigation_test extends route_testcase {
                 'params' => ['id', 'forceview'],
             ],
         ];
+    }
+
+    /**
+     * Test that modules with null navigation URLs are excluded from navigation.
+     *
+     * @runInSeparateProcess
+     */
+    public function test_cm_navigation_skips_fake_module_with_null_navigation_url(): void {
+        $this->resetAfterTest();
+        $this->setup_fake_navtest_module();
+
+        $this->execute_cm_navigation_test(
+            cmsdef: [
+                ['name' => 'page1', 'type' => 'page'],
+                ['name' => 'navtest', 'type' => 'navtest'],
+                ['name' => 'page2', 'type' => 'page'],
+            ],
+            current: 'page1',
+            expected: ['id' => 'page2'],
+            direction: 'next',
+        );
+
+        $this->execute_cm_navigation_test(
+            cmsdef: [
+                ['name' => 'page1', 'type' => 'page'],
+                ['name' => 'navtest', 'type' => 'navtest'],
+                ['name' => 'page2', 'type' => 'page'],
+            ],
+            current: 'page2',
+            expected: ['id' => 'page1'],
+            direction: 'previous',
+        );
+    }
+
+    /**
+     * Register and bootstrap the fake module used to test null navigation URLs.
+     */
+    private function setup_fake_navtest_module(): void {
+        global $CFG, $DB;
+
+        $this->add_mocked_plugin(
+            'mod',
+            'navtest',
+            "{$CFG->dirroot}/course/tests/fixtures/fakeplugins/mod/navtest",
+        );
+
+        if (!$DB->record_exists('modules', ['name' => 'navtest'])) {
+            $DB->insert_record('modules', (object) [
+                'name' => 'navtest',
+                'cron' => 0,
+                'lastcron' => 0,
+                'search' => '',
+                'visible' => 1,
+            ]);
+        }
+
+        set_config('version', 2026030500, 'mod_navtest');
+        update_capabilities('mod_navtest');
+
+        $dbman = $DB->get_manager();
+        $table = new \xmldb_table('navtest');
+        if (!$dbman->table_exists($table)) {
+            $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+            $table->add_field('course', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+            $table->add_field('name', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, '');
+            $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+            $dbman->create_table($table);
+        }
     }
 
     /**
