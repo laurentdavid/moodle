@@ -168,4 +168,50 @@ final class state_test extends \advanced_testcase {
             ],
         ];
     }
+
+    /**
+     * Test restricted subsection sections keep their navigation URL in the state.
+     */
+    public function test_restricted_subsection_state_has_sectionurl(): void {
+        global $PAGE;
+
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course(['format' => 'topics']);
+        $restriction = json_encode(\core_availability\tree::get_root_json(
+            [
+                \availability_date\condition::get_json(
+                    \availability_date\condition::DIRECTION_FROM,
+                    time() + HOURSECS,
+                ),
+            ],
+            '&',
+            true,
+        ));
+        $subsection = $this->getDataGenerator()->create_module('subsection', [
+            'course' => $course->id,
+            'availability' => $restriction,
+        ]);
+
+        $student = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $this->setUser($student);
+
+        $format = course_get_format($course->id);
+        $renderer = $format->get_renderer($PAGE);
+        $modinfo = get_fast_modinfo($course);
+        $delegatedsection = $modinfo->get_cm($subsection->cmid)->get_delegated_section_info();
+
+        $this->assertNotNull($delegatedsection);
+        $this->assertFalse($delegatedsection->uservisible);
+        $this->assertNotEmpty($delegatedsection->availableinfo);
+
+        $sectionclass = $format->get_output_classname('state\\section');
+        $sectionstate = new $sectionclass($format, $delegatedsection);
+        $result = $sectionstate->export_for_template($renderer);
+
+        $this->assertSame(
+            course_get_url($course, $delegatedsection->section, ['navigation' => true])?->out(false),
+            $result->sectionurl,
+        );
+    }
 }
