@@ -41,15 +41,28 @@ class sectionactions extends baseactions {
      */
     protected function create_from_object(stdClass $fields, bool $skipcheck = false): stdClass {
         global $DB;
+
+        if (isset($fields->section) && (int) $fields->section === 0) {
+            if (!empty($fields->component)) {
+                throw new \coding_exception('Section 0 can not be delegated.');
+            }
+            $existingsection = $DB->get_record('course_sections', ['course' => $this->course->id, 'section' => 0]);
+            if ($existingsection) {
+                return $existingsection;
+            }
+            $skipcheck = true;
+        }
+
         [
             'position' => $position,
             'lastsection' => $lastsection,
+            'insertsection' => $insertsection,
         ] = $this->calculate_positions($fields, $skipcheck);
 
-        // First add section to the end.
+        // First add the section at the calculated initial section number.
         $sectionrecord = (object) [
             'course' => $this->course->id,
-            'section' => $lastsection + 1,
+            'section' => $insertsection,
             'summary' => $fields->summary ?? '',
             'summaryformat' => $fields->summaryformat ?? FORMAT_HTML,
             'sequence' => '',
@@ -87,33 +100,37 @@ class sectionactions extends baseactions {
      *
      * This method returns what is the best position for a new section data and, also, what is the current
      * last section number. The last section is needed to decide if the new section must be moved or not after
-     * insertion.
+     * insertion. The insert section is the temporary section number used when creating the database record.
      *
      * @param stdClass $fields the fields to set on the section
      * @param bool $skipcheck the position check has already been made and we know it can be used
-     * @return array with the new section position (position key) and the course last section value (lastsection key)
+     * @return array with the new section position (position key), the course last section value (lastsection key), and
+     *     the initial insert section value (insertsection key)
      */
     private function calculate_positions($fields, $skipcheck): array {
         if (!isset($fields->section)) {
             $skipcheck = false;
         }
+        $lastsection = $this->get_last_section_number();
         if ($skipcheck) {
             return [
                 'position' => $fields->section,
-                'lastsection' => $fields->section - 1,
+                'lastsection' => $lastsection,
+                'insertsection' => $fields->section,
             ];
         }
 
-        $lastsection = $this->get_last_section_number();
         if (!empty($fields->component)) {
             return [
                 'position' => $fields->section ?? $lastsection + 1,
                 'lastsection' => $lastsection,
+                'insertsection' => $lastsection + 1,
             ];
         }
         return [
             'position' => $fields->section ?? $this->get_last_section_number(false) + 1,
             'lastsection' => $lastsection,
+            'insertsection' => $lastsection + 1,
         ];
     }
 
@@ -146,6 +163,9 @@ class sectionactions extends baseactions {
         ?int $itemid = null,
         ?stdClass $fields = null
     ): section_info {
+        if ($fields && isset($fields->section) && (int) $fields->section === 0) {
+            throw new \coding_exception('Section 0 can not be delegated.');
+        }
         $record = ($fields) ? clone $fields : new stdClass();
         $record->component = $component;
         $record->itemid = $itemid;
@@ -194,10 +214,13 @@ class sectionactions extends baseactions {
 
         $sections = $modinfo->get_section_info_all();
         foreach ($sectionnums as $sectionnum) {
+            if ($sectionnum === 0 && isset($sections[0])) {
+                continue;
+            }
             if (isset($sections[$sectionnum]) && empty($sections[$sectionnum]->component)) {
                 continue;
             }
-            $this->create($sectionnum, $skipcheck);
+            $this->create($sectionnum, $sectionnum === 0 || $skipcheck);
             $result = true;
         }
         return $result;

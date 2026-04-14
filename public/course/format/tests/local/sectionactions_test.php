@@ -232,6 +232,95 @@ final class sectionactions_test extends \advanced_testcase {
     }
 
     /**
+     * Test section 0 creation when section 0 exists.
+     */
+    public function test_create_section_zero_when_section_zero_exists(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course(
+            ['format' => 'topics', 'numsections' => 1],
+            ['createsections' => true],
+        );
+
+        $sectionactions = new sectionactions($course);
+
+        $existingsectionid = $DB->get_field(
+            'course_sections',
+            'id',
+            ['course' => $course->id, 'section' => 0],
+            MUST_EXIST
+        );
+        $beforecount = $DB->count_records('course_sections', ['course' => $course->id]);
+
+        $sectionzero = $sectionactions->create(0, true);
+
+        $aftercount = $DB->count_records('course_sections', ['course' => $course->id]);
+        $this->assertEquals($existingsectionid, $sectionzero->id);
+        $this->assertEquals(0, $sectionzero->section);
+        $this->assertEquals($beforecount, $aftercount);
+    }
+
+    /**
+     * Test section 0 delegated creation is not allowed.
+     */
+    public function test_create_section_zero_delegated_not_allowed(): void {
+        global $CFG;
+        $this->resetAfterTest();
+        require_once($CFG->libdir . '/tests/fixtures/sectiondelegatetest.php');
+
+        $course = $this->getDataGenerator()->create_course(
+            ['format' => 'topics', 'numsections' => 1],
+            ['createsections' => true],
+        );
+
+        $sectionactions = new sectionactions($course);
+
+        $this->expectException(\coding_exception::class);
+        $sectionactions->create_delegated(
+            'test_component',
+            2,
+            (object) ['section' => 0]
+        );
+    }
+
+    /**
+     * Test section 0 creation when section 0 is missing.
+     */
+    public function test_create_section_zero_when_section_zero_is_missing(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $course = $this->getDataGenerator()->create_course(
+            ['format' => 'topics', 'numsections' => 1],
+            ['createsections' => true],
+        );
+
+        $sectionactions = new sectionactions($course);
+
+        $sectionzeroid = $DB->get_field(
+            'course_sections',
+            'id',
+            ['course' => $course->id, 'section' => 0],
+            MUST_EXIST
+        );
+        $DB->delete_records('course_sections', ['id' => $sectionzeroid]);
+        rebuild_course_cache($course->id, true);
+
+        $this->assertEquals(1, course_get_format($course)->get_last_section_number());
+
+        $sectionzero = $sectionactions->create(0, true);
+
+        $this->assertEquals(0, $sectionzero->section);
+        $this->assertEquals(1, course_get_format($course)->get_last_section_number());
+
+        $modinfo = get_fast_modinfo($course);
+        $sectionzero = $modinfo->get_section_info_by_id($sectionzero->id);
+        $this->assertEquals(0, $sectionzero->section);
+    }
+
+
+    /**
      * Test for create_if_missing method.
      *
      * @param array $sectionnums the section numbers to create
@@ -328,6 +417,37 @@ final class sectionactions_test extends \advanced_testcase {
 
         $result = $sectionactions->create_if_missing([1, 2, 3]);
         $this->assertFalse($result);
+    }
+
+    /**
+     * Test create_if_missing can recreate section 0 even when delegated sections exist.
+     */
+    public function test_create_if_missing_recreates_section_zero_with_delegated_sections(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course(
+            ['format' => 'topics', 'numsections' => 1],
+            ['createsections' => true],
+        );
+
+        $sectionactions = new sectionactions($course);
+        $delegatedsection = $sectionactions->create_delegated('mod_forum', 1);
+
+        $sectionzeroid = $DB->get_field('course_sections', 'id', ['course' => $course->id, 'section' => 0], MUST_EXIST);
+        $DB->delete_records('course_sections', ['id' => $sectionzeroid]);
+        rebuild_course_cache($course->id, true);
+
+        $result = $sectionactions->create_if_missing([0]);
+        $this->assertTrue($result);
+
+        $modinfo = get_fast_modinfo($course);
+        $sectionzero = $modinfo->get_section_info(0);
+        $this->assertNotNull($sectionzero);
+        $this->assertEquals(0, $sectionzero->section);
+
+        $delegatedsection = $modinfo->get_section_info_by_id($delegatedsection->id);
+        $this->assertEquals(2, $delegatedsection->section);
     }
 
     /**
