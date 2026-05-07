@@ -53,6 +53,10 @@
             </div>
         {{/hasanyactions}}
     </div>
+
+    {{#navigationbuttons}}
+        <div class="mb-2 me-auto">{{> mod_forum/forum_discussion_navigation}}</div>
+    {{/navigationbuttons}}
 {{/html}}
 
 {{#notifications}}
@@ -60,8 +64,12 @@
 {{/notifications}}
 
 {{{html.posts}}}
-
-{{#html.neighbourlinks}}{{{.}}}{{/html.neighbourlinks}}
+{{#showneighbourlinks}}
+    {{#html.neighbourlinks}}{{{.}}}{{/html.neighbourlinks}}
+{{/showneighbourlinks}}
+{{#navigationbuttons}}
+    <div class="mt-2 me-auto">{{> mod_forum/forum_discussion_navigation}}</div>
+{{/navigationbuttons}}
 </div>
 {{#js}}
 require(
