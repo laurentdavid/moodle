@@ -1921,6 +1921,8 @@ class moodle_page {
         $this->_cm = null;
         $this->_module = null;
         $this->_context = null;
+        $this->hasstickyfooter = false;
+        $this->shownavigationfooter = true;
     }
 
     /**

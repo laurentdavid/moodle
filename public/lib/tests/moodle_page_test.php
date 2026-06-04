@@ -929,6 +929,22 @@ final class moodle_page_test extends \advanced_testcase {
             'AI visibility hint should be true after being re-enabled.'
         );
     }
+
+    /**
+     * Test that theme and output settings for show_navigation_footer as reset
+     * after calling reset_theme_and_output.
+     */
+    public function test_reset_theme_and_output_resets_sticky_footer_flags(): void {
+        $page = new moodle_page();
+
+        $page->set_has_sticky_footer(true);
+        $page->set_show_navigation_footer(false);
+
+        $page->reset_theme_and_output();
+
+        $this->assertFalse($page->has_sticky_footer());
+        $this->assertTrue($page->should_show_navigation_footer());
+    }
 }
 
 /**
