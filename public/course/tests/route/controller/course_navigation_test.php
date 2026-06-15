@@ -1731,4 +1731,282 @@ final class course_navigation_test extends route_testcase {
         $moduleoptions = array_merge($moduleoptions, $options);
         return $generator->create_module($type, $moduleoptions);
     }
+
+    /**
+     * Test get_adjacent_section with next direction.
+     */
+    public function test_get_adjacent_section_next(): void {
+        $this->resetAfterTest();
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course(['numsections' => 3]);
+        $modinfo = get_fast_modinfo($course);
+        $section = $modinfo->get_section_info(0);
+        $navigation = new course_navigation();
+
+        $adjacentsection = $navigation->get_adjacent_section($modinfo, $section, 'next');
+        $this->assertNotNull($adjacentsection);
+        $this->assertEquals(1, $adjacentsection->section);
+
+        $adjacentsection = $navigation->get_adjacent_section($modinfo, $adjacentsection, 'next');
+        $this->assertNotNull($adjacentsection);
+        $this->assertEquals(2, $adjacentsection->section);
+
+        $adjacentsection = $navigation->get_adjacent_section($modinfo, $adjacentsection, 'next');
+        $this->assertNotNull($adjacentsection);
+        $this->assertEquals(3, $adjacentsection->section);
+
+        $adjacentsection = $navigation->get_adjacent_section($modinfo, $adjacentsection, 'next');
+        $this->assertNull($adjacentsection);
+    }
+
+    /**
+     * Test get_adjacent_section with previous direction.
+     */
+    public function test_get_adjacent_section_previous(): void {
+        $this->resetAfterTest();
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course(['numsections' => 3]);
+        $modinfo = get_fast_modinfo($course);
+        $section = $modinfo->get_section_info(3);
+        $navigation = new course_navigation();
+
+        $adjacentsection = $navigation->get_adjacent_section($modinfo, $section, 'previous');
+        $this->assertNotNull($adjacentsection);
+        $this->assertEquals(2, $adjacentsection->section);
+
+        $adjacentsection = $navigation->get_adjacent_section($modinfo, $adjacentsection, 'previous');
+        $this->assertNotNull($adjacentsection);
+        $this->assertEquals(1, $adjacentsection->section);
+
+        $adjacentsection = $navigation->get_adjacent_section($modinfo, $adjacentsection, 'previous');
+        $this->assertNotNull($adjacentsection);
+        $this->assertEquals(0, $adjacentsection->section);
+
+        $adjacentsection = $navigation->get_adjacent_section($modinfo, $adjacentsection, 'previous');
+        $this->assertNull($adjacentsection);
+    }
+
+    /**
+     * Test get_all_section_cms returns all course modules of a section.
+     */
+    public function test_get_all_section_cms(): void {
+        $this->resetAfterTest();
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course(['numsections' => 1]);
+        $cm1 = $generator->create_module('assign', ['course' => $course->id, 'section' => 1]);
+        $cm2 = $generator->create_module('assign', ['course' => $course->id, 'section' => 1]);
+
+        $modinfo = get_fast_modinfo($course);
+        $section = $modinfo->get_section_info(1);
+
+        $navigation = new course_navigation();
+        // Test that the method is public and callable
+        $cms = $navigation->get_all_section_cms($modinfo, $section);
+
+        $this->assertIsArray($cms);
+        $this->assertCount(2, $cms);
+    }
+
+    /**
+     * Test is_first_element in course with content.
+     */
+    public function test_is_first_element(): void {
+        $this->resetAfterTest();
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course(['numsections' => 1]);
+        $cm1 = $generator->create_module('assign', ['course' => $course->id, 'section' => 0]);
+        $cm2 = $generator->create_module('assign', ['course' => $course->id, 'section' => 0]);
+        $cm3 = $generator->create_module('assign', ['course' => $course->id, 'section' => 1]);
+
+        // Create a student user
+        $student = $generator->create_and_enrol($course, 'student');
+        $this->setUser($student);
+
+        $modinfo = get_fast_modinfo($course);
+        $section = $modinfo->get_section_info(0);
+        $navigation = new course_navigation();
+        $allcms = $navigation->get_all_section_cms($modinfo, $section);
+
+        $cminfo = $modinfo->get_cm($cm1->cmid);
+        $this->assertTrue($navigation->is_first_element($cminfo, $modinfo, $allcms));
+
+        $cminfo = $modinfo->get_cm($cm2->cmid);
+        $this->assertFalse($navigation->is_first_element($cminfo, $modinfo, $allcms));
+
+        $section = $modinfo->get_section_info(1);
+        $allcms = $navigation->get_all_section_cms($modinfo, $section);
+        $cminfo = $modinfo->get_cm($cm3->cmid);
+        $this->assertFalse($navigation->is_first_element($cminfo, $modinfo, $allcms));
+    }
+
+    /**
+     * Test is_first_element skips non-navigable modules in section 0.
+     */
+    public function test_is_first_element_skips_non_navigable(): void {
+        $this->resetAfterTest();
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course(['numsections' => 2]);
+        $label = $generator->create_module('label', ['course' => $course->id, 'section' => 0]);
+        $hiddencm = $generator->create_module('assign', [
+            'course' => $course->id,
+            'section' => 0,
+            'visible' => false,
+        ]);
+        $availability = '{"op":"&","c":[{"type":"date","d":">=","t":' . (time() + (2 * DAYSECS)) . '}],"showc":[false]}';
+        $restrictedcm = $generator->create_module('assign', [
+            'course' => $course->id,
+            'section' => 0,
+            'availability' => $availability,
+        ]);
+        
+        $cm = $generator->create_module('assign', ['course' => $course->id, 'section' => 0]);
+
+        // Create a student user
+        $student = $generator->create_and_enrol($course, 'student');
+        $this->setUser($student);
+
+        $modinfo = get_fast_modinfo($course);
+        $section = $modinfo->get_section_info(0);
+        $cminfo = $modinfo->get_cm($cm->cmid);
+        $navigation = new course_navigation();
+        $allcms = $navigation->get_all_section_cms($modinfo, $section);
+
+        $this->assertTrue($navigation->is_first_element($cminfo, $modinfo, $allcms));
+    }
+
+    /**
+     * Test is_last_element in course with content.
+     */
+    public function test_is_last_element(): void {
+        $this->resetAfterTest();
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course(['numsections' => 1]);
+        $cm1 = $generator->create_module('assign', ['course' => $course->id, 'section' => 0]);
+        $cm2 = $generator->create_module('assign', ['course' => $course->id, 'section' => 1]);
+        $cm3 = $generator->create_module('assign', ['course' => $course->id, 'section' => 1]);
+
+        $student = $generator->create_and_enrol($course, 'student');
+        $this->setUser($student);
+
+        $modinfo = get_fast_modinfo($course);
+        $section = $modinfo->get_section_info(0);
+        $navigation = new course_navigation();
+        $allcms = $navigation->get_all_section_cms($modinfo, $section);
+
+        $cminfo = $modinfo->get_cm($cm1->cmid);
+        $this->assertFalse($navigation->is_last_element($cminfo, $modinfo, $allcms));
+
+        $section = $modinfo->get_section_info(1);
+        $allcms = $navigation->get_all_section_cms($modinfo, $section);
+        $cminfo = $modinfo->get_cm($cm2->cmid);
+        $this->assertFalse($navigation->is_last_element($cminfo, $modinfo, $allcms));
+
+        $cminfo = $modinfo->get_cm($cm3->cmid);
+        $this->assertTrue($navigation->is_last_element($cminfo, $modinfo, $allcms));
+    }
+
+    /**
+     * Test is_last_element skips non-navigable modules in last section.
+     */
+    public function test_is_last_element_skips_non_navigable(): void {
+        $this->resetAfterTest();
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course(['numsections' => 1]);
+        $cm = $generator->create_module('assign', ['course' => $course->id, 'section' => 1]);
+
+        $label = $generator->create_module('label', ['course' => $course->id, 'section' => 1]);
+        $hiddencm = $generator->create_module('assign', [
+            'course' => $course->id,
+            'section' => 1,
+            'visible' => false,
+        ]);
+        $availability = '{"op":"&","c":[{"type":"date","d":">=","t":' . (time() + (2 * DAYSECS)) . '}],"showc":[false]}';
+        $restrictedcm = $generator->create_module('assign', [
+            'course' => $course->id,
+            'section' => 0,
+            'availability' => $availability,
+        ]);
+
+        // Create a student user
+        $student = $generator->create_and_enrol($course, 'student');
+        $this->setUser($student);
+
+        $modinfo = get_fast_modinfo($course);
+        $section = $modinfo->get_section_info(0);
+        $cminfo = $modinfo->get_cm($cm->cmid);
+        $navigation = new course_navigation();
+        $allcms = $navigation->get_all_section_cms($modinfo, $section);
+
+        $this->assertTrue($navigation->is_last_element($cminfo, $modinfo, $allcms));
+    }
+
+    /**
+     * Test get_adjacent_section skips hidden sections (next direction) as a student.
+     */
+    public function test_get_adjacent_section_skips_hidden_next(): void {
+        $this->resetAfterTest();
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course(['numsections' => 5]);
+        
+        // Create a student user
+        $student = $generator->create_and_enrol($course, 'student');
+        $this->setUser($student);
+        
+        // Hide section 2
+        $modinfo = get_fast_modinfo($course);
+        $section2 = $modinfo->get_section_info(2);
+        \core_courseformat\formatactions::section($course)->update($section2, ['visible' => false]);
+
+        // Make section 3 unavailable with hidden restrictions
+        $modinfo = get_fast_modinfo($course);
+        $section3 = $modinfo->get_section_info(3);
+        $availability = '{"op":"&","c":[{"type":"date","d":">=","t":9999999999}],"showc":[false]}';
+        \core_courseformat\formatactions::section($course)->update($section3, ['availability' => $availability]);
+
+        // Refresh modinfo after making the change
+        $modinfo = get_fast_modinfo($course);
+        $section1 = $modinfo->get_section_info(1);
+        
+        $navigation = new course_navigation();
+        // From section 1, next should skip hidden section 2 and return section 3
+        $adjacentsection = $navigation->get_adjacent_section($modinfo, $section1, 'next');
+        
+        $this->assertNotNull($adjacentsection);
+        $this->assertEquals(4, $adjacentsection->section);
+    }
+
+    /**
+     * Test get_adjacent_section skips hidden sections (previous direction) as a student.
+     */
+    public function test_get_adjacent_section_skips_hidden_previous(): void {
+        $this->resetAfterTest();
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course(['numsections' => 5]);
+        
+        // Create a student user
+        $student = $generator->create_and_enrol($course, 'student');
+        $this->setUser($student);
+        
+        // Hide section 2
+        $modinfo = get_fast_modinfo($course);
+        $section2 = $modinfo->get_section_info(2);
+        \core_courseformat\formatactions::section($course)->update($section2, ['visible' => false]);
+        
+        // Make section 3 unavailable with hidden restrictions
+        $modinfo = get_fast_modinfo($course);
+        $section3 = $modinfo->get_section_info(3);
+        $availability = '{"op":"&","c":[{"type":"date","d":">=","t":9999999999}],"showc":[false]}';
+        \core_courseformat\formatactions::section($course)->update($section3, ['availability' => $availability]);
+
+        // Refresh modinfo after making the change
+        $modinfo = get_fast_modinfo($course);
+        $section4 = $modinfo->get_section_info(4);
+        
+        $navigation = new course_navigation();
+        // From section 3, previous should skip hidden section 2 and return section 1
+        $adjacentsection = $navigation->get_adjacent_section($modinfo, $section3, 'previous');
+        
+        $this->assertNotNull($adjacentsection);
+        $this->assertEquals(1, $adjacentsection->section);
+    }
 }

@@ -40,4 +40,11 @@
         <span class="dir-ltr-hide" aria-hidden="true">{{#pix}} e/backward, core {{/pix}}</span>
     </a>
     {{/nexturl}}
+    {{#backtocourseurl}}
+    <a href="{{.}}" class="course-linear-navigation-link text-decoration-none d-inline-flex align-items-center gap-1 ms-auto">
+        <span>{{#str}} backtocourse, core {{/str}}</span>
+        <span class="dir-rtl-hide" aria-hidden="true">{{#pix}} e/forward, core {{/pix}}</span>
+        <span class="dir-ltr-hide" aria-hidden="true">{{#pix}} e/backward, core {{/pix}}</span>
+    </a>
+    {{/backtocourseurl}}
 </div>

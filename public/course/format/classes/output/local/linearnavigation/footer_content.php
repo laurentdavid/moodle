@@ -16,6 +16,7 @@
 
 namespace core_courseformat\output\local\linearnavigation;
 
+use cm_info;
 use core\output\named_templatable;
 use core\output\renderable;
 use core\output\renderer_base;
@@ -43,19 +44,34 @@ class footer_content implements named_templatable, renderable {
 
     #[\Override]
     public function export_for_template(renderer_base $output) {
+        $data = [];
+        $course_navigation = new course_navigation();
+        [, $cm] = get_course_and_cm_from_cmid($this->cmid);
+        $modinfo = $cm->get_modinfo();
+        $section = $cm->get_section_info();
+        $allsectioncms = $course_navigation->get_all_section_cms($modinfo, $section);
+
+        $isfirst = $course_navigation->is_first_element($cm, $modinfo, $allsectioncms);
         $previousurl = util::get_path_for_callable(
             [course_navigation::class, 'cm_previous_element'],
             ['cm' => $this->cmid],
         );
+        if (!$isfirst) {
+            $data['previousurl'] = $previousurl->out(false);
+        }
+
+        $islast = $course_navigation->is_last_element($cm, $modinfo, $allsectioncms);
         $nexturl = util::get_path_for_callable(
             [course_navigation::class, 'cm_next_element'],
             ['cm' => $this->cmid],
         );
+        if ($islast) {
+            $data['backtocourseurl'] = $nexturl->out(false);
+        } else {
+            $data['nexturl'] = $nexturl->out(false);
+        }
 
-        return [
-            'previousurl' => $previousurl->out(false),
-            'nexturl' => $nexturl->out(false),
-        ];
+        return $data;
     }
 
     #[\Override]

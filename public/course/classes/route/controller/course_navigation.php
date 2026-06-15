@@ -175,7 +175,7 @@ class course_navigation {
      * @param section_info $section
      * @return cm_info[]
      */
-    private function get_all_section_cms(modinfo $modinfo, section_info $section): array {
+    public function get_all_section_cms(modinfo $modinfo, section_info $section): array {
         $sectioncms = [];
         foreach ($section->get_sequence_cm_infos() as $cm) {
             $delegatedsection = $cm->get_delegated_section_info();
@@ -189,6 +189,112 @@ class course_navigation {
             }
         }
         return $sectioncms;
+    }
+
+    /**
+     * Get an adjacent section of a course in the given direction.
+     * If currentsection is the first for 'previous' direction,
+     * or the last for 'next' direction, return null.
+     * If the adjacent section is delegated or not available, continue in the same direction.
+     *
+     * @param modinfo $modinfo
+     * @param section_info $currentsection
+     * @param string $direction Either 'next' or 'previous'.
+     * @return section_info|null The adjacent section, or null if there are no more sections.
+     */
+    public function get_adjacent_section(
+        modinfo $modinfo,
+        section_info $currentsection,
+        string $direction,
+    ): ?section_info {
+        if ($direction === 'previous' && $currentsection->sectionnum <= 0) {
+            // Already at the first section.
+            return null;
+        }
+
+        $offset = ($direction === 'next') ? 1 : -1;
+        $section = $modinfo->get_section_info($currentsection->sectionnum + $offset);
+        if ($section === null) {
+            return null;
+        }
+
+        // If the section is hidden, or its restrictions are hidden (eye closed),
+        // continue in the same direction to find the next available section.
+        if (
+            (!$section->uservisible && (!$section->visible || !$section->availableinfo))
+            || $section->is_delegated()
+        ) {
+            return $this->get_adjacent_section($modinfo, $section, $direction);
+        }
+        return $section;
+    }
+
+    /**
+     * Determine whether a course module is the first accessible element in the course.
+     *
+     * A module is considered the first accessible element when there is no valid
+     * preceding module in the current section (ignoring non-navigable or unavailable
+     * modules) and no accessible previous section exists.
+     *
+     * @param cm_info $cm The course module to check.
+     * @param modinfo $modinfo The course modinfo instance.
+     * @param cm_info[] $allsectioncms Ordered list of section modules to evaluate.
+     * @return bool True if the module is the first accessible element, false otherwise.
+     */
+    public function is_first_element(
+        cm_info $cm,
+        modinfo $modinfo,
+        array $allsectioncms,
+    ): bool {
+        $cmindex = array_search($cm, $allsectioncms, true);
+
+        // First element in the section checks whether there is a previous section.
+        if ($cmindex <= 0) {
+            $section = $this->get_section($cm);
+            $previoussection = $this->get_adjacent_section($modinfo, $section, 'previous');
+            return $previoussection === null;
+        }
+
+        $prevcm = $allsectioncms[$cmindex - 1];
+        if ($this->is_valid_cm($prevcm)) {
+            return false;
+        }
+
+        return $this->is_first_element($prevcm, $modinfo, $allsectioncms);
+    }
+
+    /**
+     * Determine whether a course module is the last accessible element in the course.
+     *
+     * A module is considered the last accessible element when there is no valid
+     * following module in the current section (ignoring non-navigable or unavailable
+     * modules) and no accessible next section exists.
+     *
+     * @param cm_info $cm The course module to check.
+     * @param modinfo $modinfo The course modinfo instance.
+     * @param cm_info[] $allsectioncms Ordered list of section modules to evaluate.
+     * @return bool True if the module is the last accessible element, false otherwise.
+     */
+    public function is_last_element(
+        cm_info $cm,
+        modinfo $modinfo,
+        array $allsectioncms,
+    ): bool {
+        $cmindex = array_search($cm, $allsectioncms, true);
+
+        // Last element in the section checks whether there is a next section.
+        if ($cmindex + 1 >= count($allsectioncms)) {
+            $section = $this->get_section($cm);
+            $nextsection = $this->get_adjacent_section($modinfo, $section, 'next');
+            return $nextsection === null;
+        }
+
+        $nextcm = $allsectioncms[$cmindex + 1];
+        if ($this->is_valid_cm($nextcm)) {
+            return false;
+        }
+
+        return $this->is_last_element($nextcm, $modinfo, $allsectioncms);
     }
 
     /**
@@ -206,29 +312,12 @@ class course_navigation {
         section_info $currentsection,
         string $direction = 'next',
     ): ?ResponseInterface {
-        if ($direction === 'previous') {
-            if ($currentsection->sectionnum == 0) {
-                // Going to previous on the first section.
-                return $this->redirect_to_course($response, $modinfo->get_course()->id);
-            }
-            $section = $modinfo->get_section_info($currentsection->sectionnum);
-        } else {
-            $section = $modinfo->get_section_info($currentsection->sectionnum + 1);
-        }
-        if ($section === null) {
-            // No more sections.
+        $adjacentsection = $this->get_adjacent_section($modinfo, $currentsection, $direction);
+        if ($adjacentsection === null) {
+            // Going to previous on the first section or to next on the last section.
             return $this->redirect_to_course($response, $modinfo->get_course()->id);
         }
-
-        // If the section is hidden, or its restrictions are hidden (eye closed),
-        // find the next available section.
-        if (
-            (!$section->uservisible && (!$section->visible || !$section->availableinfo))
-            || $section->is_delegated()
-        ) {
-            return $this->redirect_to_section($response, $modinfo, $section, $direction);
-        }
-
+        $section = ($direction === 'next') ? $adjacentsection : $currentsection;
         return $this->redirect(
             $response,
             course_get_url($modinfo->get_course(), $section, ['navigation' => true]),
