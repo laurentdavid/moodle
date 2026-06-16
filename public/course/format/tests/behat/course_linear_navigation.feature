@@ -64,6 +64,46 @@ Feature: Display the course linear navigation
       | weeks  |
 
   @javascript
+  Scenario Outline: Clicking Next skips hidden and not available elements
+    Given the following "courses" exist:
+      | fullname | shortname | format   | enablelinearnav | numsections |
+      | Course1  | C1        | <format> | 1               | 0           |
+    And the following "course enrolments" exist:
+      | user | course | role           |
+      | s1   | C1     | student        |
+      | t1   | C1     | editingteacher |
+    And the following "activities" exist:
+      | activity | name  | course | section |
+      | page     | Page1 | C1     | 0       |
+      | page     | Page2 | C1     | 0       |
+      | page     | Page3 | C1     | 0       |
+      | page     | Page4 | C1     | 0       |
+    And I am on the "Course1" "course" page logged in as "t1"
+    And I turn editing mode on
+    # Hide Page2 activity
+    And I open "Page2" actions menu
+    And I click on "Hide" "link" in the "Page2" activity
+    # Add a restriction to Page3 that makes it unavailable to students
+    And I open "Page3" actions menu
+    And I click on "Edit settings" "link" in the "Page3" activity
+    And I expand all fieldsets
+    And I click on "Add restriction..." "button"
+    And I click on "Date" "button" in the "Add restriction..." "dialogue"
+    And I set the following fields to these values:
+      | direction | from |
+      | x[year]   | 2035 |
+    And I click on "Item name displayed with access restriction information if student doesn't meet this condition • Click to hide" "link"
+    And I press "Save and return to course"
+    When I am on the "Page1" "page activity" page logged in as "s1"
+    And I click on "Next" "link" in the "sticky-footer" "region"
+    Then I should see "Page4" in the "page-header" "region"
+
+    Examples:
+      | format |
+      | topics |
+      | weeks  |
+
+  @javascript
   Scenario Outline: Clicking Previous navigates to the previous activity
     Given the following "courses" exist:
       | fullname | shortname | format   | enablelinearnav |
@@ -79,6 +119,46 @@ Feature: Display the course linear navigation
     And I click on "Previous" "link" in the "sticky-footer" "region"
     Then I should see "Page1" in the "page-header" "region"
     And I should not see "Previous" in the "sticky-footer" "region"
+
+    Examples:
+      | format |
+      | topics |
+      | weeks  |
+
+  @javascript
+  Scenario Outline: Clicking Previous skips hidden and not available elements
+    Given the following "courses" exist:
+      | fullname | shortname | format   | enablelinearnav | numsections |
+      | Course1  | C1        | <format> | 1               | 0           |
+    And the following "course enrolments" exist:
+      | user | course | role           |
+      | s1   | C1     | student        |
+      | t1   | C1     | editingteacher |
+    And the following "activities" exist:
+      | activity | name  | course | section |
+      | page     | Page1 | C1     | 0       |
+      | page     | Page2 | C1     | 0       |
+      | page     | Page3 | C1     | 0       |
+      | page     | Page4 | C1     | 0       |
+    And I am on the "Course1" "course" page logged in as "t1"
+    And I turn editing mode on
+    # Hide Page2 activity
+    And I open "Page2" actions menu
+    And I click on "Hide" "link" in the "Page2" activity
+    # Add a restriction to Page3 that makes it unavailable to students
+    And I open "Page3" actions menu
+    And I click on "Edit settings" "link" in the "Page3" activity
+    And I expand all fieldsets
+    And I click on "Add restriction..." "button"
+    And I click on "Date" "button" in the "Add restriction..." "dialogue"
+    And I set the following fields to these values:
+      | direction | from |
+      | x[year]   | 2035 |
+    And I click on "Item name displayed with access restriction information if student doesn't meet this condition • Click to hide" "link"
+    And I press "Save and return to course"
+    When I am on the "Page4" "page activity" page logged in as "s1"
+    And I click on "Previous" "link" in the "sticky-footer" "region"
+    Then I should see "Page1" in the "page-header" "region"
 
     Examples:
       | format |
