@@ -127,3 +127,68 @@ Feature: A user can navigate to previous and next discussions
     And I follow "Discussion 2 Group 1"
     And I should see "Discussion 1 Group 1"
     And I should not see "Group 2"
+
+  Scenario: Navigation buttons are displayed at top and bottom of discussion
+    Given the following "activity" exists:
+      | activity   | forum                    |
+      | course     | C1                       |
+      | idnumber   | forum1                   |
+      | name       | Test Forum               |
+      | forcesubscribe | 1                   |
+    And the following "mod_forum > discussions" exist:
+      | forum  | user     | name              | subject           | message                      |
+      | forum1 | student1 | First Discussion  | First Discussion  | Content of first discussion  |
+      | forum1 | student1 | Second Discussion | Second Discussion | Content of second discussion |
+      | forum1 | student1 | Third Discussion  | Third Discussion  | Content of third discussion  |
+    Given I am logged in as "student1"
+    And I am on the "Test Forum" "forum activity" page
+    When I click on "Second Discussion" "link"
+    Then I should see "2" node occurrences of type "nav" in the "[data-content='forum-discussion']" "css_element"
+    And "Previous discussion: First Discussion" "mod_forum > Discussion navigation link" should exist
+    And "Next discussion: Third Discussion" "mod_forum > Discussion navigation link" should exist
+
+  Scenario: Previous button is disabled when viewing first discussion
+    Given I am logged in as "student1"
+    And I am on the "Test Forum" "forum activity" page
+    When I click on "First Discussion" "link"
+    Then "Next discussion: Second Discussion" "mod_forum > Discussion navigation link" should exist
+    And the "class" attribute of "prev" "mod_forum > Discussion navigation link" should contain "disabled"
+
+  Scenario: Next button is disabled when viewing last discussion
+    Given I am logged in as "student1"
+    And I am on the "Test Forum" "forum activity" page
+    When I click on "Third Discussion" "link"
+    Then "Previous discussion: Second Discussion" "mod_forum > Discussion navigation link" should exist
+    And the "class" attribute of "next" "mod_forum > Discussion navigation link" should contain "disabled"
+
+  Scenario: Navigation buttons allow moving between discussions
+    Given I am logged in as "student1"
+    And I am on the "Test Forum" "forum activity" page
+    When I click on "Second Discussion" "link"
+    And I click on "Previous discussion: First Discussion" "mod_forum > Discussion navigation link"
+    Then I should see "First Discussion" in the "region-main" "region"
+    And I click on "Next discussion: Second Discussion" "mod_forum > Discussion navigation link"
+    And I should see "Second Discussion" in the "region-main" "region"
+    And I click on "Next discussion: Third Discussion" "mod_forum > Discussion navigation link"
+    Then I should see "Third Discussion" in the "region-main" "region"
+
+  Scenario: Navigation is not shown in experimental nested view
+    Given I am logged in as "student1"
+    And I follow "Preferences" in the user menu
+    And I click on "Forum preferences" "link"
+    And I set the field "Use experimental nested discussion view" to "Yes"
+    And I press "Save changes"
+    And the following "activity" exists:
+      | activity   | forum                    |
+      | course     | C1                       |
+      | idnumber   | forum1                   |
+      | name       | Test Forum               |
+      | forcesubscribe | 1                   |
+    And the following "mod_forum > discussions" exist:
+      | forum  | user     | name              | subject           | message                      |
+      | forum1 | student1 | First Discussion  | First Discussion  | Content of first discussion  |
+      | forum1 | student1 | Second Discussion | Second Discussion | Content of second discussion |
+      | forum1 | student1 | Third Discussion  | Third Discussion  | Content of third discussion  |
+    And I am on the "Test Forum" "forum activity" page
+    When I click on "Second Discussion" "link"
+    Then "nav.discussion-nav" "css_element" should not exist
