@@ -55,27 +55,18 @@
 <nav class="discussion-nav d-flex" aria-label="{{#str}}browsediscussions, mod_forum{{/str}}">
     <div class="d-flex gap-2 align-items-center ms-auto">
         {{#navbuttons}}
-            {{#disabled}}
-                <span
-                    class="btn btn-icon btn-outline-secondary disabled"
-                    title="{{title}}"
-                    data-type="{{type}}">
-                    {{#pix}}{{buttonicon}}, core{{/pix}}
-                    <span class="visually-hidden">{{title}}</span>
-                </span>
-            {{/disabled}}
-            {{^disabled}}
-                <a href="{{url}}"
-                   class="btn btn-icon btn-outline-secondary"
-                   title="{{title}}"
-                   aria-label="{{arialabel}}"
-                   data-bs-toggle="tooltip"
-                   data-bs-placement="top"
-                   data-type="{{type}}">
-                    {{#pix}}{{buttonicon}}, core{{/pix}}
-                    <span class="visually-hidden">{{title}}</span>
-                </a>
-            {{/disabled}}
+            <a href="{{url}}"
+               class="btn btn-icon btn-outline-secondary {{#disabled}}disabled{{/disabled}} forum-navigation-button"
+               title="{{title}}"
+               aria-label="{{arialabel}}"
+               {{^disabled}}
+               data-bs-toggle="tooltip"
+               data-bs-placement="top"
+               {{/disabled}}
+               data-type="{{type}}">
+                {{#pix}}{{buttonicon}}, core{{/pix}}
+                <span class="visually-hidden">{{title}}</span>
+            </a>
         {{/navbuttons}}
     </div>
 </nav>
