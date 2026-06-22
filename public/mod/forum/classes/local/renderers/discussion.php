@@ -492,16 +492,15 @@ class discussion {
                 'url' => '#',
                 'title' => get_string('no' . $key . 'discussion', 'mod_forum'),
                 'arialabel' => get_string('no' . $key . 'discussion', 'mod_forum'),
-                'disabled' => false,
+                'disabled' => true,
             ];
-            if (!$neighbour) {
-                $buttoncontext['disabled'] = true;
-            } else {
+            if ($neighbour) {
                 $url = new moodle_url('/mod/forum/discuss.php', ['d' => $neighbour->id]);
                 $name = format_string($neighbour->name);
                 $buttoncontext['url'] = $url->out(false);
                 $buttoncontext['title'] = get_string($key . 'discussiona', 'mod_forum', $name);
                 $buttoncontext['arialabel'] = get_string($key . 'discussiona', 'mod_forum', $name);
+                $buttoncontext['disabled'] = false;
             }
             $context['navbuttons'][] = $buttoncontext;
         }
