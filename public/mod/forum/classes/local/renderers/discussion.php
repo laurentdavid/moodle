@@ -218,9 +218,12 @@ class discussion {
                 'exportdiscussion' => !empty($CFG->enableportfolios) ? $this->get_export_discussion_html($user) : null
             ],
             'settingsselector' => true,
-            'navigationbuttons' => $this->get_discussion_navigation_buttons(),
-            'showneighbourlinks' => $this->displaymode === FORUM_MODE_NESTED_V2,
+            'navigationbuttons' => false,
         ]);
+
+        if ($this->displaymode !== FORUM_MODE_NESTED_V2) {
+            $exporteddiscussion['navigationbuttons'] = $this->get_discussion_navigation_buttons();
+        }
 
         $capabilities = (array) $exporteddiscussion['capabilities'];
 
