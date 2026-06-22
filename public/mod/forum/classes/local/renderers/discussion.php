@@ -497,7 +497,7 @@ class discussion {
                 $url = new moodle_url('/mod/forum/discuss.php', ['d' => $neighbour->id]);
                 $name = format_string($neighbour->name);
                 $buttoncontext['url'] = $url->out(false);
-                $buttoncontext['title'] = $name;
+                $buttoncontext['title'] = get_string($key . 'discussiona', 'mod_forum', $name);
                 $buttoncontext['arialabel'] = get_string($key . 'discussiona', 'mod_forum', $name);
             }
             $context['navbuttons'][] = $buttoncontext;
