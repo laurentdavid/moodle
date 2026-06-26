@@ -1858,7 +1858,7 @@ final class course_navigation_test extends route_testcase {
             'section' => 0,
             'availability' => $availability,
         ]);
-        
+
         $cm = $generator->create_module('assign', ['course' => $course->id, 'section' => 0]);
 
         // Create a student user
@@ -1923,7 +1923,7 @@ final class course_navigation_test extends route_testcase {
         $availability = '{"op":"&","c":[{"type":"date","d":">=","t":' . (time() + (2 * DAYSECS)) . '}],"showc":[false]}';
         $restrictedcm = $generator->create_module('assign', [
             'course' => $course->id,
-            'section' => 0,
+            'section' => 1,
             'availability' => $availability,
         ]);
 
@@ -1932,7 +1932,7 @@ final class course_navigation_test extends route_testcase {
         $this->setUser($student);
 
         $modinfo = get_fast_modinfo($course);
-        $section = $modinfo->get_section_info(0);
+        $section = $modinfo->get_section_info(1);
         $cminfo = $modinfo->get_cm($cm->cmid);
         $navigation = new course_navigation();
         $allcms = $navigation->get_all_section_cms($modinfo, $section);
@@ -1947,11 +1947,11 @@ final class course_navigation_test extends route_testcase {
         $this->resetAfterTest();
         $generator = $this->getDataGenerator();
         $course = $generator->create_course(['numsections' => 5]);
-        
+
         // Create a student user
         $student = $generator->create_and_enrol($course, 'student');
         $this->setUser($student);
-        
+
         // Hide section 2
         $modinfo = get_fast_modinfo($course);
         $section2 = $modinfo->get_section_info(2);
@@ -1966,11 +1966,11 @@ final class course_navigation_test extends route_testcase {
         // Refresh modinfo after making the change
         $modinfo = get_fast_modinfo($course);
         $section1 = $modinfo->get_section_info(1);
-        
+
         $navigation = new course_navigation();
         // From section 1, next should skip hidden section 2 and return section 3
         $adjacentsection = $navigation->get_adjacent_section($modinfo, $section1, 'next');
-        
+
         $this->assertNotNull($adjacentsection);
         $this->assertEquals(4, $adjacentsection->section);
     }
@@ -1982,16 +1982,16 @@ final class course_navigation_test extends route_testcase {
         $this->resetAfterTest();
         $generator = $this->getDataGenerator();
         $course = $generator->create_course(['numsections' => 5]);
-        
+
         // Create a student user
         $student = $generator->create_and_enrol($course, 'student');
         $this->setUser($student);
-        
+
         // Hide section 2
         $modinfo = get_fast_modinfo($course);
         $section2 = $modinfo->get_section_info(2);
         \core_courseformat\formatactions::section($course)->update($section2, ['visible' => false]);
-        
+
         // Make section 3 unavailable with hidden restrictions
         $modinfo = get_fast_modinfo($course);
         $section3 = $modinfo->get_section_info(3);
@@ -2001,11 +2001,11 @@ final class course_navigation_test extends route_testcase {
         // Refresh modinfo after making the change
         $modinfo = get_fast_modinfo($course);
         $section4 = $modinfo->get_section_info(4);
-        
+
         $navigation = new course_navigation();
         // From section 3, previous should skip hidden section 2 and return section 1
         $adjacentsection = $navigation->get_adjacent_section($modinfo, $section3, 'previous');
-        
+
         $this->assertNotNull($adjacentsection);
         $this->assertEquals(1, $adjacentsection->section);
     }
